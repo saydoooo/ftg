@@ -1,3 +1,4 @@
+__version__ = (8, 0, 8)
 """
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
@@ -159,7 +160,6 @@ class HikariAPI:
             return {"success": False}
         kwargs["headers"] = {
             "Authorization": f"Bearer {self.token}",
-            "X-Hikarichat-Version": ".".join(list(map(str, list(__version__)))),
         }
         args = (f"https://api.hikariatama.ru/{args[0]}",)
 
@@ -183,17 +183,6 @@ class HikariAPI:
                 except Exception:
                     await self.report_error(r)
                     return {"success": False}
-
-                if "error" in r and r["error"] == "UPDATE_REQUIRED":
-                    await self.module.allmodules.commands["dlmod"](
-                        await self.client.send_message(
-                            "me", ".dlmod https://mods.hikariatama.ru/hikarichat.py"
-                        )
-                    )
-                    return {
-                        "success": False,
-                        "error": "Request failed. UPDATE_REQUIRED",
-                    }
 
                 if "error" in r and "Rate limit" in r["error"]:
                     await self.report_error(
