@@ -72,7 +72,7 @@ try:
 
     font = requests.get(
         "https://github.com/hikariatama/assets/raw/master/EversonMono.ttf"
-    ).content  # noqa
+    ).content
 except ImportError:
     PIL_AVAILABLE = False
 else:
@@ -80,7 +80,7 @@ else:
 
 logger = logging.getLogger(__name__)
 
-version = f"v{__version__[0]}.{__version__[1]}.{__version__[2]}beta"  # noqa
+version = f"v{__version__[0]}.{__version__[1]}.{__version__[2]}beta"
 ver = f"<u>HikariChat {version}</u>"
 
 FLOOD_TIMEOUT = 0.8
@@ -274,7 +274,7 @@ class HikariAPI:
 
         kwargs["headers"] = {
             "Authorization": f"Bearer {self.token}",
-            "X-Hikarichat-Version": ".".join(list(map(str, list(__version__)))),  # noqa
+            "X-Hikarichat-Version": ".".join(list(map(str, list(__version__)))),
             "X-Hikarichat-Branch": "Beta",
         }
 
@@ -865,7 +865,7 @@ class HikariChatMod(loader.Module):
             f"for {period // 60} min(-s)" if period else "forever",
             reason,
             self.get("punish_suffix", ""),
-        )  # noqa
+        )
 
         if self._is_inline:
             if self.get("logchat"):
@@ -1124,9 +1124,7 @@ class HikariChatMod(loader.Module):
                 await call.answer("Not enough rights!")
                 return
 
-            m = await self._client.send_message(
-                chat, f"{self._prefix}funban {user.id} -s"
-            )
+            m = await self._client.send_message(chat, f"{self._prefix}funban {user.id}")
             await self.funbancmd(m)
             await m.delete()
             msg = self.strings("inline_funbanned").format(
@@ -1147,7 +1145,7 @@ class HikariChatMod(loader.Module):
                 return
 
             m = await self._client.send_message(
-                chat, f"{self._prefix}funmute {user.id} -s"
+                chat, f"{self._prefix}funmute {user.id}"
             )
             await self.funmutecmd(m)
             await m.delete()
@@ -1168,9 +1166,7 @@ class HikariChatMod(loader.Module):
                 await call.answer("Not enough rights!")
                 return
 
-            m = await self._client.send_message(
-                chat, f"{self._prefix}fban {user.id} -s"
-            )
+            m = await self._client.send_message(chat, f"{self._prefix}fban {user.id}")
             await self.fbancmd(m)
             await m.delete()
             msg = self.strings("inline_fbanned").format(
@@ -1297,7 +1293,7 @@ class HikariChatMod(loader.Module):
             comment = "f-banned him"
             await self.fbancmd(
                 await self._client.send_message(
-                    chat_id, f"{self._prefix}fban {user.id} {violation} -s"
+                    chat_id, f"{self._prefix}fban {user.id} {violation}"
                 )
             )
         elif action == "delmsg":
@@ -1884,15 +1880,19 @@ class HikariChatMod(loader.Module):
             except UserAdminInvalidError:
                 pass
 
-        await utils.answer(
-            message,
+        m = (
             self.strings("funban").format(
                 get_link(user), get_first_name(user), self._feds[fed]["name"]
             )
             + "\n\n<b>"
             + "\n".join(unbanned_in)
-            + "</b>",
+            + "</b>"
         )
+
+        if self.get("logchat"):
+            await self._client.send_message(self.get("logchat"), m)
+
+        await utils.answer(message, m)
 
         reply = await message.get_reply_message()
         if reply:
@@ -2057,7 +2057,7 @@ class HikariChatMod(loader.Module):
             + "\n\n<b>"
             + "\n".join(unbanned_in)
             + "</b>"
-        )  # noqa
+        )
 
         await utils.answer(message, msg)
 
@@ -2107,7 +2107,7 @@ class HikariChatMod(loader.Module):
                 get_first_name(user),
                 reason,
                 self.get("punish_suffix", ""),
-            )  # noqa
+            )
             await utils.answer(message, msg)
 
             if self.get("logchat"):
@@ -2203,7 +2203,7 @@ class HikariChatMod(loader.Module):
             )
             msg = self.strings("unmuted").format(
                 get_link(user), get_first_name(user)
-            )  # noqa
+            )
             await utils.answer(message, msg)
 
             if self.get("logchat"):
@@ -2254,7 +2254,7 @@ class HikariChatMod(loader.Module):
             )
             msg = self.strings("unban").format(
                 get_link(user), get_first_name(user)
-            )  # noqa
+            )
             await utils.answer(message, msg)
 
             if self.get("logchat"):
@@ -2480,7 +2480,7 @@ class HikariChatMod(loader.Module):
                 7,
                 reason,
                 self.get("punish_suffix", ""),
-            )  # noqa
+            )
 
             if self._is_inline:
                 punishment_info = {
@@ -3441,13 +3441,13 @@ class HikariChatMod(loader.Module):
         ):
             text = getattr(message, "raw_text", "")
             P = "пПnPp"
-            I = "иИiI1uІИ́Їіи́ї"  # noqa
+            I = "иИiI1uІИ́Їіи́ї"  # noqa: E741
             E = "еЕeEЕ́е́"
             D = "дДdD"
             Z = "зЗ3zZ3"
             M = "мМmM"
             U = "уУyYuUУ́у́"
-            O = "оОoO0О́о́"  # noqa
+            O = "оОoO0О́о́"  # noqa: E741
             L = "лЛlL1"
             A = "аАaAА́а́@"
             N = "нНhH"
