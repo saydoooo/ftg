@@ -226,7 +226,11 @@ api = HikariAPI()
 
 
 class HikariChatMod(loader.Module):
-    """🐻 Bear with us while docstrings are loading..."""
+    """
+Advanced chat admin toolkit
+
+Author @hikariatama
+"""
 
     __metaclass__ = abc.ABCMeta
 
