@@ -629,7 +629,8 @@ class HikariChatMod(loader.Module):
             pass
 
         try:
-            self.flood_cache = json.loads(open("flood_cache.json", "r").read())
+            with open("flood_cache.json", "r") as f:
+                self.flood_cache = json.loads(f.read())
         except Exception:
             self.flood_cache = {}
 
@@ -654,7 +655,8 @@ class HikariChatMod(loader.Module):
             f.write(json.dumps(self._join_ratelimit))
 
     def save_flood_cache(self) -> None:
-        open("flood_cache.json", "w").write(json.dumps(self.flood_cache))
+        with open("flood_cache.json", "w") as f:
+            f.write(json.dumps(self.flood_cache))
 
     async def check_admin(self, chat_id, user_id):
         try:
