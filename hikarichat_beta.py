@@ -659,7 +659,11 @@ class HikariChatMod(loader.Module):
     async def check_admin(self, chat_id, user_id):
         try:
             return (await self._client.get_permissions(chat_id, user_id)).is_admin
-        except ValueError:
+            # We could've ignored only ValueError to check
+            # entity for validity, but there are many errors
+            # possible to occur, so we ignore all of them, bc
+            # actually we don't give a fuck about 'em
+        except Exception:
             return (
                 user_id in self._client.dispatcher.security._owner
                 or user_id in self._client.dispatcher.security._sudo
