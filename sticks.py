@@ -13,8 +13,9 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/sticker.png
+# scope: non_heroku
+# scope: disable_onload_docs
 # requires: Pillow moviepy emoji
-# disable_onload_docs
 
 from .. import loader, utils
 import logging

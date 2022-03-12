@@ -13,6 +13,8 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/cat-head.png
+# scope: non_heroku
+# requires: pydub python-ffmpeg
 
 from .. import loader, utils
 import requests
@@ -20,8 +22,6 @@ import random
 import io
 from pydub import AudioSegment
 from telethon.tl.types import Message
-
-# requires: pydub python-ffmpeg
 
 
 @loader.tds

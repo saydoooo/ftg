@@ -13,6 +13,8 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/pdf-mail.png
+# scope: non_heroku
+# requires: Pillow
 
 from .. import loader, utils
 from PIL import Image, UnidentifiedImageError

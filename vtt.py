@@ -13,6 +13,8 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/voice-id.png
+# scope: non_heroku
+# requires: pydub speechrecognition python-ffmpeg
 
 from .. import loader, utils
 from time import time
@@ -21,8 +23,6 @@ from telethon.tl.types import Message
 import speech_recognition as sr
 from pydub import AudioSegment
 import asyncio
-
-# requires: pydub speechrecognition python-ffmpeg
 
 
 @loader.tds
