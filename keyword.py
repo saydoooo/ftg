@@ -131,6 +131,7 @@ class KeywordMod(loader.Module):
 
         await utils.answer(message, self.strings("kwords").format(res))
 
+    @loader.group_admin_ban_users
     async def kwblcmd(self, message: Message) -> None:
         """Blacklist chat from answering keywords"""
         cid = utils.get_chat_id(message)
