@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: NoMeta
 # meta pic: https://img.icons8.com/fluency/50/000000/v-live.png
-# meta desc: Warns people about Meta messages
 
 from .. import loader
 from telethon.tl.types import Message

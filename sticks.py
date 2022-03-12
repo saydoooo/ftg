@@ -12,10 +12,9 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: StickManager
 # meta pic: https://img.icons8.com/fluency/48/000000/sticker.png
-# meta desc: Sticker manager with video stickers support and friendly design
-
+# requires: Pillow moviepy emoji
+# disable_onload_docs
 
 from .. import loader, utils
 import logging
@@ -49,9 +48,6 @@ from telethon.tl.functions.messages import (
 import asyncio
 import os
 import moviepy.editor as mp
-
-# requires: Pillow moviepy
-# disable_onload_docs
 
 logger = logging.getLogger(__name__)
 

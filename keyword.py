@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: Keyword
 # meta pic: https://img.icons8.com/fluency/48/000000/macbook-chat.png
-# meta desc: Create custom filters with regexes and commands
 
 from .. import loader, utils, main
 import logging
@@ -61,7 +59,7 @@ class KeywordMod(loader.Module):
             args = args.replace(" -m", "").replace("-m", "")
 
         if "-l" in args:
-            l = True
+            l = True  # noqa: E741
             args = args.replace(" -l", "").replace("-l", "")
 
         if "-e" in args:
@@ -82,7 +80,7 @@ class KeywordMod(loader.Module):
             kw = args.split()[0]
             try:
                 args = args.split(maxsplit=1)[1]
-            except:
+            except Exception:
                 args = ""
 
         if ph := args:
@@ -152,7 +150,7 @@ class KeywordMod(loader.Module):
         for user in self.bl:
             try:
                 u = await self.client.get_entity(user)
-            except:
+            except Exception:
                 self.chats[chat]["defense"].remove(user)
                 continue
 
@@ -180,8 +178,7 @@ class KeywordMod(loader.Module):
                     try:
                         if not re.match(kw, message.raw_text):
                             continue
-                    except Exception as e:
-                        # logger.exception(e)
+                    except Exception:
                         continue
                 else:
                     kws = [
@@ -243,7 +240,7 @@ class KeywordMod(loader.Module):
 
                 try:
                     ms = ms[0]
-                except:
+                except Exception:
                     pass
 
                 ms.text = ph[0][2:]
@@ -259,5 +256,5 @@ class KeywordMod(loader.Module):
                     else:
                         await ms.respond(self.strings("no_command"))
 
-        except Exception as e:
+        except Exception:
             pass

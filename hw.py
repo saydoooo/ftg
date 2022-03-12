@@ -12,10 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: HomeWork
 # meta pic: https://img.icons8.com/fluency/48/000000/khan-academy.png
-# meta desc: Homework planner
-
 
 from .. import loader, utils
 import asyncio
@@ -67,7 +64,7 @@ class HomeworkMod(loader.Module):
         """List of hometasks"""
         res = "<b>#HW:</b>\n\n"
         for item_id, item in self.hw.items():
-            res += "🔸 <code>.uhw " + item_id + "</code>: <code>" + item + "</code>\n"
+            res += f"🔸 <code>.uhw {item_id}</code>: <code>{item}" + "</code>\n"
         await utils.answer(message, res)
 
     async def uhwcmd(self, message: Message) -> None:

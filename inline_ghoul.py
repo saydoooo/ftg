@@ -17,7 +17,6 @@
 # scope: inline
 # scope: geektg_only
 
-
 from .. import loader
 from telethon.tl.types import Message
 from aiogram.types import CallbackQuery

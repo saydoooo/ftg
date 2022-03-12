@@ -12,10 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: Catboy
 # meta pic: https://img.icons8.com/color/48/000000/neko-boy.png
-# meta desc: Sends cute anime boy pictures
-
 
 from .. import loader, utils
 from telethon.tl.types import Message

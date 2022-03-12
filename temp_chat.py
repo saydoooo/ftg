@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: TempChat
 # meta pic: https://img.icons8.com/fluency/48/000000/time.png
-# meta desc: Create temporary chats to avoid trash in Telegram
 
 from .. import loader, utils
 import asyncio
@@ -48,29 +46,29 @@ class TempChatMod(loader.Module):
 
         try:
             seconds = int(str(re.search("([0-9]+)s", temp_time).group(1)))
-        except:
+        except Exception:
             pass
 
         try:
             minutes = int(str(re.search("([0-9]+)min", temp_time).group(1))) * 60
-        except:
+        except Exception:
             pass
 
         try:
             hours = int(str(re.search("([0-9]+)h", temp_time).group(1))) * 60 * 60
-        except:
+        except Exception:
             pass
 
         try:
             days = int(str(re.search("([0-9]+)d", temp_time).group(1))) * 60 * 60 * 24
-        except:
+        except Exception:
             pass
 
         try:
             weeks = (
                 int(str(re.search("([0-9]+)w", temp_time).group(1))) * 60 * 60 * 24 * 7
             )
-        except:
+        except Exception:
             pass
 
         try:
@@ -81,7 +79,7 @@ class TempChatMod(loader.Module):
                 * 24
                 * 31
             )
-        except:
+        except Exception:
             pass
 
         return round(time.time() + seconds + minutes + hours + days + weeks + months)
@@ -100,12 +98,12 @@ class TempChatMod(loader.Module):
                         ):
                             await self.client.kick_participant(int(chat), user.id)
                         await self.client.delete_dialog(int(chat))
-                    except:
+                    except Exception:
                         try:
                             await self.client.send_message(
                                 int(chat), self.strings("delete_error")
                             )
-                        except:
+                        except Exception:
                             await self.client.send_message(
                                 "me", self.strings("delete_error_me").format(info[1])
                             )

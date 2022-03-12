@@ -12,10 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: Uploader
 # meta pic: https://img.icons8.com/fluency/48/000000/upload-to-cloud.png
-# meta desc: Uploads files
-
 
 import logging
 import io

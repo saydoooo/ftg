@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: ToDo
 # meta pic: https://img.icons8.com/fluency/48/000000/todo-list.png
-# meta desc: Simple planner
 
 from .. import loader, utils
 import asyncio
@@ -52,7 +50,7 @@ class TodoMod(loader.Module):
         try:
             importance = int(args.split()[0])
             task = args.split(" ", 1)[1]
-        except:
+        except Exception:
             importance = 0
             task = args
 
@@ -61,7 +59,7 @@ class TodoMod(loader.Module):
             reply = await message.get_reply_message()
             if reply:
                 task = reply.text
-        except:
+        except Exception:
             pass
 
         if importance >= len(self.imp_levels):

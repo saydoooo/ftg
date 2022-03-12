@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: Rextester
 # meta pic: https://img.icons8.com/fluency/48/000000/system-information.png
-# meta desc: Code evaluation via @rextester_bot
 
 import logging
 from telethon import TelegramClient

@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: NSFW
 # meta pic: https://img.icons8.com/fluency/48/000000/keep-away-from-children.png
-# meta desc: Sends random NSFW Picture from scrolller.com
 
 from .. import loader, utils
 import requests
@@ -46,15 +44,13 @@ class NSFWMod(loader.Module):
         """<subreddit | default> [-n <quantity | 1 by default>] - Send random NSFW picture"""
         args = utils.get_args_raw(message)
         message = await utils.answer(message, self.strings("loading", message))
-        try:
+        if isinstance(message, (set, tuple, list)):
             message = message[0]
-        except:
-            pass
 
         if "-n" in args:
             try:
                 quantity = int(args[args.find("-n") + 2 :])
-            except:
+            except Exception:
                 quantity = 1
 
             args = args[: args.find("-n")]
@@ -101,13 +97,14 @@ class NSFWMod(loader.Module):
         await self.client.send_file(
             utils.get_chat_id(message),
             file=res,
-            caption="<i>" + utils.escape_html(title) + "</i>",
+            caption=f"<i>{utils.escape_html(title)}</i>",
             parse_mode="HTML",
         )
+
         for path in res:
             try:
                 os.remove(path)
-            except:
+            except Exception:
                 pass
         await message.delete()
 

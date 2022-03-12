@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: SpotifyDownloader
 # meta pic: https://img.icons8.com/fluency/48/000000/spotify.png
-# meta desc: Downloads track from spotify
 
 from .. import loader, utils
 from telethon.tl.types import Message
@@ -40,7 +38,7 @@ class SpotifyDownloaderMod(loader.Module):
         message = await utils.answer(message, "<b>Loading...</b>")
         try:
             message = message[0]
-        except:
+        except Exception:
             pass
         music = await self.client.inline_query("spotifysavebot", args)
         for mus in music:

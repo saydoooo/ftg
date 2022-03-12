@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: Activists
 # meta pic: https://img.icons8.com/fluency/48/000000/edit-message.png
-# meta desc: Finds the most active users in chat
 
 from .. import loader, utils
 from telethon.tl.types import Message, User, Channel, Chat

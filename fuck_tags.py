@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: FuckTags
 # meta pic: https://img.icons8.com/fluency/48/000000/radio-waves.png
-# meta desc: Auto-read tags and messages in selected chats
 
 from .. import loader, utils
 import asyncio

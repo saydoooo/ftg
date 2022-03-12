@@ -12,10 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: Dyslexia
 # meta pic: https://img.icons8.com/fluency/48/000000/quote-right.png
-# meta desc: Shows the text as how you would see it if you have dyslexia
-
 
 from .. import loader, utils
 from random import shuffle
@@ -36,7 +33,7 @@ class DyslexiaMod(loader.Module):
         if not args:
             try:
                 args = (await message.get_reply_message()).text
-            except:
+            except Exception:
                 return await utils.answer(message, self.strings("no_text"))
 
         res = ""

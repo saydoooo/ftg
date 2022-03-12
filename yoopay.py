@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: YooMoney
 # meta pic: https://img.icons8.com/fluency/48/000000/coin-wallet.png
-# meta desc: Send payment link
 
 from .. import loader, utils
 from yoomoney import Quickpay
@@ -52,7 +50,7 @@ class YooMoneyMod(loader.Module):
             if amount < 2:
                 await utils.answer(message, self.strings("args", message))
                 return
-        except:
+        except Exception:
             await utils.answer(message, self.strings("args", message))
             return
 

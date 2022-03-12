@@ -12,10 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: β SecretChat
 # meta pic: https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-secret-emoji-wanicon-flat-wanicon.png
-# meta desc: De-secrets secret chats. Warning: install only if neccessary
-
 
 from .. import loader, utils
 from telethon.tl.types import Message
@@ -33,10 +30,7 @@ logger = logging.getLogger(__name__)
 
 @loader.tds
 class SecretChatMod(loader.Module):
-    """De-secrets secret chats
-    Breakes classic telethon schema in the way, that
-    classic message.entities is replaced with secret TLSchema
-    Install only if you know, what you're doing"""
+    """De-secrets secret chats"""
 
     strings = {"name": "SecretChat", "state": "👀 <b>SecretChat is now {}</b>"}
 
@@ -130,8 +124,6 @@ class SecretChatMod(loader.Module):
             # send_secret_audio
             # send_secret_video
             # send_secret_photo
-
-        # await event.reply('wow')
 
     async def _new_chat(self, chat, created_by_me: bool) -> None:
         if not self.get("state", False):

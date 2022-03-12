@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: YouDBetterSleep
 # meta pic: https://img.icons8.com/fluency/48/000000/sleep.png
-# meta desc: Rescricts writing messages so you can sleep
 
 from .. import loader, utils
 import re
@@ -27,17 +25,17 @@ def s2time(temp_time: str) -> int:
 
     try:
         seconds = int(str(re.search("([0-9]+)s", temp_time).group(1)))
-    except:
+    except Exception:
         pass
 
     try:
         minutes = int(str(re.search("([0-9]+)m", temp_time).group(1))) * 60
-    except:
+    except Exception:
         pass
 
     try:
         hours = int(str(re.search("([0-9]+)h", temp_time).group(1))) * 60 * 60
-    except:
+    except Exception:
         pass
 
     return round(seconds + minutes + hours)
@@ -101,5 +99,5 @@ class YouDBetterSleepMod(loader.Module):
                 return
 
             await utils.answer(message, self.strings("disabled"))
-        except:
+        except Exception:
             pass

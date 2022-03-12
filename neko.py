@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: NekosLife
 # meta pic: https://img.icons8.com/fluency/48/000000/anime.png
-# meta desc: Wrapper for NekosLife API
 
 from .. import loader, utils
 import requests
@@ -96,7 +94,7 @@ class NekosLifeMod(loader.Module):
             message = await utils.answer(message, "<b>OwOifying...</b>")
             try:
                 message = message[0]
-            except:
+            except Exception:
                 pass
 
         args = quote_plus(args)

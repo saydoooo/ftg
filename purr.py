@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: Purr
 # meta pic: https://img.icons8.com/fluency/48/000000/cat-head.png
-# meta desc: Sends purr-r message
 
 from .. import loader, utils
 import requests

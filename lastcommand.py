@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: LastCommand
 # meta pic: https://img.icons8.com/fluency/48/000000/last-12-hours.png
-# meta desc: Execute last command
 
 from .. import loader
 from telethon.tl.types import Message

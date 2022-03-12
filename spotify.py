@@ -12,10 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-
-# meta title: SpotifyNow
 # meta pic: https://img.icons8.com/fluency/48/000000/spotify.png
-# meta desc: Beautiful features to control your spotify playback and share it
 
 import io
 import re

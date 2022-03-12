@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: ModuleCloud
 # meta pic: https://img.icons8.com/fluency/48/000000/cloud-storage.png
-# meta desc: Modules, verified by @hikariatama
 
 from .. import loader, utils
 import asyncio
@@ -52,12 +50,7 @@ class modCloudMod(loader.Module):
     async def addmodcmd(self, message: Message) -> None:
         """<reply_to_file|file> - Send module to @hikari_chat to add to database"""
         reply = await message.get_reply_message()
-        if not reply:
-            media = message.media
-            msid = message.id
-        else:
-            media = reply.media
-            msid = reply.id
+        msid = message.id if not reply else reply.id
 
         async def send(client):
             await client.forward_messages(
@@ -70,14 +63,14 @@ class modCloudMod(loader.Module):
 
         try:
             await send(self.client)
-        except:
+        except Exception:
             try:
                 await self.client(
                     telethon.tl.functions.channels.JoinChannelRequest(
                         await self.client.get_entity("t.me/hikari_chat")
                     )
                 )
-            except:
+            except Exception:
                 await utils.answer(message, self.strings("cannot_join", message))
                 return
 
@@ -87,12 +80,12 @@ class modCloudMod(loader.Module):
         args = utils.get_args_raw(message)
         try:
             msgs = await self.client.get_messages(entity, limit=100)
-        except:
+        except Exception:
             try:
                 await self.client(
                     telethon.tl.functions.channels.JoinChannelRequest(entity)
                 )
-            except:
+            except Exception:
                 await utils.answer(message, self.strings("cannot_join", message))
                 return
 
@@ -106,7 +99,7 @@ class modCloudMod(loader.Module):
                 if not c:
                     await utils.answer(message, msg.text)
                     return
-            except:  # Ignore errors when trying to get text of e.g. service message
+            except Exception:  # Ignore errors when trying to get text of e.g. service message
                 pass
 
         await utils.answer(message, self.strings("mod404", message).format(args))
@@ -166,13 +159,13 @@ class modCloudMod(loader.Module):
 
         try:
             file = await self.client.download_file(media)
-        except:
+        except Exception:
             await utils.answer(message, self.strings("no_file", message))
             return
 
         try:
             code = file.decode("utf-8").replace("\r\n", "\n")
-        except:
+        except Exception:
             await utils.answer(message, self.strings("cannot_check_file", message))
             await asyncio.sleep(3)
             await message.delete()

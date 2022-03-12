@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: RealTimeValutes
 # meta pic: https://img.icons8.com/fluency/50/000000/crowdfunding.png
-# meta desc: Track valutes in real time. Updates more than once a second
 
 # scope: inline_content
 # requires: websockets requests

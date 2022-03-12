@@ -12,10 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: TelethonDocs
 # meta pic: https://img.icons8.com/fluency/48/000000/why-us-female.png
-# meta desc: Simple mod to quickly access telethon docs
-
 
 from .. import loader, utils
 from telethon.tl.types import Message

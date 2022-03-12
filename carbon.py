@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: Carbon
 # meta pic: https://img.icons8.com/fluency/48/000000/code.png
-# meta desc: Create beautiful code images.
 
 from .. import loader, utils
 
@@ -49,7 +47,7 @@ class CarbonMod(loader.Module):
             code_from_message = (await self.client.download_file(message.media)).decode(
                 "utf-8"
             )
-        except:
+        except Exception:
             code_from_message = ""
 
         try:
@@ -57,7 +55,7 @@ class CarbonMod(loader.Module):
             code_from_reply = (await self.client.download_file(reply.media)).decode(
                 "utf-8"
             )
-        except:
+        except Exception:
             code_from_reply = ""
 
         args = args or code_from_message or code_from_reply
@@ -65,7 +63,7 @@ class CarbonMod(loader.Module):
         message = await utils.answer(message, self.strings("loading", message))
         try:
             message = message[0]
-        except:
+        except Exception:
             pass
 
         await self.client.send_message(

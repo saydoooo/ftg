@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: FlashCards
 # meta pic: https://img.icons8.com/fluency/48/000000/cards.png
-# meta desc: Helps you remember some info
 
 from .. import loader, utils
 import asyncio
@@ -230,7 +228,7 @@ class FlashCardsMod(loader.Module):
                     )
                     try:
                         int(what_the_fuck_am_i_doing_in_3_am_utc)
-                    except:
+                    except Exception:
                         pass
 
                     if what_the_fuck_am_i_doing_in_3_am_utc in self.decks:
@@ -250,7 +248,7 @@ class FlashCardsMod(loader.Module):
         args = utils.get_args_raw(message)
         try:
             args = args.split()[0]
-        except:
+        except Exception:
             pass
 
         if args.startswith("#"):
@@ -258,7 +256,7 @@ class FlashCardsMod(loader.Module):
 
         try:
             int_args = int(args)
-        except:
+        except Exception:
             args = False
             int_args = False
 
@@ -387,7 +385,7 @@ class FlashCardsMod(loader.Module):
             self.decks[deck_id]["name"] = self.remove_html(
                 re.search(r"&quot;(.+?)&quot;", items[0]).group(1)
             )
-        except:
+        except Exception:
             pass
 
         self.db.set("FlashCards", "decks", self.decks)

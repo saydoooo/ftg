@@ -17,7 +17,6 @@
 # scope: inline
 # scope: geektg_only
 
-
 from .. import loader
 from aiogram.types import CallbackQuery
 import logging

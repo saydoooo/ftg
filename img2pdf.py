@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: Img2Pdf
 # meta pic: https://img.icons8.com/fluency/48/000000/pdf-mail.png
-# meta desc: Pack images into one single pdf file
 
 from .. import loader, utils
 from PIL import Image, UnidentifiedImageError
@@ -42,7 +40,7 @@ class Img2PdfMod(loader.Module):
             start_offset = (
                 message.id if message.media else (await message.get_reply_message()).id
             )
-        except:
+        except Exception:
             return await utils.answer(message, self.strings("no_file"))
 
         images = []

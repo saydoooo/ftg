@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: BinCheck
 # meta pic: https://img.icons8.com/fluency/48/000000/bank-card-back-side.png
-# meta desc: Get bin info about card
 
 from .. import loader, utils
 import requests
@@ -52,10 +50,11 @@ class BinCheckerMod(loader.Module):
                 ans = json.loads(
                     (
                         await utils.run_sync(
-                            requests.get, "https://bin-checker.net/api/" + str(cc)
+                            requests.get, f"https://bin-checker.net/api/{str(cc)}"
                         )
                     ).text
                 )
+
                 return (
                     "<b><u>Bin: %s</u></b>\n<code>\n🏦 Bank: %s\n🌐 Payment system: %s [%s]\n✳️ Level: %s\n⚛️ Country: %s </code>"
                     % (

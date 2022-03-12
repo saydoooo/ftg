@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: EduTatar
 # meta pic: https://img.icons8.com/fluency/48/000000/dictionary.png
-# meta desc: Russian edu.tatar.ru client
 
 from .. import loader, utils
 import asyncio
@@ -46,7 +44,7 @@ filters = {
 
 
 @loader.tds
-class eduTatarMod(loader.Module):
+class EduTatarMod(loader.Module):
     """Telegram client for edu.tatar.ru"""
 
     strings = {

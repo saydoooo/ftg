@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: RPMod
 # meta pic: https://img.icons8.com/fluency/48/000000/tongue-out.png
-# meta desc: Just a simple classic role-play module
 
 from .. import loader, utils
 import io
@@ -50,7 +48,7 @@ class RPMod(loader.Module):
         try:
             command = args.split(" ", 1)[0]
             msg = args.split(" ", 1)[1]
-        except:
+        except Exception:
             if not args or command not in self.rp:
                 await utils.answer(message, self.strings("args", message))
             else:
@@ -135,14 +133,14 @@ class RPMod(loader.Module):
             entity = None
             try:
                 entity = await self.client.get_entity(message.text.split(" ", 2)[1])
-            except:
+            except Exception:
                 pass
 
             reply = await message.get_reply_message()
 
             try:
                 reply = await self.client.get_entity(reply.sender_id)
-            except:
+            except Exception:
                 pass
 
             if not reply and not entity:
@@ -157,5 +155,5 @@ class RPMod(loader.Module):
                 message,
                 f'🦊 <a href="tg://user?id={sender.id}">{sender.first_name}</a> <b>{msg}</b> <a href="tg://user?id={reply.id}">{reply.first_name}</a>',
             )
-        except:
+        except Exception:
             return

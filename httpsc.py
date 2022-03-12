@@ -12,10 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: HttpStatusCodes
 # meta pic: https://img.icons8.com/fluency/48/000000/nas.png
-# meta desc: Show http status code info
-
 
 from .. import loader, utils
 from telethon.tl.types import Message

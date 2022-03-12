@@ -12,15 +12,11 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: OnloadExecutor
 # meta pic: https://img.icons8.com/fluency/50/000000/event-log.png
-# meta desc: Executes selected commands on userbot start
 
 from .. import loader, utils, main
-from telethon.tl.types import Message
 import logging
 from telethon.tl.functions.channels import CreateChannelRequest
-
 
 logger = logging.getLogger(__name__)
 

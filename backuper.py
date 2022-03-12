@@ -6,9 +6,7 @@
     Licensed under the GNU GPLv3
 """
 
-# meta title: Backuper
 # meta pic: https://img.icons8.com/fluency/48/000000/sync-settings.png
-# meta desc: Create the backup of all modules, notes, the whole database
 
 from .. import loader, utils
 import asyncio
@@ -21,7 +19,7 @@ from telethon.tl.types import Message
 
 @loader.tds
 class BackuperMod(loader.Module):
-    """Backup everything and anything"""
+    """Create the backup of all modules, notes, the whole database"""
 
     strings = {
         "name": "Backuper",

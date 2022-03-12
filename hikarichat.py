@@ -1,4 +1,4 @@
-__version__ = (8, 0, 8)
+__version__ = (9, 0, 0)
 """
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
@@ -13,11 +13,14 @@ __version__ = (8, 0, 8)
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: HikariChat
+# meta title: HikariChat Beta
 # meta pic: https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/240/google/313/foggy_1f301.png
 # meta desc: Chat administrator toolkit with everything you need and much more
 
 # scope: disable_onload_docs
+# scope: inline_content
+# scope: geektg_only
+# requires: aiohttp
 
 import re
 import io
@@ -31,13 +34,49 @@ import aiohttp
 import telethon
 import functools
 import traceback
-from telethon.tl.types import *
+
+from telethon.tl.types import (
+    Message,
+    User,
+    Channel,
+    Chat,
+    MessageMediaUnsupported,
+    MessageEntitySpoiler,
+    DocumentAttributeAnimated,
+    UserStatusOnline,
+    ChatBannedRights,
+    ChannelParticipantCreator,
+    ChatAdminRights,
+)
+
 from types import FunctionType
-from typing import Union
+from typing import Union, List
+from aiogram.types import CallbackQuery
 from .. import loader, utils, main
-from telethon.tl.types import User
-from telethon.errors import UserAdminInvalidError
-from telethon.tl.functions.channels import EditBannedRequest
+
+from telethon.errors import UserAdminInvalidError, ChatAdminRequiredError
+
+from telethon.tl.functions.channels import (
+    EditBannedRequest,
+    GetParticipantRequest,
+    GetFullChannelRequest,
+    InviteToChannelRequest,
+    EditAdminRequest,
+)
+
+from math import ceil
+import requests
+
+try:
+    from PIL import ImageFont, Image, ImageDraw
+
+    font = requests.get(
+        "https://github.com/hikariatama/assets/raw/master/EversonMono.ttf"
+    ).content
+except ImportError:
+    PIL_AVAILABLE = False
+else:
+    PIL_AVAILABLE = True
 
 logger = logging.getLogger(__name__)
 
@@ -62,21 +101,93 @@ def get_link(user: User or Channel) -> str:
     )
 
 
+def fit(line, max_size):
+    if len(line) >= max_size:
+        return line
+
+    offsets_sum = max_size - len(line)
+
+    print(offsets_sum, max_size, len(line))
+
+    return f"{' ' * ceil(offsets_sum / 2 - 1)}{line}{' ' * int(offsets_sum / 2 - 1)}"
+
+
+def gen_table(t: List[List[str]]) -> bytes:
+    table = ""
+    header = t[0]
+    rows_sizes = [len(i) + 2 for i in header]
+    for row in t[1:]:
+        rows_sizes = [max(len(j) + 2, rows_sizes[i]) for i, j in enumerate(row)]
+
+    rows_lines = ["━" * i for i in rows_sizes]
+
+    table += f"┏{('┯'.join(rows_lines))}┓\n"
+
+    for line in t:
+        table += f"┃⁣⁣ {' ┃⁣⁣ '.join([fit(row, rows_sizes[k]) for k, row in enumerate(line)])} ┃⁣⁣\n"
+        table += "┠"
+
+        for row in rows_sizes:
+            table += f"{'─' * row}┼"
+
+        table = table[:-1] + "┫\n"
+
+    return "\n".join(table.splitlines()[:-1]) + "\n" + f"┗{('┷'.join(rows_lines))}┛\n"
+
+
+def render_table(t: List[List[str]]) -> bytes:
+    # logger.info(t)
+    table = gen_table(t)
+    # logger.info(table)
+
+    fnt = ImageFont.truetype(io.BytesIO(font), 20, encoding="utf-8")
+
+    def get_t_size(text, fnt):
+        if "\n" not in text:
+            return fnt.getsize(text)
+
+        w, h = 0, 0
+
+        for line in text.split("\n"):
+            line_size = fnt.getsize(line)
+            if line_size[0] > w:
+                w = line_size[0]
+
+            h += line_size[1]
+
+        w += 10
+        h += 10
+        return (w, h)
+
+    t_size = get_t_size(table, fnt)
+    img = Image.new("RGB", t_size, (30, 30, 30))
+
+    d = ImageDraw.Draw(img)
+    d.text((5, 5), table, font=fnt, fill=(200, 200, 200))
+
+    imgByteArr = io.BytesIO()
+    img.save(imgByteArr, format="PNG")
+    imgByteArr = imgByteArr.getvalue()
+
+    return imgByteArr
+
+
 def get_first_name(user: User or Channel) -> str:
     """Returns first name of user or channel title"""
-    return user.first_name if isinstance(user, User) else user.title
+    return utils.escape_html(
+        user.first_name if isinstance(user, User) else user.title
+    ).strip()
 
 
 def get_full_name(user: User or Channel) -> str:
-    return (
+    return utils.escape_html(
         user.title
         if isinstance(user, Channel)
         else (
-            user.first_name
-            + " "
+            f"{user.first_name} "
             + (user.last_name if getattr(user, "last_name", False) else "")
         )
-    )
+    ).strip()
 
 
 async def get_message_link(message: Message, chat: Chat or Channel = None) -> str:
@@ -110,15 +221,15 @@ class HikariAPI:
 
     async def init(
         self,
-        client: "telethon.client.telegramclient.TelegramClient",
-        db: "friendly-telegram.database.frontend.Database",
-        module: "friendly-telegram.modules.python.PythonMod",
+        client: "telethon.client.telegramclient.TelegramClient",  # noqa
+        db: "friendly-telegram.database.frontend.Database",  # noqa
+        module: "friendly-telegram.modules.python.PythonMod",  # noqa
     ) -> None:
         """Entry point"""
-        self.client = client
-        self.db = db
-        self.token = db.get("HikariChat", "apitoken", False)
+        self._client = client
+        self._db = db
         self.module = module
+        self.token = self.module.get("apitoken", False)
 
         await self.assert_token()
 
@@ -126,24 +237,26 @@ class HikariAPI:
         if not token_valid:
             # This message is sent just to let user know, that module will not work either
             # No need to remove this lines, they are not affecting the workflow of module
-            await self.client.send_message(
+            await self._client.send_message(
                 "@userbot_notifies_bot",
                 utils.escape_html(
-                    f"<b>You are using an unregistered copy of HikariChat. Please, consider removing it with </b><code>{self.module.prefix}unloadmod HikariChat</code><b>, otherwise you will see flood messages</b>"
+                    "<b>You are using an unregistered copy of HikariChat. "
+                    "Please, consider removing it with "
+                    f"</b><code>{self.module._prefix}unloadmod HikariChat</code><b>"
                 ),
             )
             self.token = False
 
     async def assert_token(self) -> None:
         if not self.token:
-            async with self.client.conversation("@innoapi_auth_" + "bot") as conv:
+            async with self._client.conversation("@innoapi_auth_" + "bot") as conv:
                 m = await conv.send_message("@get+innochat+token")
                 res = await conv.get_response()
                 await conv.mark_read()
                 self.token = res.raw_text
                 await m.delete()
                 await res.delete()
-                self.db.set("HikariChat", "apitoken", self.token)
+                self.module.set("apitoken", self.token)
 
     async def validate_token(self) -> None:
         if not self.token:
@@ -158,9 +271,13 @@ class HikariAPI:
     async def request(self, method, *args, **kwargs) -> dict:
         if not self.token:
             return {"success": False}
+
         kwargs["headers"] = {
             "Authorization": f"Bearer {self.token}",
+            "X-Hikarichat-Version": ".".join(list(map(str, list(__version__)))),
+            "X-Hikarichat-Branch": "Beta",
         }
+
         args = (f"https://api.hikariatama.ru/{args[0]}",)
 
         if "data" in kwargs and "file" not in kwargs["data"]:
@@ -211,6 +328,16 @@ class HikariAPI:
     @asyncio.coroutine
     async def report_error(self, error: str) -> dict:
         error = str(error)
+
+        # Ignore certain types of errors, unrelated to
+        # HikariChat or its newer versions
+        if (
+            "Could not find the input entity for" in error
+            or "for +: 'NoneType' and 'str'" in error
+            or "ConnectionNotInitedError" in error
+        ):
+            return
+
         error = re.sub(r"^.*File .*in wrapped.*$", "", error)
         async with aiohttp.ClientSession() as session:
             async with session.request(
@@ -223,6 +350,10 @@ class HikariAPI:
 
 
 api = HikariAPI()
+
+
+def reverse_dict(d: dict) -> dict:
+    return {val: key for key, val in d.items()}
 
 
 class HikariChatMod(loader.Module):
@@ -263,6 +394,8 @@ Author @hikariatama
         "antigif_off": "🎑 <b>AntiGIF is now off in this chat</b>",
         "antiservice_on": "⚙️ <b>AntiService is now on in this chat</b>",
         "antiservice_off": "⚙️ <b>AntiService is now off in this chat</b>",
+        "banninja_on": "🥷 <b>BanNinja is now on in this chat</b>",
+        "banninja_off": "🥷 <b>BanNinja is now off in this chat</b>",
         "antiexplicit_on": "😒 <b>AntiExplicit is now on in this chat\nAction: {}</b>",
         "antiexplicit_off": "😒 <b>AntiExplicit is now off in this chat</b>",
         "antinsfw_on": "🍓 <b>AntiNSFW is now on in this chat\nAction: {}</b>",
@@ -275,7 +408,7 @@ Author @hikariatama
         "flood": '⏱ <b>Seems like <a href="{}">{}</a> is flooding.\n👊 Action: I {}</b>',
         "tagall": '🐵 <b>Seems like <a href="{}">{}</a> used TagAll.\n👊 Action: I {}</b>',
         "sex_datings": '🔞 <b><a href="{}">{}</a> is suspicious 🧐\n👊 Action: I {}</b>',
-        "fwarn": '👮‍♂️💼 <b><a href="{}">{}</a></b> got {}/{} federative warn\nReason: <b>{}</b>',
+        "fwarn": '👮‍♂️💼 <b><a href="{}">{}</a></b> got {}/{} federative warn\nReason: <b>{}</b>\n\n{}',
         "no_fed_warns": "👮‍♂️ <b>This federation has no warns yet</b>",
         "no_warns": '👮‍♂️ <b><a href="{}">{}</a> has no warns yet</b>',
         "warns": '👮‍♂️ <b><a href="{}">{}</a> has {}/{} warns</b>\n<i>{}</i>',
@@ -286,33 +419,43 @@ Author @hikariatama
         "welcome": "👋 <b>Now I will greet people in this chat</b>\n{}",
         "unwelcome": "👋 <b>Not I will not greet people in this chat</b>",
         "chat404": "🔓 <b>I am not protecting this chat yet.</b>\n",
-        "protections": """<b>🐻 <code>.AntiArab</code> - Bans spammy arabs
-<b>🐺 <code>.AntiHelp</code> - Removes frequent userbot commands
-<b>🐵 <code>.AntiTagAll</code> - Restricts tagging all members
-<b>👋 <code>.Welcome</code> - Greets new members
-<b>🐶 <code>.AntiRaid</code> - Bans all new members
-<b>📯 <code>.AntiChannel</code> - Restricts writing on behalf of channels
-<b>🪙 <code>.AntiSpoiler</code> - Restricts spoilers
-<b>🎑 <code>.AntiGIF</code> - Restricts GIFs
-<b>🍓 <code>.AntiNSFW</code> - Restricts NSFW photos and stickers
-<b>⏱ <code>.AntiFlood</code> - Prevents flooding
-<b>😒 <code>.AntiExplicit</code> - Restricts explicit content
-<b>⚙️ <code>.AntiService</code> - Removes service messages
-<b>👾 Admin: </b><code>.ban</code> <code>.kick</code> <code>.mute</code>
-<code>.unban</code> <code>.unmute</code> <b>- Admin tools</b>
-<b>👮‍♂️ Warns:</b> <code>.warn</code> <code>.warns</code>
-<code>.dwarn</code> <code>.clrwarns</code> <b>- Warning system</b>
-<b>💼 Federations:</b> <code>.fadd</code> <code>.frm</code> <code>.newfed</code>
-<code>.namefed</code> <code>.fban</code> <code>.rmfed</code> <code>.feds</code>
-<code>.fpromote</code> <code>.fdemote</code>
-<code>.fdef</code> <code>.fdeflist</code> <b>- Controlling multiple chats</b>
-<b>🗒 Notes:</b> <code>.fsave</code> <code>.fstop</code> <code>.fnotes</code> <b>- Federative notes</b>""",
+        "protections": (
+            "<b>🐻 <code>.AntiArab</code> - Bans spammy arabs\n"
+            "<b>🐺 <code>.AntiHelp</code> - Removes frequent userbot commands\n"
+            "<b>🐵 <code>.AntiTagAll</code> - Restricts tagging all members\n"
+            "<b>👋 <code>.Welcome</code> - Greets new members\n"
+            "<b>🐶 <code>.AntiRaid</code> - Bans all new members\n"
+            "<b>📯 <code>.AntiChannel</code> - Restricts writing on behalf of channels\n"
+            "<b>🪙 <code>.AntiSpoiler</code> - Restricts spoilers\n"
+            "<b>🎑 <code>.AntiGIF</code> - Restricts GIFs\n"
+            "<b>🍓 <code>.AntiNSFW</code> - Restricts NSFW photos and stickers\n"
+            "<b>⏱ <code>.AntiFlood</code> - Prevents flooding\n"
+            "<b>😒 <code>.AntiExplicit</code> - Restricts explicit content\n"
+            "<b>⚙️ <code>.AntiService</code> - Removes service messages\n"
+            "<b>🌀 <code>.AntiZALGO</code> - Penalty for users with ZALGO in nickname\n"
+            "<b>🎨 <code>.AntiStick</code> - Prevents stickers flood\n"
+            "<b>🥷 <code>.BanNinja</code> - Automatic version of AntiRaid\n"
+            "<b>👾 Admin: </b><code>.ban</code> <code>.kick</code> <code>.mute</code>\n"
+            "<code>.unban</code> <code>.unmute</code> <b>- Admin tools</b>\n"
+            "<b>👮‍♂️ Warns:</b> <code>.warn</code> <code>.warns</code>\n"
+            "<code>.dwarn</code> <code>.clrwarns</code> <b>- Warning system</b>\n"
+            "<b>💼 Federations:</b> <code>.fadd</code> <code>.frm</code> <code>.newfed</code>\n"
+            "<code>.namefed</code> <code>.fban</code> <code>.rmfed</code> <code>.feds</code>\n"
+            "<code>.fpromote</code> <code>.fdemote</code>\n"
+            "<code>.fdef</code> <code>.fdeflist</code> <b>- Controlling multiple chats</b>\n"
+            "<b>🗒 Notes:</b> <code>.fsave</code> <code>.fstop</code> <code>.fnotes</code> <b>- Federative notes</b>"
+        ),
         "not_admin": "🤷‍♂️ <b>I'm not admin here, or don't have enough rights</b>",
-        "mute": '🔇 <b><a href="{}">{}</a> muted {}. Reason: {}</b>',
-        "ban": '🔒 <b><a href="{}">{}</a> banned {}. Reason: {}</b>',
-        "kick": '🚪 <b><a href="{}">{}</a> kicked. Reason: {}</b>',
+        "mute": '🔇 <b><a href="{}">{}</a> muted {}. Reason: </b><i>{}</i>\n\n{}',
+        "mute_log": '🔇 <b><a href="{}">{}</a> muted {} in <a href="{}">{}</a>. Reason: </b><i>{}</i>\n\n{}',
+        "ban": '🔒 <b><a href="{}">{}</a> banned {}. Reason: </b><i>{}</i>\n\n{}',
+        "ban_log": '🔒 <b><a href="{}">{}</a> banned {} in <a href="{}">{}</a>. Reason: </b><i>{}</i>\n\n{}',
+        "kick": '🚪 <b><a href="{}">{}</a> kicked. Reason: </b><i>{}</i>\n\n{}',
+        "kick_log": '🚪 <b><a href="{}">{}</a> kicked in <a href="{}">{}</a>. Reason: </b><i>{}</i>\n\n{}',
         "unmuted": '🔊 <b><a href="{}">{}</a> unmuted</b>',
+        "unmuted_log": '🔊 <b><a href="{}">{}</a> unmuted in <a href="{}">{}</a></b>',
         "unban": '🧙‍♂️ <b><a href="{}">{}</a> unbanned</b>',
+        "unban_log": '🧙‍♂️ <b><a href="{}">{}</a> unbanned in <a href="{}">{}</a></b>',
         "defense": '🛡 <b>Shield for <a href="{}">{}</a> is now {}</b>',
         "no_defense": "🛡 <b>Federative defense list is empty</b>",
         "defense_list": "🛡 <b>Federative defense list:</b>\n{}",
@@ -327,18 +470,21 @@ Author @hikariatama
         "joinfed": "💼 <b>Federation joined</b>",
         "namedfed": "💼 <b>Federation renamed to {}</b>",
         "nofed": "💼 <b>Current chat is not in any federation</b>",
-        "fban": '💼 <b><a href="{}">{}</a> banned in federation {}\nReason: {}</b>',
-        "fmute": '💼 <b><a href="{}">{}</a> muted in federation {}\nReason: {}</b>',
-        "funban": '💼 <b><a href="{}">{}</a> unbanned in federation {}</b>',
-        "funmute": '💼 <b><a href="{}">{}</a> unmuted in federation {}</b>',
+        "fban": '💼 <b><a href="{}">{}</a> banned in federation {} {}\nReason: </b><i>{}</i>\n\n{}',
+        "fmute": '💼 <b><a href="{}">{}</a> muted in federation {} {}\nReason: </b><i>{}</i>\n\n{}',
+        "funban": '💼 <b><a href="{}">{}</a> unbanned in federation </b><i>{}</i>',
+        "funmute": '💼 <b><a href="{}">{}</a> unmuted in federation </b><i>{}</i>',
         "feds_header": "💼 <b>Federations:</b>\n\n",
-        "fed": """
-💼 <b>Federation "{}" info:</b>
-🔰 <b>Chats:</b>
-<b>{}</b>
-🔰 <b>Admins:</b>
-<b>{}</b>
-🔰 <b>Warns: {}</b>""",
+        "fed": (
+            '💼 <b>Federation "{}" info:</b>'
+            "🔰 <b>Chats:</b>"
+            "<b>{}</b>"
+            "🔰 <b>Channels:</b>"
+            "<b>{}</b>"
+            "🔰 <b>Admins:</b>"
+            "<b>{}</b>"
+            "🔰 <b>Warns: {}</b>"
+        ),
         "no_fed": "💼 <b>This chat is not in any federation</b>",
         "fpromoted": '💼 <b><a href="{}">{}</a> promoted in federation {}</b>',
         "fdemoted": '💼 <b><a href="{}">{}</a> demoted in federation {}</b>',
@@ -350,39 +496,95 @@ Author @hikariatama
         "fnotes": "💼 <b>Federative notes:</b>\n{}",
         "usage": "ℹ️ <b>Usage: .{} &lt;on/off&gt;</b>",
         "chat_only": "ℹ️ <b>This command is for chats only</b>",
-        "version": """<b>📡 {}</b>
-
-<b>😌 Author: @hikariatama</b>
-<b>📥 Downloaded from @hikarimods</b>
-
-<b>Licensed under Apache2.0 license
-Distribution without author's personal permission is forbidden
-Breaking this license you are getting fban in all GeekNet chats and channels</b>""",
+        "version": (
+            "<b>📡 {}</b>\n\n"
+            "<b>😌 Author: @hikariatama</b>\n"
+            "<b>📥 Downloaded from @hikarimods</b>"
+        ),
         "error": "⛎ <b>HikariChat Issued error\nIt was reported to @hikariatama</b>",
-        "reported": '💼 <b><a href="{}">{}</a> reported this message to admins\nReason: {}</b>',
+        "reported": '💼 <b><a href="{}">{}</a> reported this message to admins\nReason: </b><i>{}</i>',
         "no_federations": "💼 <b>You have no active federations</b>",
         "clrallwarns_fed": "👮‍♂️ <b>Forgave all federative warns from federation</b>",
         "cleaning": "🧹 <b>Looking for Deleted accounts...</b>",
         "deleted": "🧹 <b>Removed {} Deleted accounts</b>",
         "fcleaning": "🧹 <b>Looking for Deleted accounts in federation...</b>",
+        "btn_unban": "🔓 Unban (ADM)",
+        "btn_unmute": "🔈 Unmute (ADM)",
+        "btn_unwarn": "♻️ De-Warn (ADM)",
+        "inline_unbanned": '🔓 <b><a href="{}">{}</a> unbanned by <a href="{}">{}</a></b>',
+        "inline_unmuted": '🔈 <b><a href="{}">{}</a> unmuted by <a href="{}">{}</a></b>',
+        "inline_unwarned": '♻️ <b>Forgave last warn from <a href="{}">{}</a> by <a href="{}">{}</a></b>',
+        "inline_funbanned": '🔓 <b><a href="{}">{}</a> unbanned in federation by <a href="{}">{}</a></b>',
+        "inline_funmuted": '🔈 <b><a href="{}">{}</a> unmuted in federation by <a href="{}">{}</a></b>',
+        "btn_funmute": "🔈 Fed Unmute (ADM)",
+        "btn_funban": "🔓 Fed Unban (ADM)",
+        "btn_mute": "🙊 Mute",
+        "btn_ban": "🔒 Ban",
+        "btn_fban": "💼 Fed Ban",
+        "btn_del": "🗑 Delete",
+        "inline_fbanned": '💼 <b><a href="{}">{}</a> banned in federation by <a href="{}">{}</a></b>',
+        "inline_muted": '🙊 <b><a href="{}">{}</a> muted by <a href="{}">{}</a></b>',
+        "inline_banned": '🔒 <b><a href="{}">{}</a> banned by <a href="{}">{}</a></b>',
+        "inline_deleted": '🗑 <b>Deleted by <a href="{}">{}</a></b>',
+        "sync": "🔄 <b>Syncing chats and feds with server in force mode...</b>",
+        "sync_complete": "😌 <b>Successfully synced</b>",
+        "rename_noargs": "🚫 <b>Specify new federation name</b>",
+        "rename_success": '😇 <b>Federation renamed to "</b><code>{}</code><b>"</b>',
+        "suffix_removed": "📼 <b>Punishment suffix removed</b>",
+        "suffix_updated": "📼 <b>New punishment suffix saved</b>\n\n{}",
+        "processing_myrights": "😌 <b>Processing chats</b>",
+        "logchat_removed": "📲 <b>Log chat disabled</b>",
+        "logchat_invalid": "🚫 <b>Log chat invalid</b>",
+        "logchat_set": "📲 <b>Log chat updated to </b><code>{}</code>",
+        "clnraid_args": "🥷 <b>Example usage: </b><code>.clnraid 10</code>",
+        "clnraid_admin": "🥷 <b>Error occured while promoting cleaner. Please, ensure you have enough rights in chat</b>",
+        "clnraid_started": "🥷 <b>RaidCleaner is in progress... Found {} users to kick...</b>",
+        "clnraid_confirm": "🥷 <b>Please, confirm that you want to start RaidCleaner on {} users</b>",
+        "clnraid_yes": "🥷 Start",
+        "clnraid_cancel": "🚫 Cancel",
+        "clnraid_stop": "🚨 Stop",
+        "clnraid_complete": "🥷 <b>RaidCleaner complete! Removed: {} user(-s)</b>",
+        "clnraid_cancelled": "🥷 <b>RaidCleaner cancelled. Removed: {} user(-s)</b>",
+        "confirm_rmfed": (
+            "⚠️ <b>Warning! This operation can't be reverted! Are you sure, "
+            "you want to delete federation </b><code>{}</code><b>?</b>"
+        ),
+        "confirm_rmfed_btn": "🗑 Delete",
+        "decline_rmfed_btn": "🚫 Cancel",
+        "pil_unavailable": "🚫 <b>Pillow package unavailable</b>",
     }
+
+    def get(self, *args) -> dict:
+        return self._db.get(self.strings["name"], *args)
+
+    def set(self, *args) -> None:
+        return self._db.set(self.strings["name"], *args)
 
     def __init__(self):
         self.config = loader.ModuleConfig(
-            "silent", False, lambda: "Do not notify about protections actions"
+            "silent",
+            False,
+            lambda: "Do not notify about protections actions",
+            "join_ratelimit",
+            15,
+            lambda: "How many users per minute need to join until ban starts",
         )
-        self.__doc__ = f"""
-Advanced chat admin toolkit
-Author @hikariatama
-Version: {version}"""
+        self.__doc__ = (
+            "Advanced chat admin toolkit\n\n"
+            "Author @hikariatama\n"
+            f"Version: {version}"
+        )
 
     async def client_ready(
         self,
-        client: "telethon.client.telegramclient.TelegramClient",
-        db: "friendly-telegram.database.frontend.Database",
+        client: "telethon.client.telegramclient.TelegramClient",  # noqa
+        db: "friendly-telegram.database.frontend.Database",  # noqa
     ) -> None:
         """Entry point"""
         global api
+
+        if not getattr(main, "__version__", False) or main.__version__ < (3, 1, 7):
+            raise Exception("GeekTG Update required!")
 
         def get_commands(mod) -> dict:
             return {
@@ -391,26 +593,34 @@ Version: {version}"""
                 if callable(getattr(mod, method_name)) and method_name[-3:] == "cmd"
             }
 
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
 
-        self.ratelimit = {"notes": {}, "report": {}}
+        self._ratelimit = {"notes": {}, "report": {}}
         self._me = (await client.get_me()).id
 
         self.last_feds_update = 0
         self.last_chats_update = 0
-        self.chats_update_delay = API_UPDATE_DELAY
+        self._chats_update_delay = API_UPDATE_DELAY
         self.feds_update_delay = API_UPDATE_DELAY
 
         self.flood_timeout = FLOOD_TIMEOUT
         self.flood_threshold = FLOOD_TRESHOLD
 
-        self.chats = {}
-        self.my_protects = {}
-        self.federations = {}
+        self._chats = {}
+        self._linked_channels = {}
+        self._my_protects = {}
+        self._feds = {}
         self._sticks_ratelimit = {}
+        self._raid_cleaners = []
+
+        try:
+            self._is_inline = self.inline.init_complete
+        except AttributeError:
+            self._is_inline = False
+
         self._sticks_limit = 7
-        self.prefix = utils.escape_html(
+        self._prefix = utils.escape_html(
             (db.get(main.__name__, "command_prefix", False) or ".")[0]
         )
 
@@ -423,9 +633,18 @@ Version: {version}"""
             pass
 
         try:
-            self.flood_cache = json.loads(open("flood_cache.json", "r").read())
+            with open("flood_cache.json", "r") as f:
+                self.flood_cache = json.loads(f.read())
         except Exception:
             self.flood_cache = {}
+
+        try:
+            with open("join_ratelimit.json", "r") as f:
+                self._join_ratelimit = json.loads(f.read())
+        except Exception:
+            self._join_ratelimit = {}
+
+        self._ban_ninja = db.get("HikariChat", "ban_ninja", {})
 
         await self.update_feds()
 
@@ -435,8 +654,26 @@ Version: {version}"""
 
         self.commands = commands
 
+    def save_join_ratelimit(self) -> None:
+        with open("join_ratelimit.json", "w") as f:
+            f.write(json.dumps(self._join_ratelimit))
+
     def save_flood_cache(self) -> None:
-        open("flood_cache.json", "w").write(json.dumps(self.flood_cache))
+        with open("flood_cache.json", "w") as f:
+            f.write(json.dumps(self.flood_cache))
+
+    async def check_admin(self, chat_id, user_id):
+        try:
+            return (await self._client.get_permissions(chat_id, user_id)).is_admin
+            # We could've ignored only ValueError to check
+            # entity for validity, but there are many errors
+            # possible to occur, so we ignore all of them, bc
+            # actually we don't give a fuck about 'em
+        except Exception:
+            return (
+                user_id in self._client.dispatcher.security._owner
+                or user_id in self._client.dispatcher.security._sudo
+            )
 
     def chat_command(func) -> FunctionType:
         @functools.wraps(func)
@@ -461,8 +698,9 @@ Version: {version}"""
             try:
                 return await func(*args, **kwargs)
             except Exception:
+                logger.exception("Exception caught in HikariChat")
+
                 if func.__name__.startswith("p__"):
-                    logger.exception("Exception caught in HikariChat")
                     return
 
                 await api.report_error(traceback.format_exc())
@@ -480,8 +718,11 @@ Version: {version}"""
         return wrapped
 
     @error_handler
-    async def update_chats(self):
-        if time.time() - self.last_chats_update < self.chats_update_delay:
+    async def update_chats(self, force=False):
+        if (
+            time.time() - self.last_chats_update < self._chats_update_delay
+            and not force
+        ):
             return
 
         self.last_chats_update = time.time()
@@ -491,12 +732,20 @@ Version: {version}"""
         if not answ["success"]:
             return
 
-        self.chats = answ["chats"]
-        self.my_protects = answ["my_protects"]
+        self._chats = answ["chats"]
+
+        for chat in self._chats:
+            if chat not in self._linked_channels:
+                channel = (
+                    await self._client(GetFullChannelRequest(int(chat)))
+                ).full_chat.linked_chat_id
+                self._linked_channels[chat] = channel or False
+
+        self._my_protects = answ["my_protects"]
 
     @error_handler
-    async def update_feds(self):
-        if time.time() - self.last_feds_update < self.feds_update_delay:
+    async def update_feds(self, force=False):
+        if time.time() - self.last_feds_update < self.feds_update_delay and not force:
             return
 
         self.last_feds_update = time.time()
@@ -504,14 +753,14 @@ Version: {version}"""
         answ = await self.api.get("federations")
 
         if answ["success"]:
-            self.federations = answ["feds"]
+            self._feds = answ["feds"]
 
     @error_handler
     async def protect(self, message: Message, protection: str) -> None:
         args = utils.get_args_raw(message)
         chat = utils.get_chat_id(message)
         if protection in self.variables["argumented_protects"]:
-            if args not in self.variables["protect_actions"]:
+            if args not in self.variables["protect_actions"] or args == "off":
                 args = "off"
                 await utils.answer(message, self.strings(f"{protection}_off"))
             else:
@@ -550,8 +799,21 @@ Version: {version}"""
         func.__module__ = self.__module__
         func.__name__ = func_name
         func.__self__ = self
-        func.__doc__ = f"<action> - Toggle {comments[protection]}"
-        setattr(func, self.__module__ + "." + func.__name__, loader.support)
+
+        args = (
+            "<action>"
+            if protection in self.variables["argumented_protects"]
+            else "<on/off>"
+        )
+
+        action = (
+            "Configure"
+            if protection in self.variables["argumented_protects"]
+            else "Toggle"
+        )
+
+        func.__doc__ = f"{args} - {action} {comments[protection]}"
+        setattr(func, f"{self.__module__}.{func.__name__}", loader.support)
         return func
 
     @staticmethod
@@ -576,48 +838,412 @@ Version: {version}"""
         return t
 
     async def ban(
-        self, chat: Chat or int, user: User or Channel or int, period: int = 0
+        self,
+        chat: Union[Chat, int],
+        user: Union[User, Channel, int],
+        period: int = 0,
+        reason: str = None,
+        message: Union[None, Message] = None,
+        silent: bool = False,
     ) -> None:
         """Ban user in chat"""
         if str(user).isdigit():
             user = int(user)
 
-        await self.client.edit_permissions(
+        if reason is None:
+            reason = self.strings("no_reason")
+
+        await self._client.edit_permissions(
             chat,
             user,
             until_date=(time.time() + period) if period else 0,
             **BANNED_RIGHTS,
         )
 
+        if silent:
+            return
+
+        msg = self.strings("ban").format(
+            get_link(user),
+            get_full_name(user),
+            f"for {period // 60} min(-s)" if period else "forever",
+            reason,
+            self.get("punish_suffix", ""),
+        )
+
+        if self._is_inline:
+            if self.get("logchat"):
+                if not isinstance(chat, (Chat, Channel)):
+                    chat = await self._client.get_entity(chat)
+
+                await self.inline.form(
+                    message=self.get("logchat"),
+                    text=self.strings("ban_log").format(
+                        get_link(user),
+                        get_full_name(user),
+                        f"for {period // 60} min(-s)" if period else "forever",
+                        get_link(chat),
+                        get_full_name(chat),
+                        reason,
+                        "",
+                    ),
+                    reply_markup=[
+                        [
+                            {
+                                "text": self.strings("btn_unban"),
+                                "data": f"ub/{chat.id if isinstance(chat, (Chat, Channel)) else chat}/{user.id}",
+                            }
+                        ]
+                    ],
+                    ttl=15,
+                )
+
+                if isinstance(message, Message):
+                    await utils.answer(message, msg)
+                else:
+                    await self._client.send_message(chat.id, msg)
+            else:
+                await self.inline.form(
+                    message=message
+                    if isinstance(message, Message)
+                    else getattr(chat, "id", chat),
+                    text=msg,
+                    reply_markup=[
+                        [
+                            {
+                                "text": self.strings("btn_unban"),
+                                "data": f"ub/{chat.id if isinstance(chat, (Chat, Channel)) else chat}/{user.id}",
+                            }
+                        ]
+                    ],
+                    ttl=15,
+                )
+        else:
+            await (utils.answer if message else self._client.send_message)(
+                message or chat.id, msg
+            )
+
     async def mute(
-        self, chat: Chat or int, user: User or Channel or int, period: int = 0
+        self,
+        chat: Union[Chat, int],
+        user: Union[User, Channel, int],
+        period: int = 0,
+        reason: str = None,
+        message: Union[None, Message] = None,
+        silent: bool = False,
     ) -> None:
         """Mute user in chat"""
         if str(user).isdigit():
             user = int(user)
 
-        await self.client.edit_permissions(
+        if reason is None:
+            reason = self.strings("no_reason")
+
+        await self._client.edit_permissions(
             chat, user, until_date=time.time() + period, send_messages=False
         )
+
+        if silent:
+            return
+
+        msg = self.strings("mute").format(
+            get_link(user),
+            get_full_name(user),
+            f"for {period // 60} min(-s)" if period else "forever",
+            reason,
+            self.get("punish_suffix", ""),
+        )
+
+        if self._is_inline:
+            if self.get("logchat"):
+                if not isinstance(chat, (Chat, Channel)):
+                    chat = await self._client.get_entity(chat)
+
+                await self.inline.form(
+                    message=self.get("logchat"),
+                    text=self.strings("mute_log").format(
+                        get_link(user),
+                        get_full_name(user),
+                        f"for {period // 60} min(-s)" if period else "forever",
+                        get_link(chat),
+                        get_full_name(chat),
+                        reason,
+                        "",
+                    ),
+                    reply_markup=[
+                        [
+                            {
+                                "text": self.strings("btn_unmute"),
+                                "data": f"um/{chat.id if isinstance(chat, (Chat, Channel)) else chat}/{user.id}",
+                            }
+                        ]
+                    ],
+                    ttl=15,
+                )
+
+                if isinstance(message, Message):
+                    await utils.answer(message, msg)
+                else:
+                    await self._client.send_message(chat.id, msg)
+            else:
+                await self.inline.form(
+                    message=message
+                    if isinstance(message, Message)
+                    else getattr(chat, "id", chat),
+                    text=msg,
+                    reply_markup=[
+                        [
+                            {
+                                "text": self.strings("btn_unmute"),
+                                "data": f"um/{chat.id if isinstance(chat, (Chat, Channel)) else chat}/{user.id}",
+                            }
+                        ]
+                    ],
+                    ttl=15,
+                )
+        else:
+            await (utils.answer if message else self._client.send_message)(
+                message or chat.id, msg
+            )
+
+    async def actions_callback_handler(self, call: CallbackQuery) -> None:
+        """
+        Handles unmute\\unban button clicks
+        @allow: all
+        """
+        if not re.match(r"[fbmudw]{1,3}\/[-0-9]+\/[-#0-9]+", call.data):
+            return
+
+        action, chat, user = call.data.split("/")
+
+        msg_id = None
+
+        try:
+            user, msg_id = user.split("#")
+            msg_id = int(msg_id)
+        except Exception:
+            pass
+
+        chat, user = int(chat), int(user)
+
+        if not await self.check_admin(chat, call.from_user.id):
+            await call.answer("You are not admin")
+            return
+
+        try:
+            user = await self._client.get_entity(user)
+        except Exception:
+            await call.answer("Unable to resolve entity")
+            return
+
+        try:
+            adm = await self._client.get_entity(call.from_user.id)
+        except Exception:
+            await call.answer("Unable to resolve admin entity")
+            return
+
+        p = (
+            await self._client(GetParticipantRequest(chat, call.from_user.id))
+        ).participant
+
+        owner = isinstance(p, ChannelParticipantCreator)
+
+        if action == "ub":
+            if not owner and not p.admin_rights.ban_users:
+                await call.answer("Not enough rights!")
+                return
+
+            await self._client.edit_permissions(
+                chat,
+                user,
+                until_date=0,
+                **{right: True for right in BANNED_RIGHTS.keys()},
+            )
+            msg = self.strings("inline_unbanned").format(
+                get_link(user), get_full_name(user), get_link(adm), get_full_name(adm)
+            )
+            try:
+                await self.inline._bot.edit_message_text(
+                    msg,
+                    inline_message_id=call.inline_message_id,
+                    parse_mode="HTML",
+                    disable_web_page_preview=False,
+                )
+            except Exception:
+                await self._client.send_message(chat, msg)
+        elif action == "um":
+            if not owner and not p.admin_rights.ban_users:
+                await call.answer("Not enough rights!")
+                return
+
+            await self._client.edit_permissions(
+                chat, user, until_date=0, send_messages=True
+            )
+            msg = self.strings("inline_unmuted").format(
+                get_link(user), get_full_name(user), get_link(adm), get_full_name(adm)
+            )
+            try:
+                await self.inline._bot.edit_message_text(
+                    msg,
+                    inline_message_id=call.inline_message_id,
+                    parse_mode="HTML",
+                    disable_web_page_preview=False,
+                )
+            except Exception:
+                await self._client.send_message(chat, msg)
+        elif action == "dw":
+            if not owner and not p.admin_rights.ban_users:
+                await call.answer("Not enough rights!")
+                return
+
+            fed = await self.find_fed(chat)
+
+            answ = await self.api.delete(
+                f'federations/{self._feds[fed]["uid"]}/warn',
+                data={"user": str(user.id)},
+            )
+
+            if answ["success"]:
+                msg = self.strings("inline_unwarned").format(
+                    get_link(user),
+                    get_full_name(user),
+                    get_link(adm),
+                    get_full_name(adm),
+                )
+            else:
+                await call.answer(json.dumps(msg), show_alert=True)
+                return
+
+            try:
+                await self.inline._bot.edit_message_text(
+                    msg,
+                    inline_message_id=call.inline_message_id,
+                    parse_mode="HTML",
+                    disable_web_page_preview=False,
+                )
+            except Exception:
+                await self._client.send_message(chat, msg)
+        elif action == "ufb":
+            if not owner and not p.admin_rights.ban_users:
+                await call.answer("Not enough rights!")
+                return
+
+            m = await self._client.send_message(chat, f"{self._prefix}funban {user.id}")
+            await self.funbancmd(m)
+            await m.delete()
+            msg = self.strings("inline_funbanned").format(
+                get_link(user), get_full_name(user), get_link(adm), get_full_name(adm)
+            )
+            try:
+                await self.inline._bot.edit_message_text(
+                    msg,
+                    inline_message_id=call.inline_message_id,
+                    parse_mode="HTML",
+                    disable_web_page_preview=False,
+                )
+            except Exception:
+                await self._client.send_message(chat, msg)
+        elif action == "ufm":
+            if not owner and not p.admin_rights.ban_users:
+                await call.answer("Not enough rights!")
+                return
+
+            m = await self._client.send_message(
+                chat, f"{self._prefix}funmute {user.id}"
+            )
+            await self.funmutecmd(m)
+            await m.delete()
+            msg = self.strings("inline_funmuted").format(
+                get_link(user), get_full_name(user), get_link(adm), get_full_name(adm)
+            )
+            try:
+                await self.inline._bot.edit_message_text(
+                    msg,
+                    inline_message_id=call.inline_message_id,
+                    parse_mode="HTML",
+                    disable_web_page_preview=False,
+                )
+            except Exception:
+                await self._client.send_message(chat, msg)
+        elif action == "fb":
+            if not owner and not p.admin_rights.ban_users:
+                await call.answer("Not enough rights!")
+                return
+
+            m = await self._client.send_message(chat, f"{self._prefix}fban {user.id}")
+            await self.fbancmd(m)
+            await m.delete()
+            msg = self.strings("inline_fbanned").format(
+                get_link(user), get_full_name(user), get_link(adm), get_full_name(adm)
+            )
+            try:
+                await self.inline._bot.edit_message_text(
+                    msg,
+                    inline_message_id=call.inline_message_id,
+                    parse_mode="HTML",
+                    disable_web_page_preview=False,
+                )
+            except Exception:
+                await self._client.send_message(chat, msg)
+        elif action == "m":
+            if not owner and not p.admin_rights.ban_users:
+                await call.answer("Not enough rights!")
+                return
+
+            await self.mute(chat, user, 0, silent=True)
+            msg = self.strings("inline_muted").format(
+                get_link(user), get_full_name(user), get_link(adm), get_full_name(adm)
+            )
+            try:
+                await self.inline._bot.edit_message_text(
+                    msg,
+                    inline_message_id=call.inline_message_id,
+                    parse_mode="HTML",
+                    disable_web_page_preview=False,
+                )
+            except Exception:
+                await self._client.send_message(chat, msg)
+        elif action == "d":
+            if not owner and not p.admin_rights.delete_messages:
+                await call.answer("Not enough rights!")
+                return
+
+            msg = self.strings("inline_deleted").format(
+                get_link(adm), get_full_name(adm)
+            )
+
+            await self.inline._bot.edit_message_text(
+                msg,
+                inline_message_id=call.inline_message_id,
+                parse_mode="HTML",
+                disable_web_page_preview=False,
+            )
+        else:
+            return
+
+        if msg_id is not None:
+            await self._client.delete_messages(chat, message_ids=[msg_id])
 
     async def args_parser(self, message: Message) -> tuple:
         """Get args from message"""
         args = utils.get_args_raw(message)
-        if "-s" in args:
-            args = args.replace("-s", "").replace("  ", " ")
-            silent = True
-        else:
-            silent = False
         reply = await message.get_reply_message()
+
+        if reply and not args:
+            return (
+                (await self._client.get_entity(reply.sender_id)),
+                0,
+                utils.escape_html(self.strings("no_reason")).strip(),
+            )
 
         try:
             a = args.split()[0]
             if str(a).isdigit():
                 a = int(a)
             user = (
-                (await self.client.get_entity(reply.sender_id))
+                (await self._client.get_entity(reply.sender_id))
                 if reply
-                else (await self.client.get_entity(a))
+                else (await self._client.get_entity(a))
             )
         except Exception:
             return False
@@ -635,15 +1261,25 @@ Version: {version}"""
         if time.time() + t >= 2147483647:
             t = 0
 
-        return user, t, (args or self.strings("no_reason")), silent
+        return user, t, utils.escape_html(args or self.strings("no_reason")).strip()
 
-    def find_fed(self, message: Message) -> None or str:
+    async def find_fed(self, message: Union[Message, int]) -> None or str:
         """Find if chat belongs to any federation"""
-        for federation, info in self.federations.items():
-            if str(utils.get_chat_id(message)) in list(map(str, info["chats"])):
-                return federation
+        await self.update_feds()
 
-        return None
+        return next(
+            (
+                federation
+                for federation, info in self._feds.items()
+                if str(
+                    utils.get_chat_id(message)
+                    if isinstance(message, Message)
+                    else message
+                )
+                in list(map(str, info["chats"]))
+            ),
+            None,
+        )
 
     @error_handler
     async def punish(
@@ -655,19 +1291,26 @@ Version: {version}"""
         user_name: str,
     ) -> None:
         if action == "ban":
-            comment = "banned him for 1 hour"
-            await self.ban(chat_id, user, 60**2)
+            comment = "banned him"
+            await self.ban(chat_id, user, 0, violation)
+        elif action == "fban":
+            comment = "f-banned him"
+            await self.fbancmd(
+                await self._client.send_message(
+                    chat_id, f"{self._prefix}fban {user.id} {violation}"
+                )
+            )
         elif action == "delmsg":
             return
         elif action == "kick":
             comment = "kicked him"
-            await self.client.kick_participant(chat_id, user)
+            await self._client.kick_participant(chat_id, user)
         elif action == "mute":
             comment = "muted him for 1 hour"
-            await self.mute(chat_id, user, 60 * 60)
+            await self.mute(chat_id, user, 60 * 60, violation)
         elif action == "warn":
             comment = "warned him"
-            warn_msg = await self.client.send_message(
+            warn_msg = await self._client.send_message(
                 chat_id, f".warn {user.id} {violation}"
             )
             await self.allmodules.commands["warn"](warn_msg)
@@ -676,7 +1319,7 @@ Version: {version}"""
             comment = "just chill 😶‍🌫️"
 
         if not self.config["silent"]:
-            await self.client.send_message(
+            await self._client.send_message(
                 chat_id,
                 self.strings(violation).format(get_link(user), user_name, comment),
             )
@@ -702,11 +1345,11 @@ Version: {version}"""
         if not isinstance(message, Message):
             message = message[0]
 
-        async for user in self.client.iter_participants(chat):
+        async for user in self._client.iter_participants(chat):
             if user.deleted:
                 try:
-                    await self.client.kick_participant(chat, user)
-                    await self.client.edit_permissions(
+                    await self._client.kick_participant(chat, user)
+                    await self._client.edit_permissions(
                         chat,
                         user,
                         until_date=0,
@@ -722,14 +1365,13 @@ Version: {version}"""
     @chat_command
     async def fcleancmd(self, message: Message) -> None:
         """Remove deleted accounts from federation"""
-        chat_id = utils.get_chat_id(message)
-        fed = self.find_fed(message)
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
             return
 
-        answ = await self.api.get(f'federations/{self.federations[fed]["uid"]}/chats')
+        answ = await self.api.get(f'federations/{self._feds[fed]["uid"]}/chats')
 
         if not answ["success"]:
             await utils.answer(
@@ -740,6 +1382,7 @@ Version: {version}"""
         chats = answ["chats"]
 
         cleaned_in = []
+        cleaned_in_c = []
 
         message = await utils.answer(message, self.strings("fcleaning"))
         if not isinstance(message, Message):
@@ -751,7 +1394,7 @@ Version: {version}"""
             try:
                 if str(c).isdigit():
                     c = int(c)
-                chat = await self.client.get_entity(c)
+                chat = await self._client.get_entity(c)
             except Exception:
                 continue
 
@@ -760,11 +1403,11 @@ Version: {version}"""
 
             try:
                 kicked = 0
-                async for user in self.client.iter_participants(chat):
+                async for user in self._client.iter_participants(chat):
                     if user.deleted:
                         try:
-                            await self.client.kick_participant(chat, user)
-                            await self.client.edit_permissions(
+                            await self._client.kick_participant(chat, user)
+                            await self._client.edit_permissions(
                                 chat,
                                 user,
                                 until_date=0,
@@ -776,15 +1419,50 @@ Version: {version}"""
 
                 overall += kicked
 
-                cleaned_in += [str(chat.title) + " - " + str(kicked)]
+                cleaned_in += [
+                    f'👥 <a href="{get_link(chat)}">{utils.escape_html(chat.title)}</a> - {kicked}'
+                ]
             except UserAdminInvalidError:
                 pass
+
+            if str(c) in self._linked_channels:
+                channel = await self._client.get_entity(self._linked_channels[str(c)])
+                kicked = 0
+                try:
+                    async for user in self._client.iter_participants(
+                        self._linked_channels[str(c)]
+                    ):
+                        if user.deleted:
+                            try:
+                                await self._client.kick_participant(
+                                    self._linked_channels[str(c)], user
+                                )
+                                await self._client.edit_permissions(
+                                    self._linked_channels[str(c)],
+                                    user,
+                                    until_date=0,
+                                    **{right: True for right in BANNED_RIGHTS.keys()},
+                                )
+                                kicked += 1
+                            except Exception:
+                                pass
+
+                    overall += kicked
+
+                    cleaned_in_c += [
+                        f'📣 <a href="{get_link(channel)}">{utils.escape_html(channel.title)}</a> - {kicked}'
+                    ]
+                except ChatAdminRequiredError:
+                    pass
 
         await utils.answer(
             message,
             self.strings("deleted").format(overall)
             + "\n\n<b>"
             + "\n".join(cleaned_in)
+            + "</b>"
+            + "\n\n<b>"
+            + "\n".join(cleaned_in_c)
             + "</b>",
         )
 
@@ -798,7 +1476,7 @@ Version: {version}"""
             return
 
         shortname, name = args.split(maxsplit=1)
-        if shortname in self.federations:
+        if shortname in self._feds:
             await utils.answer(message, self.strings("fedexists"))
             return
 
@@ -814,6 +1492,22 @@ Version: {version}"""
 
         await utils.answer(message, self.strings("newfed").format(name))
 
+    async def inline__confirm_rmfed(self, call: CallbackQuery, args: str) -> None:
+        name = self._feds[args]["name"]
+
+        answ = await self.api.delete(f'federations/{self._feds[args]["uid"]}')
+
+        if not answ["success"]:
+            await call.edit(
+                self.strings("api_error").format(json.dumps(answ, indent=4))
+            )
+            return
+
+        await call.edit(self.strings("rmfed").format(name))
+
+    async def inline__close(self, call: CallbackQuery) -> None:
+        await call.delete()
+
     @error_handler
     @chat_command
     async def rmfedcmd(self, message: Message) -> None:
@@ -823,28 +1517,35 @@ Version: {version}"""
             await utils.answer(message, self.strings("args"))
             return
 
-        if args not in self.federations:
+        if args not in self._feds:
             await utils.answer(message, self.strings("fed404"))
             return
 
-        name = self.federations[args]["name"]
-
-        answ = await self.api.delete(f'federations/{self.federations[args]["uid"]}')
-
-        if not answ["success"]:
-            await utils.answer(
-                message, self.strings("api_error").format(json.dumps(answ, indent=4))
-            )
-            return
-
-        await utils.answer(message, self.strings("rmfed").format(name))
+        await self.inline.form(
+            self.strings("confirm_rmfed").format(
+                utils.escape_html(self._feds[args]["name"])
+            ),
+            message=message,
+            reply_markup=[
+                [
+                    {
+                        "text": self.strings("confirm_rmfed_btn"),
+                        "callback": self.inline__confirm_rmfed,
+                        "args": (args,),
+                    },
+                    {
+                        "text": self.strings("decline_rmfed_btn"),
+                        "callback": self.inline__close,
+                    },
+                ]
+            ],
+        )
 
     @error_handler
     @chat_command
     async def fpromotecmd(self, message: Message) -> None:
-        """<reply|user> - Promote user in federation"""
-        chat_id = utils.get_chat_id(message)
-        fed = self.find_fed(message)
+        """<user> - Promote user in federation"""
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
@@ -861,7 +1562,7 @@ Version: {version}"""
             try:
                 if str(user).isdigit():
                     user = int(user)
-                obj = await self.client.get_entity(user)
+                obj = await self._client.get_entity(user)
             except Exception:
                 await utils.answer(message, self.strings("args"))
                 return
@@ -872,7 +1573,7 @@ Version: {version}"""
             return
 
         answ = await self.api.post(
-            f'federations/{self.federations[fed]["uid"]}/promote', data={"user": obj.id}
+            f'federations/{self._feds[fed]["uid"]}/promote', data={"user": obj.id}
         )
 
         if not answ["success"]:
@@ -884,7 +1585,7 @@ Version: {version}"""
         await utils.answer(
             message,
             self.strings("fpromoted").format(
-                get_link(obj), name, self.federations[fed]["name"]
+                get_link(obj), name, self._feds[fed]["name"]
             ),
         )
 
@@ -892,8 +1593,7 @@ Version: {version}"""
     @chat_command
     async def fdemotecmd(self, message: Message) -> None:
         """<shortname> <reply|user> - Demote user in federation"""
-        chat_id = utils.get_chat_id(message)
-        fed = self.find_fed(message)
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
@@ -910,19 +1610,20 @@ Version: {version}"""
             try:
                 if str(user).isdigit():
                     user = int(user)
-                obj = await self.client.get_entity(user)
+                obj = await self._client.get_entity(user)
             except Exception:
                 await utils.answer(message, self.strings("args"))
                 return
 
             user = obj.id
 
-            name = get_full_name(user)
+            name = get_full_name(obj)
         except Exception:
+            logger.exception("Parsing entity exception")
             name = "User"
 
         answ = await self.api.post(
-            f'federations/{self.federations[fed]["uid"]}/demote', data={"user": user}
+            f'federations/{self._feds[fed]["uid"]}/demote', data={"user": user}
         )
 
         if not answ["success"]:
@@ -933,7 +1634,7 @@ Version: {version}"""
 
         await utils.answer(
             message,
-            self.strings("fdemoted").format(user, name, self.federations[fed]["name"]),
+            self.strings("fdemoted").format(user, name, self._feds[fed]["name"]),
         )
 
     @error_handler
@@ -945,14 +1646,14 @@ Version: {version}"""
             await utils.answer(message, self.strings("args"))
             return
 
-        if args not in self.federations:
+        if args not in self._feds:
             await utils.answer(message, self.strings("fed404"))
             return
 
         chat = utils.get_chat_id(message)
 
         answ = await self.api.post(
-            f'federations/{self.federations[args]["uid"]}/chats', data={"cid": chat}
+            f'federations/{self._feds[args]["uid"]}/chats', data={"cid": chat}
         )
 
         if not answ["success"]:
@@ -962,14 +1663,14 @@ Version: {version}"""
             return
 
         await utils.answer(
-            message, self.strings("fadded").format(self.federations[args]["name"])
+            message, self.strings("fadded").format(self._feds[args]["name"])
         )
 
     @error_handler
     @chat_command
     async def frmcmd(self, message: Message) -> None:
         """Remove chat from federation"""
-        fed = self.find_fed(message)
+        fed = await self.find_fed(message)
         if not fed:
             await utils.answer(message, self.strings("fed404"))
             return
@@ -977,7 +1678,7 @@ Version: {version}"""
         chat = utils.get_chat_id(message)
 
         answ = await self.api.delete(
-            f'federations/{self.federations[fed]["uid"]}/chats/{chat}'
+            f'federations/{self._feds[fed]["uid"]}/chats/{chat}'
         )
 
         if not answ["success"]:
@@ -987,15 +1688,14 @@ Version: {version}"""
             return
 
         await utils.answer(
-            message, self.strings("frem").format(self.federations[fed]["name"])
+            message, self.strings("frem").format(self._feds[fed]["name"])
         )
 
     @error_handler
     @chat_command
     async def fbancmd(self, message: Message) -> None:
-        """<reply | user> [reason] [-s silent] - Ban user in federation"""
-        chat_id = utils.get_chat_id(message)
-        fed = self.find_fed(message)
+        """<reply | user> [reason] - Ban user in federation"""
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
@@ -1007,9 +1707,9 @@ Version: {version}"""
             await utils.answer(message, self.strings("args"))
             return
 
-        user, t, reason, silent = a
+        user, t, reason = a
 
-        answ = await self.api.get(f'federations/{self.federations[fed]["uid"]}/chats')
+        answ = await self.api.get(f'federations/{self._feds[fed]["uid"]}/chats')
 
         if not answ["success"]:
             await utils.answer(
@@ -1025,7 +1725,7 @@ Version: {version}"""
             try:
                 if str(c).isdigit():
                     c = int(c)
-                chat = await self.client.get_entity(c)
+                chat = await self._client.get_entity(c)
             except Exception:
                 continue
 
@@ -1033,37 +1733,62 @@ Version: {version}"""
                 continue
 
             try:
-                await self.ban(chat, user, t)
-                if chat.id != chat_id and not silent:
-                    await self.client.send_message(
-                        chat,
-                        self.strings("fban").format(
-                            get_link(user),
-                            get_first_name(user),
-                            self.federations[fed]["name"],
-                            reason,
-                        ),
-                    )
-
-                banned_in += [chat.title]
+                await self.ban(chat, user, t, reason, message, silent=True)
+                banned_in += [f'<a href="{get_link(chat)}">{get_full_name(chat)}</a>']
             except Exception:
-                raise
+                pass
 
-        await utils.answer(
-            message,
+        msg = (
             self.strings("fban").format(
                 get_link(user),
                 get_first_name(user),
-                self.federations[fed]["name"],
+                self._feds[fed]["name"],
+                f"for {t // 60} min(-s)" if t else "forever",
                 reason,
+                self.get("punish_suffix", ""),
             )
             + "\n\n<b>"
             + "\n".join(banned_in)
-            + "</b>",
+            + "</b>"
         )
 
+        if self._is_inline:
+            punishment_info = {
+                "reply_markup": [
+                    [
+                        {
+                            "text": self.strings("btn_funban"),
+                            "data": f"ufb/{utils.get_chat_id(message)}/{user.id}",
+                        }
+                    ]
+                ],
+                "ttl": 15,
+            }
+
+            if self.get("logchat"):
+                await utils.answer(message, msg)
+                await self.inline.form(
+                    text=self.strings("fban").format(
+                        get_link(user),
+                        get_first_name(user),
+                        self._feds[fed]["name"],
+                        f"for {t // 60} min(-s)" if t else "forever",
+                        reason,
+                        "",
+                    )
+                    + "\n\n<b>"
+                    + "\n".join(banned_in)
+                    + "</b>",
+                    message=self.get("logchat"),
+                    **punishment_info,
+                )
+            else:
+                await self.inline.form(text=msg, message=message, **punishment_info)
+        else:
+            await utils.answer(message, msg)
+
         await self.api.delete(
-            f'federations/{self.federations[fed]["uid"]}/clrwarns',
+            f'federations/{self._feds[fed]["uid"]}/clrwarns',
             data={"user": str(user.id)},
         )
 
@@ -1073,10 +1798,45 @@ Version: {version}"""
 
     @error_handler
     @chat_command
+    async def punishsuffcmd(self, message: Message) -> None:
+        """Set new punishment suffix"""
+        if not utils.get_args_raw(message):
+            self.set("punish_suffix", "")
+            await utils.answer(message, self.strings("suffix_removed"))
+        else:
+            suffix = utils.get_args_raw(message)
+            self.set("punish_suffix", suffix)
+            await utils.answer(message, self.strings("suffix_updated").format(suffix))
+
+    @error_handler
+    @chat_command
+    async def sethclogcmd(self, message: Message) -> None:
+        """Set logchat"""
+        if not utils.get_args_raw(message):
+            self.set("logchat", "")
+            await utils.answer(message, self.strings("logchat_removed"))
+        else:
+            logchat = utils.get_args_raw(message)
+            if logchat.isdigit():
+                logchat = int(logchat)
+
+            try:
+                logchat = await self._client.get_entity(logchat)
+            except Exception:
+                await utils.answer(message, self.strings("logchat_invalid"))
+                return
+
+            self.set("logchat", logchat.id)
+            await utils.answer(
+                message,
+                self.strings("logchat_set").format(utils.escape_html(logchat.title)),
+            )
+
+    @error_handler
+    @chat_command
     async def funbancmd(self, message: Message) -> None:
-        """<reply | user> [reason] [-s silent] - Unban user in federation"""
-        chat_id = utils.get_chat_id(message)
-        fed = self.find_fed(message)
+        """<user> [reason] - Unban user in federation"""
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
@@ -1088,9 +1848,9 @@ Version: {version}"""
             await utils.answer(message, self.strings("args"))
             return
 
-        user, t, reason, silent = a
+        user, t, reason = a
 
-        answ = await self.api.get(f'federations/{self.federations[fed]["uid"]}/chats')
+        answ = await self.api.get(f'federations/{self._feds[fed]["uid"]}/chats')
 
         if not answ["success"]:
             await utils.answer(
@@ -1106,7 +1866,7 @@ Version: {version}"""
             try:
                 if str(c).isdigit():
                     c = int(c)
-                chat = await self.client.get_entity(c)
+                chat = await self._client.get_entity(c)
             except Exception:
                 continue
 
@@ -1114,35 +1874,29 @@ Version: {version}"""
                 continue
 
             try:
-                await self.client.edit_permissions(
+                await self._client.edit_permissions(
                     chat,
                     user,
                     until_date=0,
                     **{right: True for right in BANNED_RIGHTS.keys()},
                 )
-                if chat.id != chat_id and not silent:
-                    await self.client.send_message(
-                        chat,
-                        self.strings("funban").format(
-                            get_link(user),
-                            get_first_name(user),
-                            self.federations[fed]["name"],
-                        ),
-                    )
-
                 unbanned_in += [chat.title]
             except UserAdminInvalidError:
                 pass
 
-        await utils.answer(
-            message,
+        m = (
             self.strings("funban").format(
-                get_link(user), get_first_name(user), self.federations[fed]["name"]
+                get_link(user), get_first_name(user), self._feds[fed]["name"]
             )
             + "\n\n<b>"
             + "\n".join(unbanned_in)
-            + "</b>",
+            + "</b>"
         )
+
+        if self.get("logchat"):
+            await self._client.send_message(self.get("logchat"), m)
+
+        await utils.answer(message, m)
 
         reply = await message.get_reply_message()
         if reply:
@@ -1151,9 +1905,8 @@ Version: {version}"""
     @error_handler
     @chat_command
     async def fmutecmd(self, message: Message) -> None:
-        """<reply | user> [reason] [-s silent] - Mute user in federation"""
-        chat_id = utils.get_chat_id(message)
-        fed = self.find_fed(message)
+        """<reply | user> [reason] - Mute user in federation"""
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
@@ -1165,9 +1918,9 @@ Version: {version}"""
             await utils.answer(message, self.strings("args"))
             return
 
-        user, t, reason, silent = a
+        user, t, reason = a
 
-        answ = await self.api.get(f'federations/{self.federations[fed]["uid"]}/chats')
+        answ = await self.api.get(f'federations/{self._feds[fed]["uid"]}/chats')
 
         if not answ["success"]:
             await utils.answer(
@@ -1177,13 +1930,13 @@ Version: {version}"""
 
         chats = answ["chats"]
 
-        banned_in = []
+        muted_in = []
 
         for c in chats:
             try:
                 if str(c).isdigit():
                     c = int(c)
-                chat = await self.client.get_entity(c)
+                chat = await self._client.get_entity(c)
             except Exception:
                 continue
 
@@ -1191,34 +1944,59 @@ Version: {version}"""
                 continue
 
             try:
-                await self.mute(chat, user, t)
-                if chat.id != chat_id and not silent:
-                    await self.client.send_message(
-                        chat,
-                        self.strings("fmute").format(
-                            get_link(user),
-                            get_first_name(user),
-                            self.federations[fed]["name"],
-                            reason,
-                        ),
-                    )
-
-                banned_in += [chat.title]
+                await self.mute(chat, user, t, reason, message, silent=True)
+                muted_in += [f'<a href="{get_link(chat)}">{get_full_name(chat)}</a>']
             except Exception:
                 pass
 
-        await utils.answer(
-            message,
+        msg = (
             self.strings("fmute").format(
                 get_link(user),
                 get_first_name(user),
-                self.federations[fed]["name"],
+                self._feds[fed]["name"],
+                f"for {t // 60} min(-s)" if t else "forever",
                 reason,
+                self.get("punish_suffix", ""),
             )
             + "\n\n<b>"
-            + "\n".join(banned_in)
-            + "</b>",
+            + "\n".join(muted_in)
+            + "</b>"
         )
+
+        if self._is_inline:
+            punishment_info = {
+                "reply_markup": [
+                    [
+                        {
+                            "text": self.strings("btn_funmute"),
+                            "data": f"ufm/{utils.get_chat_id(message)}/{user.id}",
+                        }
+                    ]
+                ],
+                "ttl": 15,
+            }
+
+            if self.get("logchat"):
+                await utils.answer(message, msg)
+                await self.inline.form(
+                    text=self.strings("fmute").format(
+                        get_link(user),
+                        get_first_name(user),
+                        self._feds[fed]["name"],
+                        f"for {t // 60} min(-s)" if t else "forever",
+                        reason,
+                        "",
+                    )
+                    + "\n\n<b>"
+                    + "\n".join(muted_in)
+                    + "</b>",
+                    message=self.get("logchat"),
+                    **punishment_info,
+                )
+            else:
+                await self.inline.form(text=msg, message=message, **punishment_info)
+        else:
+            await utils.answer(message, msg)
 
         reply = await message.get_reply_message()
         if reply:
@@ -1227,9 +2005,8 @@ Version: {version}"""
     @error_handler
     @chat_command
     async def funmutecmd(self, message: Message) -> None:
-        """<reply | user> [reason] [-s silent] - Unban user in federation"""
-        chat_id = utils.get_chat_id(message)
-        fed = self.find_fed(message)
+        """<user> [reason] - Unban user in federation"""
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
@@ -1241,9 +2018,9 @@ Version: {version}"""
             await utils.answer(message, self.strings("args"))
             return
 
-        user, t, reason, silent = a
+        user, t, reason = a
 
-        answ = await self.api.get(f'federations/{self.federations[fed]["uid"]}/chats')
+        answ = await self.api.get(f'federations/{self._feds[fed]["uid"]}/chats')
 
         if not answ["success"]:
             await utils.answer(
@@ -1259,7 +2036,7 @@ Version: {version}"""
             try:
                 if str(c).isdigit():
                     c = int(c)
-                chat = await self.client.get_entity(c)
+                chat = await self._client.get_entity(c)
             except Exception:
                 continue
 
@@ -1267,35 +2044,29 @@ Version: {version}"""
                 continue
 
             try:
-                await self.client.edit_permissions(
+                await self._client.edit_permissions(
                     chat,
                     user,
                     until_date=0,
                     **{right: True for right in BANNED_RIGHTS.keys()},
                 )
-                if chat.id != chat_id and not silent:
-                    await self.client.send_message(
-                        chat,
-                        self.strings("funmute").format(
-                            get_link(user),
-                            get_first_name(user),
-                            self.federations[fed]["name"],
-                        ),
-                    )
-
                 unbanned_in += [chat.title]
             except UserAdminInvalidError:
                 pass
 
-        await utils.answer(
-            message,
+        msg = (
             self.strings("funmute").format(
-                get_link(user), get_first_name(user), self.federations[fed]["name"]
+                get_link(user), get_first_name(user), self._feds[fed]["name"]
             )
             + "\n\n<b>"
             + "\n".join(unbanned_in)
-            + "</b>",
+            + "</b>"
         )
+
+        await utils.answer(message, msg)
+
+        if self.get("logchat"):
+            await self._client.send_message(self.get("logchat"), msg)
 
         reply = await message.get_reply_message()
         if reply:
@@ -1304,7 +2075,7 @@ Version: {version}"""
     @error_handler
     @chat_command
     async def kickcmd(self, message: Message) -> None:
-        """<reply | user> <reason | optional> - Kick user"""
+        """<user> [reason] - Kick user"""
         chat = await message.get_chat()
 
         if not chat.admin_rights and not chat.creator:
@@ -1317,13 +2088,13 @@ Version: {version}"""
 
         try:
             if reply:
-                user = await self.client.get_entity(reply.sender_id)
+                user = await self._client.get_entity(reply.sender_id)
                 reason = args or self.strings
             else:
                 uid = args.split(maxsplit=1)[0]
                 if str(uid).isdigit():
                     uid = int(uid)
-                user = await self.client.get_entity(uid)
+                user = await self._client.get_entity(uid)
                 reason = (
                     args.split(maxsplit=1)[1]
                     if len(args.split(maxsplit=1)) > 1
@@ -1334,13 +2105,27 @@ Version: {version}"""
             return
 
         try:
-            await self.client.kick_participant(utils.get_chat_id(message), user)
-            await utils.answer(
-                message,
-                self.strings("kick").format(
-                    get_link(user), get_first_name(user), reason
-                ),
+            await self._client.kick_participant(utils.get_chat_id(message), user)
+            msg = self.strings("kick").format(
+                get_link(user),
+                get_first_name(user),
+                reason,
+                self.get("punish_suffix", ""),
             )
+            await utils.answer(message, msg)
+
+            if self.get("logchat"):
+                await self._client.send_message(
+                    self.get("logchat"),
+                    self.strings("kick_log").format(
+                        get_link(user),
+                        get_first_name(user),
+                        get_link(chat),
+                        get_first_name(chat),
+                        reason,
+                        "",
+                    ),
+                )
         except UserAdminInvalidError:
             await utils.answer(message, self.strings("not_admin"))
             return
@@ -1348,7 +2133,7 @@ Version: {version}"""
     @error_handler
     @chat_command
     async def bancmd(self, message: Message) -> None:
-        """<reply | user> <reason | optional> - Ban user"""
+        """<user> [reason] - Ban user"""
         chat = await message.get_chat()
 
         a = await self.args_parser(message)
@@ -1356,23 +2141,14 @@ Version: {version}"""
             await utils.answer(message, self.strings("args"))
             return
 
-        user, t, reason, silent = a
+        user, t, reason = a
 
         if not chat.admin_rights and not chat.creator:
             await utils.answer(message, self.strings("not_admin"))
             return
 
         try:
-            await self.ban(chat, user, t)
-            await utils.answer(
-                message,
-                self.strings("ban").format(
-                    get_link(user),
-                    get_first_name(user),
-                    f"for {t // 60} min(-s)" if t != 0 else "forever",
-                    reason,
-                ),
-            )
+            await self.ban(chat, user, t, reason, message)
         except UserAdminInvalidError:
             await utils.answer(message, self.strings("not_admin"))
             return
@@ -1380,7 +2156,7 @@ Version: {version}"""
     @error_handler
     @chat_command
     async def mutecmd(self, message: Message) -> None:
-        """<reply | user> <time | 0 for infinity> <reason | optional> - Mute user"""
+        """<user> [time] [reason] - Mute user"""
         chat = await message.get_chat()
 
         a = await self.args_parser(message)
@@ -1388,25 +2164,14 @@ Version: {version}"""
             await utils.answer(message, self.strings("args"))
             return
 
-        user, t, reason, _ = a
+        user, t, reason = a
 
         if not chat.admin_rights and not chat.creator:
             await utils.answer(message, self.strings("not_admin"))
             return
 
         try:
-            await self.client.edit_permissions(
-                chat, user, until_date=time.time() + t, send_messages=False
-            )
-            await utils.answer(
-                message,
-                self.strings("mute").format(
-                    get_link(user),
-                    get_first_name(user),
-                    f"for {t // 60} min(-s)" if t != 0 else "forever",
-                    reason,
-                ),
-            )
+            await self.mute(chat, user, t, reason, message)
         except UserAdminInvalidError:
             await utils.answer(message, self.strings("not_admin"))
             return
@@ -1428,22 +2193,33 @@ Version: {version}"""
         try:
             if args.isdigit():
                 args = int(args)
-            user = await self.client.get_entity(args)
+            user = await self._client.get_entity(args)
         except Exception:
             try:
-                user = await self.client.get_entity(reply.sender_id)
+                user = await self._client.get_entity(reply.sender_id)
             except Exception:
                 await utils.answer(message, self.strings("args"))
                 return
 
         try:
-            await self.client.edit_permissions(
+            await self._client.edit_permissions(
                 chat, user, until_date=0, send_messages=True
             )
-            await utils.answer(
-                message,
-                self.strings("unmuted").format(get_link(user), get_first_name(user)),
+            msg = self.strings("unmuted").format(
+                get_link(user), get_first_name(user)
             )
+            await utils.answer(message, msg)
+
+            if self.get("logchat"):
+                await self._client.send_message(
+                    self.get("logchat"),
+                    self.strings("unmuted_log").format(
+                        get_link(user),
+                        get_first_name(user),
+                        get_link(chat),
+                        get_first_name(chat),
+                    ),
+                )
         except UserAdminInvalidError:
             await utils.answer(message, self.strings("not_admin"))
             return
@@ -1451,7 +2227,7 @@ Version: {version}"""
     @error_handler
     @chat_command
     async def unbancmd(self, message: Message) -> None:
-        """<reply | user> - Unban user"""
+        """<user> - Unban user"""
         chat = await message.get_chat()
 
         if not chat.admin_rights and not chat.creator:
@@ -1465,25 +2241,36 @@ Version: {version}"""
         try:
             if args.isdigit():
                 args = int(args)
-            user = await self.client.get_entity(args)
+            user = await self._client.get_entity(args)
         except Exception:
             try:
-                user = await self.client.get_entity(reply.sender_id)
+                user = await self._client.get_entity(reply.sender_id)
             except Exception:
                 await utils.answer(message, self.strings("args"))
                 return
 
         try:
-            await self.client.edit_permissions(
+            await self._client.edit_permissions(
                 chat,
                 user,
                 until_date=0,
                 **{right: True for right in BANNED_RIGHTS.keys()},
             )
-            await utils.answer(
-                message,
-                self.strings("unban").format(get_link(user), get_first_name(user)),
+            msg = self.strings("unban").format(
+                get_link(user), get_first_name(user)
             )
+            await utils.answer(message, msg)
+
+            if self.get("logchat"):
+                await self._client.send_message(
+                    self.get("logchat"),
+                    self.strings("unban_log").format(
+                        get_link(user),
+                        get_first_name(user),
+                        get_link(chat),
+                        get_first_name(chat),
+                    ),
+                )
         except UserAdminInvalidError:
             await utils.answer(message, self.strings("not_admin"))
             return
@@ -1498,17 +2285,17 @@ Version: {version}"""
         """List federations"""
         res = self.strings("feds_header")
         await self.update_feds()
-        if not self.federations:
+        if not self._feds:
             await utils.answer(message, self.strings("no_federations"))
             return
 
-        for shortname, config in self.federations.copy().items():
+        for shortname, config in self._feds.copy().items():
             res += f"    ☮️ <b>{config['name']}</b> (<code>{shortname}</code>)"
             for chat in config["chats"]:
                 try:
                     if str(chat).isdigit():
                         chat = int(chat)
-                    c = await self.client.get_entity(chat)
+                    c = await self._client.get_entity(chat)
                 except Exception:
                     continue
 
@@ -1527,13 +2314,13 @@ Version: {version}"""
 
         await self.update_feds()
 
-        fed = self.find_fed(message)
+        fed = await self.find_fed(message)
 
-        if (not args or args not in self.federations) and not fed:
+        if (not args or args not in self._feds) and not fed:
             await utils.answer(message, self.strings("no_fed"))
             return
 
-        if not args or args not in self.federations:
+        if not args or args not in self._feds:
             args = fed
 
         res = self.strings("fed")
@@ -1541,11 +2328,11 @@ Version: {version}"""
         fed = args
 
         admins = ""
-        for admin in self.federations[fed]["admins"]:
+        for admin in self._feds[fed]["admins"]:
             try:
                 if str(admin).isdigit():
                     admin = int(admin)
-                user = await self.client.get_entity(admin)
+                user = await self._client.get_entity(admin)
             except Exception:
                 continue
             name = get_full_name(user)
@@ -1557,103 +2344,63 @@ Version: {version}"""
             admins += f' <b>👤 <a href="{get_link(user)}">{name}</a></b>{status}\n'
 
         chats = ""
-        for chat in self.federations[fed]["chats"]:
+        channels = ""
+        for chat in self._feds[fed]["chats"]:
             try:
                 if str(chat).isdigit():
                     chat = int(chat)
-                c = await self.client.get_entity(chat)
+                c = await self._client.get_entity(chat)
             except Exception:
                 continue
 
-            chats += f" <b>🫂 <a href=\"tg://resolve?domain={getattr(c, 'username', '')}\">{c.title}</a></b>\n"
+            if str(chat) in self._linked_channels:
+                try:
+                    channel = await self._client.get_entity(
+                        self._linked_channels[str(chat)]
+                    )
+                    channels += f' <b>📣 <a href="{get_link(channel)}">{utils.escape_html(channel.title)}</a></b>\n'
+                except Exception:
+                    pass
+
+            chats += (
+                f' <b>🫂 <a href="{get_link(c)}">{utils.escape_html(c.title)}</a></b>\n'
+            )
 
         await utils.answer(
             message,
             res.format(
-                self.federations[fed]["name"],
-                chats,
-                admins,
-                len(self.federations[fed].get("warns", [])),
+                self._feds[fed]["name"],
+                chats or "-",
+                channels or "-",
+                admins or "-",
+                len(self._feds[fed].get("warns", [])),
             ),
         )
-
-    # @error_handler
-    # @chat_command
-    # async def pchatcmd(self, message: Message) -> None:
-    #     """List protection for current chat"""
-
-    #     chat_id = str(utils.get_chat_id(message))
-    #     await self.update_chats()
-    #     if chat_id not in self.chats or not self.chats[chat_id]:
-    #         await utils.answer(message, self.strings('chat404'))
-    #         return
-
-    #     res = f"📡 <b>{ver}</b>\n"
-
-    #     answ = await self.api.get(f'chats/{chat_id}/protects')
-
-    #     if not answ['success']:
-    #         await utils.answer(message, self.strings('api_error').format(answ))
-    #         return
-
-    #     obj = answ['protects']
-
-    #     fed = self.find_fed(message)
-
-    #     res += "\n🚪 <b>AntiRaid</b> Action: <b>{} all joined</b>"\
-    #         .format(obj['antiraid']) if 'antiraid' in obj else ""
-    #     res += "\n🐵 <b>AntiTagAll.</b> Action: <b>{}</b>"\
-    #         .format(obj['antitagall']) if 'antitagall' in obj else ""
-    #     res += "\n🐻 <b>AntiArab.</b> Action: <b>{}</b>"\
-    #         .format(obj['antiarab']) if 'antiarab' in obj else ""
-    #     res += "\n⏱ <b>AntiFlood</b> Action: <b>{}</b>"\
-    #         .format(obj['antiflood']) if 'antiflood' in obj else ""
-    #     res += "\n🍓 <b>AntiNSFW.</b> Action: <b>{}</b>"\
-    #         .format(obj['antinsfw']) if 'antinsfw' in obj else ""
-    #     res += "\n😒 <b>AntiExplicit.</b> Action: <b>{}</b>"\
-    #         .format(obj['antiexplicit']) if 'antiexplicit' in obj else ""
-    #     res += "\n🤵 <b>AntiSpam.</b> Action: <b>{}</b>"\
-    #         .format(obj['antispam']) if 'antispam' in obj else ""
-
-    #     res += "\n📯 <b>AntiChannel.</b>" if 'antichannel' in obj else ""
-    #     res += "\n⚙️ <b>AntiService.</b>" if 'antiservice' in obj else ""
-    #     res += "\n🪙 <b>AntiSpoiler.</b>" if 'antispoiler' in obj else ""
-    #     res += "\n🎑 <b>AntiGIF.</b>" if 'antigif' in obj else ""
-    #     res += "\n🐺 <b>AntiHelp.</b>" if 'antihelp' in obj else ""
-
-    #     res += "\n💼 <b>Federation: </b>" + \
-    #            self.federations[fed]['name'] if fed else ""
-
-    #     res += "\n👋 <b>Welcome.</b> \n{}"\
-    #         .format(obj['welcome']) if 'welcome' in obj else ""
-
-    #     await utils.answer(message, res)
 
     @error_handler
     @chat_command
     async def pchatcmd(self, message: Message) -> None:
         """List protection for current chat"""
         chat_id = utils.get_chat_id(message)
-        q = await self.client.inline_query("@hikarichat_bot", f"chat_{chat_id}")
+        q = await self._client.inline_query("@hikarichat_bot", f"chat_{chat_id}")
         await q[0].click(message.peer_id)
         await message.delete()
 
     @error_handler
     @chat_command
     async def warncmd(self, message: Message) -> None:
-        """<reply | user_id | username> <reason | optional> - Warn user"""
+        """<user> - Warn user"""
         chat = await message.get_chat()
 
         if not chat.admin_rights and not chat.creator:
             await utils.answer(message, self.strings("not_admin"))
             return
 
-        chat_id = utils.get_chat_id(message)
         args = utils.get_args_raw(message)
         reply = await message.get_reply_message()
         user = None
         if reply:
-            user = await self.client.get_entity(reply.sender_id)
+            user = await self._client.get_entity(reply.sender_id)
             reason = args or self.strings("no_reason")
         else:
             try:
@@ -1661,7 +2408,7 @@ Version: {version}"""
                 if u.isdigit():
                     u = int(u)
 
-                user = await self.client.get_entity(u)
+                user = await self._client.get_entity(u)
             except IndexError:
                 await utils.answer(message, self.strings("args"))
                 return
@@ -1671,14 +2418,14 @@ Version: {version}"""
             except IndexError:
                 reason = self.strings("no_reason")
 
-        fed = self.find_fed(message)
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
             return
 
         answ = await self.api.post(
-            f'federations/{self.federations[fed]["uid"]}/warn',
+            f'federations/{self._feds[fed]["uid"]}/warn',
             data={"user": str(user.id), "reason": reason},
         )
 
@@ -1694,9 +2441,7 @@ Version: {version}"""
 
         if len(warns) >= 7:
             user_name = get_first_name(user)
-            answ = await self.api.get(
-                f'federations/{self.federations[fed]["uid"]}/chats'
-            )
+            answ = await self.api.get(f'federations/{self._feds[fed]["uid"]}/chats')
 
             if not answ["success"]:
                 await utils.answer(
@@ -1707,7 +2452,7 @@ Version: {version}"""
 
             chats = answ["chats"]
             for c in chats:
-                await self.client(
+                await self._client(
                     EditBannedRequest(
                         c,
                         user,
@@ -1718,7 +2463,7 @@ Version: {version}"""
                     )
                 )
 
-                await self.client.send_message(
+                await self._client.send_message(
                     c,
                     self.strings("warns_limit").format(
                         get_link(user), user_name, "muted him for 24 hours"
@@ -1728,37 +2473,62 @@ Version: {version}"""
             await message.delete()
 
             answ = await self.api.delete(
-                f'federations/{self.federations[fed]["uid"]}/clrwarns',
+                f'federations/{self._feds[fed]["uid"]}/clrwarns',
                 data={"user": str(user.id)},
             )
         else:
-            await utils.answer(
-                message,
-                self.strings("fwarn", message).format(
-                    get_link(user), get_first_name(user), len(warns), 7, reason
-                ),
+            msg = self.strings("fwarn", message).format(
+                get_link(user),
+                get_first_name(user),
+                len(warns),
+                7,
+                reason,
+                self.get("punish_suffix", ""),
             )
+
+            if self._is_inline:
+                punishment_info = {
+                    "reply_markup": [
+                        [
+                            {
+                                "text": self.strings("btn_unwarn"),
+                                "data": f"dw/{utils.get_chat_id(message)}/{user.id}",
+                            }
+                        ]
+                    ],
+                    "ttl": 15,
+                }
+
+                if self.get("logchat"):
+                    await utils.answer(message, msg)
+                    await self.inline.form(
+                        text=self.strings("fwarn", message).format(
+                            get_link(user),
+                            get_first_name(user),
+                            len(warns),
+                            7,
+                            reason,
+                            "",
+                        ),
+                        message=self.get("logchat"),
+                        **punishment_info,
+                    )
+                else:
+                    await self.inline.form(text=msg, message=message, **punishment_info)
+            else:
+                await utils.answer(message, msg)
 
     @error_handler
     @chat_command
     async def warnscmd(self, message: Message) -> None:
-        """<reply | user_id | username | optional> - Show warns in chat \\ of user"""
+        """[user] - Show warns in chat \\ of user"""
         chat_id = utils.get_chat_id(message)
 
-        fed = self.find_fed(message)
-
-        async def check_admin(user_id):
-            try:
-                return (await self.client.get_permissions(chat_id, user_id)).is_admin
-            except ValueError:
-                return (
-                    user_id in self.client.dispatcher.security._owner
-                    or user_id in self.client.dispatcher.security._sudo
-                )
+        fed = await self.find_fed(message)
 
         async def check_member(user_id):
             try:
-                await self.client.get_permissions(chat_id, user_id)
+                await self._client.get_permissions(chat_id, user_id)
                 return True
             except Exception:
                 return False
@@ -1767,7 +2537,7 @@ Version: {version}"""
             await utils.answer(message, self.strings("no_fed"))
             return
 
-        answ = await self.api.get(f'federations/{self.federations[fed]["uid"]}/warns')
+        answ = await self.api.get(f'federations/{self._feds[fed]["uid"]}/warns')
 
         if not answ["success"]:
             await utils.answer(
@@ -1795,7 +2565,7 @@ Version: {version}"""
                 return
 
             if str(usid) not in warns or not warns[str(usid)]:
-                user_obj = await self.client.get_entity(usid)
+                user_obj = await self._client.get_entity(usid)
                 await utils.answer(
                     message,
                     self.strings("no_warns").format(
@@ -1803,7 +2573,7 @@ Version: {version}"""
                     ),
                 )
             else:
-                user_obj = await self.client.get_entity(usid)
+                user_obj = await self._client.get_entity(usid)
                 _warns = ""
                 processed = []
                 for warn in warns[str(usid)].copy():
@@ -1831,7 +2601,7 @@ Version: {version}"""
                     ),
                 )
 
-        if not await check_admin(message.sender_id):
+        if not await self.check_admin(chat_id, message.sender_id):
             await send_user_warns(message.sender_id)
         else:
             reply = await message.get_reply_message()
@@ -1840,7 +2610,7 @@ Version: {version}"""
                 res = self.strings("warns_adm_fed")
                 for user, _warns in warns.copy().items():
                     try:
-                        user_obj = await self.client.get_entity(int(user))
+                        user_obj = await self._client.get_entity(int(user))
                     except Exception:
                         continue
 
@@ -1878,72 +2648,74 @@ Version: {version}"""
 
     @error_handler
     @chat_command
-    async def dwarncmd(self, message: Message) -> None:
-        """<reply | user_id | username> - Remove last warn"""
-        chat_id = str(utils.get_chat_id(message))
+    async def delwarncmd(self, message: Message) -> None:
+        """<user> - Forgave last warn"""
         args = utils.get_args_raw(message)
         reply = await message.get_reply_message()
         user = None
 
         if reply:
-            user = await self.client.get_entity(reply.sender_id)
+            user = await self._client.get_entity(reply.sender_id)
         else:
             if args.isdigit():
                 args = int(args)
 
             try:
-                user = await self.client.get_entity(args)
+                user = await self._client.get_entity(args)
             except IndexError:
                 await utils.answer(message, self.strings("args"))
                 return
 
-        fed = self.find_fed(message)
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
             return
 
         answ = await self.api.delete(
-            f'federations/{self.federations[fed]["uid"]}/warn',
-            data={"user": str(user.id)},
+            f'federations/{self._feds[fed]["uid"]}/warn', data={"user": str(user.id)}
         )
         if not answ["success"]:
             await utils.answer(message, self.strings("api_error").format(answ))
             return
 
+        msg = self.strings("dwarn_fed").format(get_link(user), get_first_name(user))
+
         await utils.answer(
             message,
-            self.strings("dwarn_fed").format(get_link(user), get_first_name(user)),
+            msg,
         )
+
+        if self.get("logchat", False):
+            await self._client.send_message(self.get("logchat"), msg)
 
     @error_handler
     @chat_command
     async def clrwarnscmd(self, message: Message) -> None:
         """<reply | user_id | username> - Remove all warns from user"""
-        chat_id = str(utils.get_chat_id(message))
         args = utils.get_args_raw(message)
         reply = await message.get_reply_message()
         user = None
         if reply:
-            user = await self.client.get_entity(reply.sender_id)
+            user = await self._client.get_entity(reply.sender_id)
         else:
             if args.isdigit():
                 args = int(args)
 
             try:
-                user = await self.client.get_entity(args)
+                user = await self._client.get_entity(args)
             except IndexError:
                 await utils.answer(message, self.strings("args"))
                 return
 
-        fed = self.find_fed(message)
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
             return
 
         answ = await self.api.delete(
-            f'federations/{self.federations[fed]["uid"]}/clrwarns',
+            f'federations/{self._feds[fed]["uid"]}/clrwarns',
             data={"user": str(user.id)},
         )
         if not answ["success"]:
@@ -1959,14 +2731,14 @@ Version: {version}"""
     @chat_command
     async def clrallwarnscmd(self, message: Message) -> None:
         """Remove all warns from current federation"""
-        fed = self.find_fed(message)
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
             return
 
         answ = await self.api.delete(
-            f'federations/{self.federations[fed]["uid"]}/clrallwarns'
+            f'federations/{self._feds[fed]["uid"]}/clrallwarns'
         )
         if not answ["success"]:
             await utils.answer(message, self.strings("api_error").format(answ))
@@ -1997,10 +2769,8 @@ Version: {version}"""
     @error_handler
     @chat_command
     async def fdefcmd(self, message: Message) -> None:
-        """<user | reply> - Toggle global user invulnerability"""
-        chat_id = utils.get_chat_id(message)
-
-        fed = self.find_fed(message)
+        """<user> - Toggle global user invulnerability"""
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
@@ -2010,19 +2780,19 @@ Version: {version}"""
         reply = await message.get_reply_message()
         user = None
         if reply:
-            user = await self.client.get_entity(reply.sender_id)
+            user = await self._client.get_entity(reply.sender_id)
         else:
             if str(args).isdigit():
                 args = int(args)
 
             try:
-                user = await self.client.get_entity(args)
+                user = await self._client.get_entity(args)
             except Exception:
                 await utils.answer(message, self.strings("args"))
                 return
 
         answ = await self.api.post(
-            f'federations/{self.federations[fed]["uid"]}/fdef/{user.id}'
+            f'federations/{self._feds[fed]["uid"]}/fdef/{user.id}'
         )
 
         if not answ["success"]:
@@ -2040,9 +2810,7 @@ Version: {version}"""
     @chat_command
     async def fsavecmd(self, message: Message) -> None:
         """<note name> <reply> - Save federative note"""
-        chat_id = utils.get_chat_id(message)
-
-        fed = self.find_fed(message)
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
@@ -2055,7 +2823,7 @@ Version: {version}"""
             return
 
         answ = await self.api.post(
-            f'federations/{self.federations[fed]["uid"]}/notes',
+            f'federations/{self._feds[fed]["uid"]}/notes',
             data={"shortname": args, "note": reply.text},
         )
 
@@ -2069,9 +2837,7 @@ Version: {version}"""
     @chat_command
     async def fstopcmd(self, message: Message) -> None:
         """<note name> - Remove federative note"""
-        chat_id = utils.get_chat_id(message)
-
-        fed = self.find_fed(message)
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
@@ -2083,8 +2849,7 @@ Version: {version}"""
             return
 
         answ = await self.api.delete(
-            f'federations/{self.federations[fed]["uid"]}/notes',
-            data={"shortname": args},
+            f'federations/{self._feds[fed]["uid"]}/notes', data={"shortname": args}
         )
 
         if not answ["success"]:
@@ -2097,29 +2862,30 @@ Version: {version}"""
     @chat_command
     async def fnotescmd(self, message: Message, from_watcher: bool = False) -> None:
         """Show federative notes"""
-        chat_id = utils.get_chat_id(message)
-
-        fed = self.find_fed(message)
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
             return
 
-        answ = await self.api.get(f'federations/{self.federations[fed]["uid"]}/notes')
+        answ = await self.api.get(f'federations/{self._feds[fed]["uid"]}/notes')
 
         if not answ["success"]:
             await utils.answer(message, self.strings("api_error").format(answ))
             return
 
         res = {}
+        cache = {}
+
         for shortname, note in answ["notes"].items():
             if int(note["creator"]) != self._me and from_watcher:
                 continue
 
             try:
-                obj = await self.client.get_entity(int(note["creator"]))
-                name = obj.first_name or obj.title
-                key = f'<a href="{get_link(obj)}">{name}</a>'
+                if int(note["creator"]) not in cache:
+                    obj = await self._client.get_entity(int(note["creator"]))
+                    cache[int(note["creator"])] = obj.first_name or obj.title
+                key = f'<a href="{get_link(obj)}">{cache[int(note["creator"])]}</a>'
                 if key not in res:
                     res[key] = ""
                 res[key] += f"  <code>{shortname}</code>\n"
@@ -2139,15 +2905,13 @@ Version: {version}"""
     @chat_command
     async def fdeflistcmd(self, message: Message) -> None:
         """Show global invulnerable users"""
-        chat_id = utils.get_chat_id(message)
-
-        fed = self.find_fed(message)
+        fed = await self.find_fed(message)
 
         if not fed:
             await utils.answer(message, self.strings("no_fed"))
             return
 
-        answ = await self.api.get(f'federations/{self.federations[fed]["uid"]}/fdef')
+        answ = await self.api.get(f'federations/{self._feds[fed]["uid"]}/fdef')
 
         if not answ["success"]:
             await utils.answer(message, self.strings("api_error").format(answ))
@@ -2161,11 +2925,9 @@ Version: {version}"""
         defense = answ["fdef"]
         for user in defense.copy():
             try:
-                u = await self.client.get_entity(int(user))
+                u = await self._client.get_entity(int(user))
             except Exception:
-                await self.api.post(
-                    f'federations/{self.federations[fed]["uid"]}/fdef/{user}'
-                )
+                await self.api.post(f'federations/{self._feds[fed]["uid"]}/fdef/{user}')
                 await asyncio.sleep(0.2)
                 continue
 
@@ -2177,15 +2939,228 @@ Version: {version}"""
         return
 
     @error_handler
+    @chat_command
+    async def dmutecmd(self, message: Message) -> None:
+        """Delete and mute"""
+        reply = await message.get_reply_message()
+        await self.mutecmd(message)
+        await reply.delete()
+
+    @error_handler
+    @chat_command
+    async def dbancmd(self, message: Message) -> None:
+        """Delete and ban"""
+        reply = await message.get_reply_message()
+        await self.bancmd(message)
+        await reply.delete()
+
+    @error_handler
+    @chat_command
+    async def dwarncmd(self, message: Message) -> None:
+        """Delete and warn"""
+        reply = await message.get_reply_message()
+        await self.warncmd(message)
+        await reply.delete()
+
+    @error_handler
+    @chat_command
+    async def fsynccmd(self, message: Message) -> None:
+        """Forcefully sync chats and feds with server"""
+        message = await utils.answer(message, self.strings("sync"))
+        if isinstance(message, (tuple, list, set)):
+            message = message[0]
+
+        await self.update_feds(True)
+        await self.update_chats(True)
+
+        await utils.answer(message, self.strings("sync_complete"))
+
+    @error_handler
+    @chat_command
+    async def frenamecmd(self, message: Message) -> None:
+        """Rename federation"""
+        args = utils.get_args_raw(message)
+        fed = await self.find_fed(message)
+
+        if not fed:
+            await utils.answer(message, self.strings("no_fed"))
+            return
+
+        if not args:
+            await utils.answer(message, self.strings("rename_noargs"))
+            return
+
+        await self.api.post(
+            f'federations/{self._feds[fed]["uid"]}/rename', data={"name": args}
+        )
+
+        await utils.answer(
+            message, self.strings("rename_success").format(utils.escape_html(args))
+        )
+
+    @error_handler
+    async def myrightscmd(self, message: Message) -> None:
+        """List your admin rights in all chats"""
+        if not PIL_AVAILABLE:
+            await utils.answer(message, self.strings("pil_unavailable"))
+            return
+
+        message = await utils.answer(message, self.strings("processing_myrights"))
+        if isinstance(message, (list, tuple, set)):
+            message = message[0]
+
+        rights = []
+        async for chat in self._client.iter_dialogs():
+            ent = chat.entity
+
+            if not (
+                isinstance(ent, Chat)
+                or (isinstance(ent, Channel) and getattr(ent, "megagroup", False))
+            ):
+                # logger.info(ent)
+                continue
+
+            r = ent.admin_rights
+
+            if not r:
+                continue
+
+            if ent.participants_count < 5:
+                continue
+
+            rights += [
+                [
+                    ent.title if len(ent.title) < 30 else f"{ent.title[:30]}...",
+                    "YES" if r.change_info else "-----",
+                    "YES" if r.delete_messages else "-----",
+                    "YES" if r.ban_users else "-----",
+                    "YES" if r.invite_users else "-----",
+                    "YES" if r.pin_messages else "-----",
+                    "YES" if r.add_admins else "-----",
+                ]
+            ]
+
+        await self._client.send_file(
+            message.peer_id,
+            render_table(
+                [
+                    [
+                        "Chat",
+                        "change_info",
+                        "delete_messages",
+                        "ban_users",
+                        "invite_users",
+                        "pin_messages",
+                        "add_admins",
+                    ]
+                ]
+                + rights
+            ),
+        )
+
+        if message.out:
+            await message.delete()
+
+    @error_handler
     async def p__antiservice(self, chat_id: Union[str, int], message: Message) -> None:
         if (
-            str(chat_id) in self.chats
-            and str(chat_id) in self.my_protects
-            and "antiservice" in self.chats[str(chat_id)]
-            and "antiservice" in self.my_protects[str(chat_id)]
+            str(chat_id) in self._chats
+            and str(chat_id) in self._my_protects
+            and "antiservice" in self._chats[str(chat_id)]
+            and "antiservice" in self._my_protects[str(chat_id)]
             and getattr(message, "action_message", False)
         ):
             await message.delete()
+
+    @error_handler
+    async def p__banninja(
+        self,
+        chat_id: Union[str, int],
+        user_id: Union[str, int],
+        user: Union[User, Channel],
+        message: Message,
+        chat: Union[Chat, Channel],
+    ) -> bool:
+        if not (
+            "banninja" in self._chats[str(chat_id)]
+            and "banninja" in self._my_protects[str(chat_id)]
+            and (
+                getattr(message, "user_joined", False)
+                or getattr(message, "user_added", False)
+            )
+        ):
+            return False
+
+        chat_id = str(chat_id)
+
+        if chat_id in self._ban_ninja:
+            if self._ban_ninja[chat_id] > time.time():
+                await self.inline._bot.kick_chat_member(f"-100{chat_id}", user_id)
+                logger.warning(
+                    f"BanNinja is active in chat {chat.title}, I kicked {get_full_name(user)}"
+                )
+                return True
+
+            del self._ban_ninja[chat_id]
+
+        if chat_id not in self._join_ratelimit:
+            self._join_ratelimit[chat_id] = []
+
+        self._join_ratelimit[chat_id] += [(user_id, round(time.time()))]
+
+        processed = []
+
+        for u, t in self._join_ratelimit[chat_id].copy():
+            if u in processed or t + 60 < time.time():
+                self._join_ratelimit[chat_id].remove((u, t))
+            else:
+                processed += [u]
+
+        if len(self._join_ratelimit) > int(self.config["join_ratelimit"]):
+            if not await self.check_admin(
+                utils.get_chat_id(message), f"@{self.inline._bot_username}"
+            ):
+                try:
+                    await self._client(
+                        InviteToChannelRequest(
+                            utils.get_chat_id(message), [self.inline._bot_username]
+                        )
+                    )
+                except Exception:
+                    logger.warning(
+                        "Unable to invite cleaner to chat. Maybe he's already there?"
+                    )
+
+                try:
+                    await self._client(
+                        EditAdminRequest(
+                            channel=utils.get_chat_id(message),
+                            user_id=self.inline._bot_username,
+                            admin_rights=ChatAdminRights(ban_users=True),
+                            rank="Ban Ninja",
+                        )
+                    )
+                except Exception:
+                    logger.exception("Cleaner promotion failed!")
+                    return False
+
+            self._ban_ninja[chat_id] = round(time.time()) + (10 * 60)
+            await self.inline.form(
+                self.strings("smart_anti_raid_active"),
+                message=chat.id,
+                force_me=True,
+                reply_markup=[
+                    [
+                        {
+                            "text": self.strings("smart_anti_raid_off"),
+                            "callback": self.disable_smart_anti_raid,
+                            "args": (chat_id,),
+                        }
+                    ]
+                ],
+            )
+
+        return False
 
     @error_handler
     async def p__antiraid(
@@ -2194,41 +3169,46 @@ Version: {version}"""
         user_id: Union[str, int],
         user: Union[User, Channel],
         message: Message,
+        chat: Union[Chat, Channel],
     ) -> bool:
         if (
-            "antiraid" in self.chats[str(chat_id)]
-            and "antiraid" in self.my_protects[str(chat_id)]
+            "antiraid" in self._chats[str(chat_id)]
+            and "antiraid" in self._my_protects[str(chat_id)]
+            and (
+                getattr(message, "user_joined", False)
+                or getattr(message, "user_added", False)
+            )
         ):
-            if getattr(message, "user_joined", False) or getattr(
-                message, "user_added", False
-            ):
-                action = self.chats[str(chat_id)]["antiraid"]
-                if action == "kick":
-                    await self.client.send_message(
-                        "me",
-                        self.strings("antiraid").format(
-                            "kicked", user.id, get_full_name(user), chat.title
-                        ),
-                    )
-                    await self.client.kick_participant(chat_id, user)
-                elif action == "ban":
-                    await self.client.send_message(
-                        "me",
-                        self.strings("antiraid").format(
-                            "banned", user.id, get_full_name(user), chat.title
-                        ),
-                    )
-                    await self.ban(chat, user)
-                elif action == "mute":
-                    await self.client.send_message(
-                        "me",
-                        self.strings("antiraid").format(
-                            "muted", user.id, get_full_name(user), chat.title
-                        ),
-                    )
-                    await self.mute(chat, user)
+            action = self._chats[str(chat_id)]["antiraid"]
+            if action == "kick":
+                await self._client.send_message(
+                    "me",
+                    self.strings("antiraid").format(
+                        "kicked", user.id, get_full_name(user), chat.title
+                    ),
+                )
 
-                return True
+                await self._client.kick_participant(chat_id, user)
+            elif action == "ban":
+                await self._client.send_message(
+                    "me",
+                    self.strings("antiraid").format(
+                        "banned", user.id, get_full_name(user), chat.title
+                    ),
+                )
+
+                await self.ban(chat, user, 0, "antiraid")
+            elif action == "mute":
+                await self._client.send_message(
+                    "me",
+                    self.strings("antiraid").format(
+                        "muted", user.id, get_full_name(user), chat.title
+                    ),
+                )
+
+                await self.mute(chat, user, 0, "antiraid")
+
+            return True
 
         return False
 
@@ -2242,25 +3222,25 @@ Version: {version}"""
         chat: Chat,
     ) -> bool:
         if (
-            "welcome" in self.chats[str(chat_id)]
-            and "welcome" in self.my_protects[str(chat_id)]
+            "welcome" in self._chats[str(chat_id)]
+            and "welcome" in self._my_protects[str(chat_id)]
+            and (
+                getattr(message, "user_joined", False)
+                or getattr(message, "user_added", False)
+            )
         ):
-            if getattr(message, "user_joined", False) or getattr(
-                message, "user_added", False
-            ):
-                await self.client.send_message(
-                    chat_id,
-                    self.chats[str(chat_id)]["welcome"]
-                    .replace("{user}", get_full_name(user))
-                    .replace("{chat}", chat.title)
-                    .replace(
-                        "{mention}",
-                        f'<a href="{get_link(user)}">{get_full_name(user)}</a>',
-                    ),
-                    reply_to=message.action_message.id,
-                )
+            await self._client.send_message(
+                chat_id,
+                self._chats[str(chat_id)]["welcome"]
+                .replace("{user}", get_full_name(user))
+                .replace("{chat}", utils.escape_html(chat.title))
+                .replace(
+                    "{mention}", f'<a href="{get_link(user)}">{get_full_name(user)}</a>'
+                ),
+                reply_to=message.action_message.id,
+            )
 
-                return True
+            return True
 
         return False
 
@@ -2273,50 +3253,87 @@ Version: {version}"""
         message: Message,
     ) -> None:
         if (
-            "report" in self.chats[str(chat_id)]
-            and "report" in self.my_protects[str(chat_id)]
-            and getattr(message, "get_reply_message", False)
+            "report" not in self._chats[str(chat_id)]
+            or "report" not in self._my_protects[str(chat_id)]
+            or not getattr(message, "reply_to_msg_id", False)
         ):
-            reply = await message.get_reply_message()
-            if (
-                str(user_id) not in self.ratelimit["report"]
-                or self.ratelimit["report"][str(user_id)] < time.time()
-            ):
-                if message.raw_text.startswith("#report") and reply:
-                    reason = (
-                        message.raw_text.split(maxsplit=1)[1]
-                        if message.raw_text.count(" ") >= 1
-                        else self.strings("no_reason")
-                    )
+            return
 
-                    answ = await self.api.post(
-                        f"chats/{chat_id}/report",
-                        data={
-                            "reason": reason,
-                            "link": await get_message_link(reply, chat),
-                            "user_link": get_link(user),
-                            "user_name": get_full_name(user),
-                            "text_thumbnail": reply.raw_text[:1024],
-                        },
-                    )
+        reply = await message.get_reply_message()
+        if (
+            str(user_id) not in self._ratelimit["report"]
+            or self._ratelimit["report"][str(user_id)] < time.time()
+        ) and (
+            (
+                message.raw_text.startswith("#report")
+                or message.raw_text.startswith("/report")
+            )
+            and reply
+        ):
+            chat = await message.get_chat()
 
-                    if not answ["success"]:
-                        await utils.answer(
-                            message, self.strings("api_error").format(answ)
-                        )
-                        return
+            reason = (
+                message.raw_text.split(maxsplit=1)[1]
+                if message.raw_text.count(" ") >= 1
+                else self.strings("no_reason")
+            )
 
-                    if not self.config["silent"]:
-                        await utils.answer(
-                            reply,
-                            self.strings("reported").format(
-                                get_link(user), get_full_name(user), reason
-                            ),
-                        )
+            answ = await self.api.post(
+                f"chats/{chat_id}/report",
+                data={
+                    "reason": reason,
+                    "link": await get_message_link(reply, chat),
+                    "user_link": get_link(user),
+                    "user_name": get_full_name(user),
+                    "text_thumbnail": reply.raw_text[:1024] or "<media>",
+                },
+            )
 
-                    self.ratelimit["report"][str(user_id)] = time.time() + 60
+            if not answ["success"]:
+                await utils.answer(message, self.strings("api_error").format(answ))
+                return
 
-                    await message.delete()
+            msg = self.strings("reported").format(
+                get_link(user), get_full_name(user), reason
+            )
+
+            if self._is_inline:
+                await self.inline.form(
+                    message=chat.id,
+                    reply_to=reply,
+                    text=msg,
+                    reply_markup=[
+                        [
+                            {
+                                "text": self.strings("btn_mute"),
+                                "data": f"m/{chat.id}/{reply.sender_id}#{reply.id}",
+                            },
+                            {
+                                "text": self.strings("btn_ban"),
+                                "data": f"b/{chat.id}/{reply.sender_id}#{reply.id}",
+                            },
+                        ],
+                        [
+                            {
+                                "text": self.strings("btn_fban"),
+                                "data": f"fb/{chat.id}/{reply.sender_id}#{reply.id}",
+                            },
+                            {
+                                "text": self.strings("btn_del"),
+                                "data": f"d/{chat.id}/{reply.sender_id}#{reply.id}",
+                            },
+                        ],
+                    ],
+                    ttl=15,
+                )
+            else:
+                await (utils.answer if message else self._client.send_message)(
+                    message or chat.id, msg
+                )
+
+            self._ratelimit["report"][str(user_id)] = time.time() + 30
+
+            await message.delete()
 
     @error_handler
     async def p__antiflood(
@@ -2327,8 +3344,8 @@ Version: {version}"""
         message: Message,
     ) -> Union[bool, str]:
         if (
-            "antiflood" in self.chats[str(chat_id)]
-            and "antiflood" in self.my_protects[str(chat_id)]
+            "antiflood" in self._chats[str(chat_id)]
+            and "antiflood" in self._my_protects[str(chat_id)]
         ):
             if str(chat_id) not in self.flood_cache:
                 self.flood_cache[str(chat_id)] = {}
@@ -2347,7 +3364,7 @@ Version: {version}"""
                 len(self.flood_cache[str(chat_id)][str(user_id)])
                 >= self.flood_threshold
             ):
-                return self.chats[str(chat_id)]["antiflood"]
+                return self._chats[str(chat_id)]["antiflood"]
 
         return False
 
@@ -2360,12 +3377,12 @@ Version: {version}"""
         message: Message,
     ) -> bool:
         if (
-            "antichannel" in self.chats[str(chat_id)]
-            and "antichannel" in self.my_protects[str(chat_id)]
+            "antichannel" in self._chats[str(chat_id)]
+            and "antichannel" in self._my_protects[str(chat_id)]
+            and getattr(message, "sender_id", 0) < 0
         ):
-            if getattr(message, "sender_id", 0) < 0:
-                await message.delete()
-                return True
+            await message.delete()
+            return True
 
         return False
 
@@ -2378,8 +3395,8 @@ Version: {version}"""
         message: Message,
     ) -> bool:
         if (
-            "antigif" in self.chats[str(chat_id)]
-            and "antigif" in self.my_protects[str(chat_id)]
+            "antigif" in self._chats[str(chat_id)]
+            and "antigif" in self._my_protects[str(chat_id)]
         ):
             try:
                 if (
@@ -2402,11 +3419,11 @@ Version: {version}"""
         message: Message,
     ) -> bool:
         if (
-            "antispoiler" in self.chats[str(chat_id)]
-            and "antispoiler" in self.my_protects[str(chat_id)]
+            "antispoiler" in self._chats[str(chat_id)]
+            and "antispoiler" in self._my_protects[str(chat_id)]
         ):
             try:
-                if any([isinstance(_, MessageEntitySpoiler) for _ in message.entities]):
+                if any(isinstance(_, MessageEntitySpoiler) for _ in message.entities):
                     await message.delete()
                     return True
             except Exception:
@@ -2423,18 +3440,18 @@ Version: {version}"""
         message: Message,
     ) -> Union[bool, str]:
         if (
-            "antiexplicit" in self.chats[str(chat_id)]
-            and "antiexplicit" in self.my_protects[str(chat_id)]
+            "antiexplicit" in self._chats[str(chat_id)]
+            and "antiexplicit" in self._my_protects[str(chat_id)]
         ):
             text = getattr(message, "raw_text", "")
             P = "пПnPp"
-            I = "иИiI1uІИ́Їіи́ї"
+            I = "иИiI1uІИ́Їіи́ї"  # noqa: E741
             E = "еЕeEЕ́е́"
             D = "дДdD"
             Z = "зЗ3zZ3"
             M = "мМmM"
             U = "уУyYuUУ́у́"
-            O = "оОoO0О́о́"
+            O = "оОoO0О́о́"  # noqa: E741
             L = "лЛlL1"
             A = "аАaAА́а́@"
             N = "нНhH"
@@ -2460,13 +3477,11 @@ Version: {version}"""
             occurrences = [
                 word
                 for word in occurrences
-                if not any(
-                    [excl in word for excl in self.variables["censor_exclusions"]]
-                )
+                if all(excl not in word for excl in self.variables["censor_exclusions"])
             ]
 
             if occurrences:
-                return self.chats[str(chat_id)]["antiexplicit"]
+                return self._chats[str(chat_id)]["antiexplicit"]
 
         return False
 
@@ -2479,8 +3494,8 @@ Version: {version}"""
         message: Message,
     ) -> Union[bool, str]:
         if (
-            "antinsfw" in self.chats[str(chat_id)]
-            and "antinsfw" in self.my_protects[str(chat_id)]
+            "antinsfw" in self._chats[str(chat_id)]
+            and "antinsfw" in self._my_protects[str(chat_id)]
         ):
             media = False
 
@@ -2491,24 +3506,24 @@ Version: {version}"""
 
             if media:
                 photo = io.BytesIO()
-                await self.client.download_media(message.media, photo)
+                await self._client.download_media(message.media, photo)
                 photo.seek(0)
 
                 if imghdr.what(photo) in self.variables["image_types"]:
                     response = await self.api.post("check_nsfw", data={"file": photo})
                     if response["verdict"] == "nsfw":
                         todel = []
-                        async for _ in self.client.iter_messages(
+                        async for _ in self._client.iter_messages(
                             message.peer_id, reverse=True, offset_id=message.id - 1
                         ):
                             todel += [_]
                             if _.sender_id != message.sender_id:
                                 break
 
-                        await self.client.delete_messages(
+                        await self._client.delete_messages(
                             message.peer_id, message_ids=todel, revoke=True
                         )
-                        return self.chats[str(chat_id)]["antinsfw"]
+                        return self._chats[str(chat_id)]["antinsfw"]
 
         return False
 
@@ -2521,12 +3536,12 @@ Version: {version}"""
         message: Message,
     ) -> Union[bool, str]:
         if (
-            "antitagall" in self.chats[str(chat_id)]
-            and "antitagall" in self.my_protects[str(chat_id)]
+            "antitagall" in self._chats[str(chat_id)]
+            and "antitagall" in self._my_protects[str(chat_id)]
             and getattr(message, "text", False)
         ):
             if message.text.count("tg://user?id=") >= 5:
-                return self.chats[str(chat_id)]["antitagall"]
+                return self._chats[str(chat_id)]["antitagall"]
 
         return False
 
@@ -2539,8 +3554,8 @@ Version: {version}"""
         message: Message,
     ) -> bool:
         if (
-            "antihelp" in self.chats[str(chat_id)]
-            and "antihelp" in self.my_protects[str(chat_id)]
+            "antihelp" in self._chats[str(chat_id)]
+            and "antihelp" in self._my_protects[str(chat_id)]
             and getattr(message, "text", False)
         ):
             search = message.text
@@ -2566,17 +3581,18 @@ Version: {version}"""
         message: Message,
     ) -> Union[bool, str]:
         if (
-            "antiarab" in self.chats[str(chat_id)]
-            and "antiarab" in self.my_protects[str(chat_id)]
+            "antiarab" in self._chats[str(chat_id)]
+            and "antiarab" in self._my_protects[str(chat_id)]
+            and (
+                getattr(message, "user_joined", False)
+                or getattr(message, "user_added", False)
+            )
+            and (
+                len(re.findall("[\u4e00-\u9fff]+", get_full_name(user))) != 0
+                or len(re.findall("[\u0621-\u064A]+", get_full_name(user))) != 0
+            )
         ):
-            if getattr(message, "user_joined", False) or getattr(
-                message, "user_added", False
-            ):
-                if (
-                    len(re.findall("[\u4e00-\u9fff]+", get_full_name(user))) != 0
-                    or len(re.findall("[\u0621-\u064A]+", get_full_name(user))) != 0
-                ):
-                    return self.chats[str(chat_id)]["antiarab"]
+            return self._chats[str(chat_id)]["antiarab"]
 
         return False
 
@@ -2589,14 +3605,21 @@ Version: {version}"""
         message: Message,
     ) -> Union[bool, str]:
         if (
-            "antizalgo" in self.chats[str(chat_id)]
-            and "antizalgo" in self.my_protects[str(chat_id)]
+            "antizalgo" in self._chats[str(chat_id)]
+            and "antizalgo" in self._my_protects[str(chat_id)]
+            and (
+                getattr(message, "user_joined", False)
+                or getattr(message, "user_added", False)
+            )
+            and len(
+                re.findall(
+                    "[\u0300-\u0361\u0316-\u0362\u0334-\u0338\u0363-\u036F\u3164\u0338\u0336\u0334\u200f\u200e\u200e\u0335\u0337]",
+                    get_full_name(user),
+                )
+            )
+            > 5
         ):
-            if getattr(message, "user_joined", False) or getattr(
-                message, "user_added", False
-            ):
-                if len(re.findall("[^\x20-\x7E\x20-\x7E]", get_full_name(user))) > 5:
-                    return self.chats[str(chat_id)]["antizalgo"]
+            return self._chats[str(chat_id)]["antizalgo"]
 
         return False
 
@@ -2609,8 +3632,8 @@ Version: {version}"""
         message: Message,
     ) -> Union[bool, str]:
         if (
-            "antistick" in self.chats[str(chat_id)]
-            and "antistick" in self.my_protects[str(chat_id)]
+            "antistick" in self._chats[str(chat_id)]
+            and "antistick" in self._my_protects[str(chat_id)]
             and (
                 getattr(message, "sticker", False)
                 or getattr(message, "media", False)
@@ -2629,20 +3652,27 @@ Version: {version}"""
                     self._sticks_ratelimit[sender].remove(timing)
 
             if len(self._sticks_ratelimit[sender]) > self._sticks_limit:
-                return self.chats[str(chat_id)]["antistick"]
+                return self._chats[str(chat_id)]["antistick"]
 
         return False
 
     @error_handler
     async def watcher(self, message: Message) -> None:
-        if not (
-            isinstance(getattr(message, "chat", 0), Chat)
-            or isinstance(getattr(message, "chat", 0), Channel)
-            and getattr(message.chat, "megagroup", False)
-        ):
+        if not isinstance(getattr(message, "chat", 0), (Chat, Channel)):
             return
 
+        await self.update_chats()
+
         chat_id = utils.get_chat_id(message)
+
+        if (
+            isinstance(getattr(message, "chat", 0), Channel)
+            and not getattr(message, "megagroup", False)
+            and int(chat_id) in reverse_dict(self._linked_channels)
+        ):
+            actual_chat = str(reverse_dict(self._linked_channels)[int(chat_id)])
+            await self.p__antiservice(actual_chat, message)
+            return
 
         await self.p__antiservice(chat_id, message)
 
@@ -2669,94 +3699,81 @@ Version: {version}"""
                             # anonymous admin
 
                             # await self.api.report_error(str(message))
+                            logger.warning(
+                                f"Can't extract entity from event {type(message)}"
+                            )
                             return
 
         user_id = (
             int(str(user_id)[4:]) if str(user_id).startswith("-100") else int(user_id)
         )
 
-        logger.debug(f"Got event from {user_id}")
+        fed = await self.find_fed(message)
 
-        violation = None
-        action = None
-
-        fed = self.find_fed(message)
-
-        if fed in self.federations:
-            if getattr(message, "raw_text", False):
-                if user_id and isinstance(message, Message):
-                    if (
-                        str(user_id) not in self.ratelimit["notes"]
-                        or self.ratelimit["notes"][str(user_id)] < time.time()
+        if fed in self._feds:
+            if (
+                getattr(message, "raw_text", False)
+                and (
+                    str(user_id) not in self._ratelimit["notes"]
+                    or self._ratelimit["notes"][str(user_id)] < time.time()
+                )
+                and not (
+                    message.raw_text.startswith(self._prefix)
+                    and len(message.raw_text) > 1
+                    and message.raw_text[1] != self._prefix
+                )
+            ):
+                logger.debug("Checking message for notes...")
+                if message.raw_text.lower().strip() in ["#заметки", "#notes", "/notes"]:
+                    self._ratelimit["notes"][str(user_id)] = time.time() + 3
+                    if any(
+                        str(note["creator"]) == str(self._me)
+                        for _, note in self._feds[fed]["notes"].items()
                     ):
-                        if not (
-                            message.raw_text.startswith(self.prefix)
-                            and len(message.raw_text) > 1
-                            and message.raw_text[1] != self.prefix
-                        ):
-                            await self.update_feds()
-                            if message.raw_text.lower().strip() in [
-                                "#заметки",
-                                "#notes",
-                            ]:
-                                self.ratelimit["notes"][str(user_id)] = time.time() + 3
-                                if any(
-                                    [
-                                        str(note["creator"]) == str(self._me)
-                                        for _, note in self.federations[fed][
-                                            "notes"
-                                        ].items()
-                                    ]
-                                ):
-                                    await self.fnotescmd(
-                                        await message.reply(
-                                            f"<code>{self.prefix}fnotes</code>"
-                                        ),
-                                        True,
-                                    )
+                        await self.fnotescmd(
+                            await message.reply(f"<code>{self._prefix}fnotes</code>"),
+                            True,
+                        )
 
-                            for note, note_info in self.federations[fed][
-                                "notes"
-                            ].items():
-                                if str(note_info["creator"]) != str(self._me):
-                                    continue
+                for note, note_info in self._feds[fed]["notes"].items():
+                    if str(note_info["creator"]) != str(self._me):
+                        continue
 
-                                if note.lower() in message.raw_text.lower():
-                                    await utils.answer(message, note_info["text"])
-                                    self.ratelimit["notes"][str(user_id)] = (
-                                        time.time() + 3
-                                    )
-                                    break
+                    if note.lower() in message.raw_text.lower():
+                        await utils.answer(message, note_info["text"])
+                        self._ratelimit["notes"][str(user_id)] = time.time() + 3
+                        break
 
-            if int(user_id) in list(map(int, self.federations[fed]["fdef"])):
+            if int(user_id) in (
+                list(map(int, self._feds[fed]["fdef"]))
+                + list(self._linked_channels.values())
+            ):
                 return
 
-        if user_id < 0:
-            user_id = int(str(user_id)[4:])
-
-        await self.update_chats()
-        if str(chat_id) not in self.chats or not self.chats[str(chat_id)]:
+        if str(chat_id) not in self._chats or not self._chats[str(chat_id)]:
             return
 
-        if str(chat_id) not in self.my_protects:
+        if str(chat_id) not in self._my_protects:
             return
 
         try:
-            if (await self.client.get_permissions(chat_id, message.sender_id)).is_admin:
+            if (
+                await self._client.get_permissions(chat_id, message.sender_id)
+            ).is_admin:
                 return
         except Exception:
             pass
 
-        user = await self.client.get_entity(user_id)
+        user = await self._client.get_entity(user_id)
         chat = await message.get_chat()
         user_name = get_full_name(user)
 
         args = (chat_id, user_id, user, message)
 
-        if await self.p__antiraid(*args):
+        if await self.p__banninja(*args, chat):
             return
 
-        if await self.p__welcome(*args, chat):
+        if await self.p__antiraid(*args, chat):
             return
 
         r = await self.p__antiarab(*args)
@@ -2767,6 +3784,9 @@ Version: {version}"""
         r = await self.p__antizalgo(*args)
         if r:
             await self.punish(chat_id, user, "zalgo", r, user_name)
+            return
+
+        if await self.p__welcome(*args, chat):
             return
 
         if getattr(message, "action", ""):
@@ -2811,5 +3831,4 @@ Version: {version}"""
             await message.delete()
             return
 
-        if await self.p__antihelp(*args):
-            return
+        await self.p__antihelp(*args)

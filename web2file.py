@@ -12,10 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: Web2file
 # meta pic: https://img.icons8.com/fluency/48/000000/archive.png
-# meta desc: Downloads link content and sends it as file
-
 
 from .. import loader, utils
 import io
@@ -42,7 +39,7 @@ class Web2fileMod(loader.Module):
             return
         try:
             f = io.BytesIO(requests.get(website).content)
-        except:
+        except Exception:
             await utils.answer(message, self.strings("fetch_error", message))
             return
 

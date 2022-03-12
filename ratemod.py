@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: RateMod
 # meta pic: https://img.icons8.com/fluency/48/000000/heart-with-pulse.png
-# meta desc: Rates module code quality
 
 from .. import loader, utils
 import requests

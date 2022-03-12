@@ -12,10 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: Animefy
 # meta pic: https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-artist-professions-avatar-wanicon-flat-wanicon.png
-# meta desc: Animefies photo from real to anime characters aka cartoons
-
 
 from .. import loader, utils  # noqa
 from telethon.tl.types import Message  # noqa

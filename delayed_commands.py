@@ -12,11 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-
-# meta title: DelayedCommands
 # meta pic: https://img.icons8.com/fluency/48/000000/schedule-mail.png
-# meta desc: Delay command execution or remove its output after delay
-
 
 from .. import loader, utils
 import asyncio
@@ -104,7 +100,7 @@ class DelayedMod(loader.Module):
         # await message.client.send_message('me', '.help')
         await self.allmodules.commands[command.split()[0]](
             await message.client.send_message(
-                utils.get_chat_id(message), "." + command, reply_to=reply
+                utils.get_chat_id(message), f".{command}", reply_to=reply
             )
         )
 
@@ -126,8 +122,9 @@ class DelayedMod(loader.Module):
 
         await message.delete()
         msg = await message.client.send_message(
-            utils.get_chat_id(message), "." + command, reply_to=reply
+            utils.get_chat_id(message), f".{command}", reply_to=reply
         )
+
         await self.allmodules.commands[command.split()[0]](msg)
         delay = self.s2time(args.split()[0])
         await asyncio.sleep(delay)

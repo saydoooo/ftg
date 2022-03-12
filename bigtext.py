@@ -12,10 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: BigText
 # meta pic: https://img.icons8.com/color-glass/50/000000/txt.png
-# meta desc: Creates big ASCII Text
-
 
 from .. import loader, utils
 from telethon.tl.types import Message
@@ -149,10 +146,10 @@ def process(cir, text):
         for i, line in enumerate(row):
             for letter in chunk:
                 try:
-                    l = letter[i]
-                    if len(l) < 5:
-                        l += " " * (5 - len(l))
-                    line += f"{l} "
+                    l_ = letter[i]
+                    if len(l_) < 5:
+                        l_ += " " * (5 - len(l_))
+                    line += f"{l_} "
                 except IndexError:
                     pass
             row_result += [line]

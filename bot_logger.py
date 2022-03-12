@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: BotLogger
 # meta pic: https://img.icons8.com/fluency/50/000000/event-log.png
-# meta desc: Transfer your userbot logs to classic bot
 
 from .. import loader, utils, main
 import logging

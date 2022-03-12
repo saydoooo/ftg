@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: AccountSwitcher
 # meta pic: https://img.icons8.com/fluency/48/000000/change-user-male.png
-# meta desc: Allows you to easily switch between different profiles
 
 from .. import loader, utils
 import re
@@ -110,7 +108,7 @@ class AccountSwitcherMod(loader.Module):
         if un != "not_saved_username":
             try:
                 await self.client(UpdateUsernameRequest(un))
-            except:
+            except Exception:
                 log += "👉🏻 Error while restoring username\n"
         else:
             log += "👉🏻 Username not restored\n"
@@ -128,7 +126,7 @@ class AccountSwitcherMod(loader.Module):
                 else "👉🏻 Last name not restored\n"
             )
             log += "👉🏻 Bio restored\n" if bio is not None else "👉🏻 Bio not restored\n"
-        except:
+        except Exception:
             log += "👉🏻 First name not restored\n👉🏻 Last name not restored\n👉🏻 Bio not restored"
 
         try:
@@ -140,7 +138,7 @@ class AccountSwitcherMod(loader.Module):
                 log += "👉🏻 Profile photo restored"
             else:
                 log += "👉🏻 Profile photo not restored"
-        except:
+        except Exception:
             log += "👉🏻 Profile photo not restored"
 
         log = re.sub(r"\n{2,}", r"\n", log)

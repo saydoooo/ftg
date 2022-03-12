@@ -12,10 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: AniSearch
 # meta pic: https://img.icons8.com/color/48/000000/boruto-uzumaki.png
-# meta desc: Searches for anime exact moment by only frame screenshot
-
 
 from .. import loader, utils
 from telethon.tl.types import Message

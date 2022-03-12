@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: ServerInfo
 # meta pic: https://img.icons8.com/fluency/48/000000/server.png
-# meta desc: Show server info
 
 from .. import loader, utils
 import os
@@ -34,7 +32,7 @@ def find_lib(lib: str) -> str:
     try:
         if lib == "Telethon":
             lib = "Telethon | grep -v Telethon-Mod"
-        ver = os.popen("python3 -m pip freeze | grep " + lib).read().split("==")[1]
+        ver = os.popen(f"python3 -m pip freeze | grep {lib}").read().split("==")[1]
         if "\n" in ver:
             return ver.split("\n")[0]
         return ver

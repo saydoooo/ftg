@@ -6,10 +6,7 @@
     Licensed under the Apache License, Version 2.0
 """
 
-# meta title: DeepLScraper
 # meta pic: https://img.icons8.com/external-kosonicon-flat-kosonicon/50/000000/external-translate-chat-messages-kosonicon-flat-kosonicon.png
-# meta desc: Translates text via DeepL scraping. Proxies are recommended
-
 
 from .. import loader, utils
 from telethon.tl.types import Message

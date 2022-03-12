@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: YouTube
 # meta pic: https://img.icons8.com/fluency/50/000000/youtube.png
-# meta desc: Download YouTube videos
 
 from .. import loader, utils
 from pytube import YouTube
@@ -47,7 +45,7 @@ class YouTubeMod(loader.Module):
         message = await utils.answer(message, self.strings("downloading"))
         try:
             message = message[0]
-        except:
+        except Exception:
             pass
         ext = False
         if len(args.split()) > 1:
@@ -80,7 +78,7 @@ class YouTubeMod(loader.Module):
         path = "/tmp"
         try:
             path = await utils.run_sync(dlyt, args, path)
-        except:
+        except Exception:
             return await utils.answer(message, self.strings("not_found"))
 
         if ext == "mp3":

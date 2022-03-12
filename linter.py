@@ -12,10 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: PyLinter
 # meta pic: https://img.icons8.com/stickers/100/000000/python.png
-# meta desc: `Black` plugin wrapper for telegram
-
 
 from .. import loader, utils
 from telethon.tl.types import Message

@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: SilentTags
 # meta pic: https://img.icons8.com/fluency/48/000000/witch.png
-# meta desc: For the ones that hate tags
 
 from .. import loader, utils
 from telethon.tl.functions.channels import CreateChannelRequest
@@ -111,7 +109,7 @@ class SilentTagsMod(loader.Module):
                 try:
                     user = await self.client.get_entity(message.from_id)
                     uname = user.first_name
-                except:
+                except Exception:
                     uname = "Unknown user"
 
                 await self.client.send_message(

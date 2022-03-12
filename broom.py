@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: MagicBroom
 # meta pic: https://img.icons8.com/fluency/48/000000/broom.png
-# meta desc: Magic broom that cleans database and chats
 
 from .. import loader, utils
 import asyncio
@@ -241,7 +239,7 @@ class MagicBroomMod(loader.Module):
                     await self.client.send_message(
                         utils.get_chat_id(message), self.strings("fuck_off", message)
                     )
-            except:
+            except Exception:
                 pass
 
             await self.client(BlockRequest(id=entity))

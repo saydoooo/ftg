@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: PoliteInsult
 # meta pic: https://img.icons8.com/fluency/48/000000/angry.png
-# meta desc: If you need to insult but to be intelligent [russian]
 
 from .. import loader, utils
 import random
@@ -29,7 +27,7 @@ class PoliteInsultMod(loader.Module):
     strings = {"name": "PoliteInsult"}
 
     async def insultocmd(self, message: Message) -> None:
-        """Используйте, когда злитесь"""
+        """Use when angry"""
         adjectives_start = [
             "вспыльчивый(-ая)",
             "невоспитанный(-ая)",
@@ -62,5 +60,4 @@ class PoliteInsultMod(loader.Module):
             + noun
         ) + end
 
-        logger.debug(insult)
         await utils.answer(message, insult)

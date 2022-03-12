@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: Statuses
 # meta pic: https://img.icons8.com/fluency/48/000000/envelope-number.png
-# meta desc: AFK Module analog with extended functionality
 
 from .. import loader, utils
 import asyncio
@@ -26,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 @loader.tds
-class statusesMod(loader.Module):
+class StatusesMod(loader.Module):
     """AFK Module analog with extended functionality"""
 
     strings = {

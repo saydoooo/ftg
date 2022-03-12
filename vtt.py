@@ -12,9 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: Voicy
 # meta pic: https://img.icons8.com/fluency/48/000000/voice-id.png
-# meta desc: Automatic voice recognition
 
 from .. import loader, utils
 from time import time
@@ -52,10 +50,10 @@ class VoicyMod(loader.Module):
             song = AudioSegment.from_ogg(f"{filename}.ogg")
             song.export(f"{filename}.wav", format="wav")
             event = await utils.answer(event, self.strings("converting", event))
-            try:
+
+            if isinstance(event, (list, set, tuple)):
                 event = event[0]
-            except:
-                pass
+
             r = sr.Recognizer()
             with sr.AudioFile(f"{filename}.wav") as source:
                 audio_data = r.record(source)
@@ -64,6 +62,7 @@ class VoicyMod(loader.Module):
         except Exception as e:
             if "ffprobe" in str(e):
                 await utils.answer(event, self.strings("no_ffmpeg", event))
+                return
 
             raise
 
@@ -89,7 +88,7 @@ class VoicyMod(loader.Module):
         try:
             if not event.media or not event.media.document.attributes[0].voice:
                 return
-        except:
+        except Exception:
             return
 
         await self.recognize(event)

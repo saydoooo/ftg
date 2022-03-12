@@ -12,11 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-
-# meta title: CTF Toolkit
 # meta pic: https://img.icons8.com/fluency/48/000000/password1.png
-# meta desc: Basic CTF Toolkit
-
 
 from .. import loader, utils
 import os
@@ -49,16 +45,16 @@ class CTFToolsMod(loader.Module):
         else:
             media = reply.media
 
-        filename = "/tmp/" + str(round(time.time())) + ".scan"
+        filename = f"/tmp/{str(round(time.time()))}.scan"
 
         file = await message.client.download_file(media)
         try:
             open(filename, "wb").write(file)
 
-            res = str(os.popen("file " + filename).read()).replace(filename + ": ", "")
-            os.system("rm -rf " + filename)
+            res = str(os.popen(f"file {filename}").read()).replace(filename + ": ", "")
+            os.system(f"rm -rf {filename}")
 
-            await utils.answer(message, "<code>" + res + "</code>")
+            await utils.answer(message, f"<code>{res}</code>")
         except Exception:
             await utils.answer(message, self.strings("read_error", message))
 
@@ -66,7 +62,7 @@ class CTFToolsMod(loader.Module):
         """Linux Strings | grep . command wrapper"""
         await utils.answer(message, self.strings("processing", message))
         args = utils.get_args_raw(message)
-        grep = "" if args == "" else " | grep " + args
+        grep = "" if args == "" else f" | grep {args}"
         reply = await message.get_reply_message()
         if not reply and type(message.media) is None:
             await utils.answer(message, self.strings("file_not_specified", message))
@@ -77,17 +73,17 @@ class CTFToolsMod(loader.Module):
         else:
             media = reply.media
 
-        filename = "/tmp/" + str(round(time.time()))
+        filename = f"/tmp/{str(round(time.time()))}"
 
         file = await message.client.download_file(media)
         try:
             open(filename, "wb").write(file)
 
-            res = str(os.popen("strings " + filename + grep).read())
-            os.system("rm -rf " + filename)
+            res = str(os.popen(f"strings {filename}{grep}").read())
+            os.system(f"rm -rf {filename}")
             try:
-                await utils.answer(message, "<code>" + res + "</code>")
-            except:
+                await utils.answer(message, f"<code>{res}</code>")
+            except Exception:
                 txt = io.BytesIO(res.encode("utf-8"))
                 txt.name = "strings_result.txt"
                 await message.delete()

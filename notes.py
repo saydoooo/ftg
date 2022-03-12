@@ -12,10 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: Notes
 # meta pic: https://img.icons8.com/external-justicon-flat-justicon/64/000000/external-note-education-justicon-flat-justicon.png
-# meta desc: Advanced notes module with folders and other features
-
 
 from .. import loader, utils  # noqa
 from telethon.tl.types import Message  # noqa

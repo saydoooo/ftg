@@ -13,12 +13,10 @@
 """
 
 # meta pic: https://img.icons8.com/external-wanicon-lineal-color-wanicon/64/000000/external-feedback-influencer-marketing-wanicon-lineal-color-wanicon.png
-# meta desc: Simple feedback bot for GeekTG
 
 # scope: inline
 # scope: geektg_min 3.1.16
 # scope: geektg_only
-
 
 import abc
 from .. import loader, utils
@@ -34,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 @loader.tds
 class FeedbackMod(loader.Module):
-    """🐻 Bear with us while docstrings are loading..."""
+    """Simple feedback bot for GeekTG"""
 
     __metaclass__ = abc.ABCMeta
 

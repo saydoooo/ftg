@@ -12,12 +12,9 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: AutoShortener
 # meta pic: https://img.icons8.com/external-icongeek26-linear-colour-icongeek26/64/000000/external-short-clothes-icongeek26-linear-colour-icongeek26.png
-# meta desc: Automatically shortens urls in your messages, which are larger than specified threshold
 
-
-from .. import loader, utils
+from .. import loader, utils, main
 from telethon.tl.types import Message, MessageEntityUrl
 import logging
 import requests
@@ -54,6 +51,9 @@ class AutoShortenerMod(loader.Module):
     async def client_ready(self, client, db) -> None:
         self.db = db
         self.client = client
+        self.prefix = utils.escape_html(
+            (db.get(main.__name__, "command_prefix", False) or ".")[0]
+        )
 
     async def autosurlcmd(self, message: Message) -> None:
         """Toggle automatic url shortener"""
@@ -157,6 +157,7 @@ class AutoShortenerMod(loader.Module):
                 isinstance(entity, MessageEntityUrl) for entity in message.entities
             )
             or not self.get("state", False)
+            or message.raw_text.lower().startswith(self.prefix)
         ):
             return
 

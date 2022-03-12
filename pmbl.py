@@ -1,4 +1,3 @@
-__version__ = (0, 0, 0)
 """
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
@@ -15,8 +14,6 @@ __version__ = (0, 0, 0)
 
 # meta title: PM->BL
 # meta pic: https://img.icons8.com/fluency/48/000000/poison.png
-# meta desc: Bans and reports incoming messages from unknown users
-
 
 from .. import loader, utils
 from telethon.tl.types import Message, PeerUser, User

@@ -12,17 +12,15 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: SpellCheck
 # meta pic: https://img.icons8.com/fluency/48/000000/spell-check.png
-# meta desc: Just a simple two-lang spell checker
-
 
 from .. import loader, utils
 from telethon.tl.types import Message
 import logging
 import cloudscraper
 import requests
-import random, string
+import random
+import string
 from requests_toolbelt import MultipartEncoder
 import re
 import aiohttp

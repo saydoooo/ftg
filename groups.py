@@ -12,9 +12,8 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# scope: inline
-
 # meta pic: https://img.icons8.com/stickers/100/000000/id-verified.png
+# scope: inline
 
 from .. import loader, utils, security  # noqa: F401
 
