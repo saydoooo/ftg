@@ -3699,7 +3699,7 @@ Author @hikariatama
                             # anonymous admin
 
                             # await self.api.report_error(str(message))
-                            logger.warning(
+                            logger.debug(
                                 f"Can't extract entity from event {type(message)}"
                             )
                             return
