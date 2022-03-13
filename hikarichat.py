@@ -3506,7 +3506,11 @@ Author @hikariatama
 
             if media:
                 photo = io.BytesIO()
-                await self._client.download_media(message.media, photo)
+                try:
+                    await self._client.download_media(message.media, photo)
+                except AttributeError:
+                    # Avoid RPCError 303: FILE_MIGRATE_X
+                    return False
                 photo.seek(0)
 
                 if imghdr.what(photo) in self.variables["image_types"]:

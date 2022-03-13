@@ -190,7 +190,7 @@ class StickManagerMod(loader.Module):
 
         if not reply or not reply.media:
             await utils.answer(
-                message, self.strings("error").format("Reply to a media required")
+                message, self.strings("error").format("Reply to a photo required")
             )
             return
 
@@ -329,7 +329,7 @@ class StickManagerMod(loader.Module):
 
         if not reply or not reply.media:
             await utils.answer(
-                message, self.strings("error").format("Reply to a photo required")
+                message, self.strings("error").format("Reply to a gif is required")
             )
             return
 
@@ -426,8 +426,8 @@ class StickManagerMod(loader.Module):
                 r = await conv.get_response()
 
                 if (
-                    "this short name is already taken" not in r.raw_text
-                    and "Увы, такой адрес уже занят." not in r.raw_text
+                    "this short name is already taken" in r.raw_text
+                    or "Увы, такой адрес уже занят." in r.raw_text
                 ):
                     raise HikariException("UNEXPECTED_ANSWER - Occupied shortname")
 
