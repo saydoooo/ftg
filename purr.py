@@ -13,7 +13,9 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/cat-head.png
+# meta developer: @hikariatama
 # scope: non_heroku
+# scope: ffmpeg
 # requires: pydub python-ffmpeg
 
 from .. import loader, utils

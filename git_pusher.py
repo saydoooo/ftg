@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/stickers/100/000000/commit-git.png
+# meta developer: @hikariatama
 
 from .. import loader, utils  # noqa: F401
 from telethon.tl.types import Message  # noqa: F401

@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/external-flat-satawat-anukul/64/000000/external-dictionary-education-flat-flat-satawat-anukul-2.png
+# meta developer: @hikariatama
 
 from .. import loader, utils  # noqa
 from telethon.tl.types import Message  # noqa

@@ -13,7 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/50/000000/crowdfunding.png
-
+# meta developer: @hikariatama
 # scope: inline_content
 # requires: websockets requests
 

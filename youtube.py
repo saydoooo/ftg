@@ -13,6 +13,10 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/50/000000/youtube.png
+# meta developer: @hikariatama
+# scope: non_heroku
+# scope: ffmpeg
+# requires: pytube python-ffmpeg
 
 from .. import loader, utils
 from pytube import YouTube
@@ -20,7 +24,6 @@ import os
 import subprocess
 from telethon.tl.types import Message
 
-# requires: pytube python-ffmpeg
 
 
 @loader.tds

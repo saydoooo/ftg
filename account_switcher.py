@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/change-user-male.png
+# meta developer: @hikariatama
 
 from .. import loader, utils
 import re

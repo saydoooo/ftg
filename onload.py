@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/50/000000/event-log.png
+# meta developer: @hikariatama
 
 from .. import loader, utils, main
 import logging

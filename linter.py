@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/stickers/100/000000/python.png
+# meta developer: @hikariatama
 
 from .. import loader, utils
 from telethon.tl.types import Message

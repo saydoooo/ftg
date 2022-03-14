@@ -13,6 +13,8 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/spotify.png
+# meta developer: @hikariatama
+# requires: spotipy Pillow
 
 import io
 import re
@@ -29,8 +31,6 @@ from types import FunctionType
 from telethon.tl.types import Message
 from .. import loader, utils, main
 from PIL import Image, ImageDraw, ImageFont
-
-# requires: spotipy Pillow
 
 logger = logging.getLogger(__name__)
 

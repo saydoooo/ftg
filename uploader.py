@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/upload-to-cloud.png
+# meta developer: @hikariatama
 
 import logging
 import io

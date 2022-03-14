@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/50/000000/v-live.png
+# meta developer: @hikariatama
 
 from .. import loader
 from telethon.tl.types import Message

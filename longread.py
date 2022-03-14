@@ -13,7 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-read-free-time-wanicon-flat-wanicon.png
-
+# meta developer: @hikariatama
 # scope: inline
 # scope: geektg_only
 

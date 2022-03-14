@@ -13,7 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/emoji/48/000000/shiffle-tracks-button-emoji.png
-
+# meta developer: @hikariatama
 # scope: inline
 # scope: geektg_only
 

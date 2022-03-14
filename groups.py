@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/stickers/100/000000/id-verified.png
+# meta developer: @hikariatama
 # scope: inline
 
 from .. import loader, utils, security  # noqa: F401

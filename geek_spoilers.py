@@ -13,7 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/color/48/000000/anonymous-mask.png
-
+# meta developer: @hikariatama
 # scope: inline
 # scope: geektg_only
 

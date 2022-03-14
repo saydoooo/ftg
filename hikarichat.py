@@ -15,6 +15,7 @@ __version__ = (9, 0, 1)
 
 # meta pic: https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/240/google/313/foggy_1f301.png
 # meta desc: Chat administrator toolkit with everything you need and much more
+# meta developer: @hikariatama
 
 # scope: disable_onload_docs
 # scope: inline
@@ -358,8 +359,7 @@ def reverse_dict(d: dict) -> dict:
 class HikariChatMod(loader.Module):
     """
     Advanced chat admin toolkit
-
-    Author @hikariatama"""
+    """
 
     __metaclass__ = abc.ABCMeta
 
@@ -474,14 +474,14 @@ class HikariChatMod(loader.Module):
         "funmute": '💼 <b><a href="{}">{}</a> unmuted in federation </b><i>{}</i>',
         "feds_header": "💼 <b>Federations:</b>\n\n",
         "fed": (
-            '💼 <b>Federation "{}" info:</b>'
-            "🔰 <b>Chats:</b>"
-            "<b>{}</b>"
-            "🔰 <b>Channels:</b>"
-            "<b>{}</b>"
-            "🔰 <b>Admins:</b>"
-            "<b>{}</b>"
-            "🔰 <b>Warns: {}</b>"
+            '💼 <b>Federation "{}" info:</b>\n'
+            "🔰 <b>Chats:</b>\n"
+            "<b>{}</b>\n"
+            "🔰 <b>Channels:</b>\n"
+            "<b>{}</b>\n"
+            "🔰 <b>Admins:</b>\n"
+            "<b>{}</b>\n"
+            "🔰 <b>Warns: {}</b>\n"
         ),
         "no_fed": "💼 <b>This chat is not in any federation</b>",
         "fpromoted": '💼 <b><a href="{}">{}</a> promoted in federation {}</b>',
@@ -570,8 +570,7 @@ class HikariChatMod(loader.Module):
 
         # We can override class docstings because of abc meta
         self.__doc__ = (
-            "Advanced chat admin toolkit\n\n"
-            "Author @hikariatama\n"
+            "Advanced chat admin toolkit\n"
             f"Version: {version}"
         )
 

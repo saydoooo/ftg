@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-secret-emoji-wanicon-flat-wanicon.png
+# meta developer: @hikariatama
 
 from .. import loader, utils
 from telethon.tl.types import Message

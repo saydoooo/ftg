@@ -13,6 +13,8 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/spell-check.png
+# meta developer: @hikariatama
+# requires: requests cloudscraper requests_toolbelt aiohttp bs4 langid
 
 from .. import loader, utils
 from telethon.tl.types import Message
@@ -28,8 +30,6 @@ import asyncio
 from bs4 import BeautifulSoup
 import langid
 from typing import Union
-
-# requires: requests cloudscraper requests_toolbelt aiohttp bs4 langid
 
 logger = logging.getLogger(__name__)
 

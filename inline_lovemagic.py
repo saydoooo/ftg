@@ -13,7 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/stickers/100/000000/like.png
-
+# meta developer: @hikariatama
 # scope: inline
 # scope: geektg_only
 

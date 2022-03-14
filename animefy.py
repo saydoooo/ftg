@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-artist-professions-avatar-wanicon-flat-wanicon.png
+# meta developer: @hikariatama
 # scope: non_heroku
 
 from .. import loader, utils  # noqa

@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/witch.png
+# meta developer: @hikariatama
 
 from .. import loader, utils
 from telethon.tl.functions.channels import CreateChannelRequest

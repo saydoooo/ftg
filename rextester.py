@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/system-information.png
+# meta developer: @hikariatama
 
 import logging
 from telethon import TelegramClient

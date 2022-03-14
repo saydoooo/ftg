@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/logbook.png
+# meta developer: @hikariatama
 # scope: geektg_only
 
 from .. import loader, utils, main

@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/external-justicon-flat-justicon/64/000000/external-note-education-justicon-flat-justicon.png
+# meta developer: @hikariatama
 
 from .. import loader, utils  # noqa
 from telethon.tl.types import Message  # noqa

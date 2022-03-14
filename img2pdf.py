@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/pdf-mail.png
+# meta developer: @hikariatama
 # scope: non_heroku
 # requires: Pillow
 

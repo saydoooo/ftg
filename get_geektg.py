@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/color/48/000000/trekking.png
+# meta developer: @hikariatama
 
 from .. import loader, utils, main, heroku
 from telethon.tl.types import Message

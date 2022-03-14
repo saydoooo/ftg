@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/external-icongeek26-linear-colour-icongeek26/64/000000/external-short-clothes-icongeek26-linear-colour-icongeek26.png
+# meta developer: @hikariatama
 
 from .. import loader, utils, main
 from telethon.tl.types import Message, MessageEntityUrl

@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/schedule-mail.png
+# meta developer: @hikariatama
 
 from .. import loader, utils
 import asyncio

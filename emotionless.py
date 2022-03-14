@@ -13,6 +13,7 @@
 """
 
 # meta pic: https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/58/000000/external-sad-social-media-vitaliy-gorbachev-flat-vitaly-gorbachev.png
+# meta developer: @hikariatama
 # scope: geektg_min 3.1.17
 # scope: geektg_only
 # requires: telethon-mod

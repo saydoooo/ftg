@@ -13,6 +13,8 @@
 """
 
 # meta pic: https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/58/000000/external-poll-infographic-elements-vitaliy-gorbachev-flat-vitaly-gorbachev.png
+# meta developer: @hikariatama
+# requires: matplotlib
 
 from .. import loader, utils
 from telethon.tl.types import Message
@@ -20,7 +22,6 @@ import logging
 import matplotlib.pyplot as plt
 import io
 
-# requires: matplotlib
 
 logger = logging.getLogger(__name__)
 

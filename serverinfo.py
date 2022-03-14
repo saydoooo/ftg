@@ -13,6 +13,8 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/server.png
+# meta developer: @hikariatama
+# requires: psutil
 
 from .. import loader, utils
 import os
@@ -20,8 +22,6 @@ import psutil
 import platform
 import sys
 from telethon.tl.types import Message
-
-# requires: psutil
 
 
 def b2mb(b):
