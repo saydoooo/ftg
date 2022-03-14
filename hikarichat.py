@@ -2754,14 +2754,14 @@ Author @hikariatama
         args = utils.get_args_raw(message) or ""
 
         answ = await self.api.post(
-            f"chats/{chat_id}/welcome", data={"state": args, "info": ""}
+            f"chats/{chat_id}/welcome", data={"state": args or "off"}
         )
 
         if not answ["success"]:
             await utils.answer(message, self.strings("api_error").format(answ))
             return
 
-        if args:
+        if args and args != "off":
             await utils.answer(message, self.strings("welcome").format(args))
         else:
             await utils.answer(message, self.strings("unwelcome"))
@@ -3506,11 +3506,7 @@ Author @hikariatama
 
             if media:
                 photo = io.BytesIO()
-                try:
-                    await self._client.download_media(message.media, photo)
-                except AttributeError:
-                    # Avoid RPCError 303: FILE_MIGRATE_X
-                    return False
+                await self._client.download_media(message.media, photo)
                 photo.seek(0)
 
                 if imghdr.what(photo) in self.variables["image_types"]:
