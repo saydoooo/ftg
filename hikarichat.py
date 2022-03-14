@@ -1,4 +1,4 @@
-__version__ = (9, 0, 0)
+__version__ = (9, 0, 1)
 """
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
@@ -13,12 +13,11 @@ __version__ = (9, 0, 0)
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta title: HikariChat Beta
 # meta pic: https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/240/google/313/foggy_1f301.png
 # meta desc: Chat administrator toolkit with everything you need and much more
 
 # scope: disable_onload_docs
-# scope: inline_content
+# scope: inline
 # scope: geektg_only
 # requires: aiohttp
 
@@ -274,8 +273,8 @@ class HikariAPI:
 
         kwargs["headers"] = {
             "Authorization": f"Bearer {self.token}",
-            "X-Hikarichat-Version": ".".join(list(map(str, list(__version__)))),
-            "X-Hikarichat-Branch": "Beta",
+            # "X-Hikarichat-Version": ".".join(list(map(str, list(__version__)))),
+            # "X-Hikarichat-Branch": "Beta",
         }
 
         args = (f"https://api.hikariatama.ru/{args[0]}",)
@@ -358,10 +357,9 @@ def reverse_dict(d: dict) -> dict:
 
 class HikariChatMod(loader.Module):
     """
-Advanced chat admin toolkit
+    Advanced chat admin toolkit
 
-Author @hikariatama
-"""
+    Author @hikariatama"""
 
     __metaclass__ = abc.ABCMeta
 
@@ -569,6 +567,8 @@ Author @hikariatama
             15,
             lambda: "How many users per minute need to join until ban starts",
         )
+
+        # We can override class docstings because of abc meta
         self.__doc__ = (
             "Advanced chat admin toolkit\n\n"
             "Author @hikariatama\n"
@@ -655,14 +655,25 @@ Author @hikariatama
         self.commands = commands
 
     def save_join_ratelimit(self) -> None:
+        """
+        Saves BanNinja ratelimit to fs
+        """
         with open("join_ratelimit.json", "w") as f:
             f.write(json.dumps(self._join_ratelimit))
 
     def save_flood_cache(self) -> None:
+        """
+        Saves AntiFlood ratelimit to fs
+        """
         with open("flood_cache.json", "w") as f:
             f.write(json.dumps(self.flood_cache))
 
-    async def check_admin(self, chat_id, user_id):
+    async def check_admin(
+        self, chat_id: Union[Chat, Channel, int], user_id: Union[User, int]
+    ) -> bool:
+        """
+        Checks if user is admin in target chat
+        """
         try:
             return (await self._client.get_permissions(chat_id, user_id)).is_admin
             # We could've ignored only ValueError to check
@@ -676,6 +687,10 @@ Author @hikariatama
             )
 
     def chat_command(func) -> FunctionType:
+        """
+        Decorator to allow execution of certain commands in chat only
+        """
+
         @functools.wraps(func)
         async def wrapped(*args, **kwargs):
             if len(args) < 2 or not isinstance(args[1], Message):
@@ -693,6 +708,10 @@ Author @hikariatama
         return wrapped
 
     def error_handler(func) -> FunctionType:
+        """
+        Decorator to handle functions' errors and send reports to @hikariatama
+        """
+
         @functools.wraps(func)
         async def wrapped(*args, **kwargs):
             try:
@@ -719,6 +738,10 @@ Author @hikariatama
 
     @error_handler
     async def update_chats(self, force=False):
+        """
+        Sync chats with serverside
+        Do not remove floodwait check to avoid serverside restrictions
+        """
         if (
             time.time() - self.last_chats_update < self._chats_update_delay
             and not force
@@ -745,6 +768,10 @@ Author @hikariatama
 
     @error_handler
     async def update_feds(self, force=False):
+        """
+        Sync federations with serverside
+        Do not remove floodwait check to avoid serverside restrictions
+        """
         if time.time() - self.last_feds_update < self.feds_update_delay and not force:
             return
 
@@ -757,6 +784,9 @@ Author @hikariatama
 
     @error_handler
     async def protect(self, message: Message, protection: str) -> None:
+        """
+        Protection toggle handler
+        """
         args = utils.get_args_raw(message)
         chat = utils.get_chat_id(message)
         if protection in self.variables["argumented_protects"]:
@@ -793,6 +823,10 @@ Author @hikariatama
             return
 
     def protection_template(self, protection: str) -> FunctionType:
+        """
+        Template for protection toggler
+        For internal use only
+        """
         comments = self.variables["named_protects"]
         func_name = f"{protection}cmd"
         func = functools.partial(self.protect, protection=protection)
@@ -818,6 +852,9 @@ Author @hikariatama
 
     @staticmethod
     def convert_time(t: str) -> int:
+        """
+        Tries to export time from text
+        """
         try:
             if not str(t)[:-1].isdigit():
                 return 0
@@ -1258,7 +1295,7 @@ Author @hikariatama
             except Exception:
                 pass
 
-        if time.time() + t >= 2147483647:
+        if time.time() + t >= 2208978000:  # 01.01.2040 00:00:00
             t = 0
 
         return user, t, utils.escape_html(args or self.strings("no_reason")).strip()
@@ -1290,6 +1327,7 @@ Author @hikariatama
         action: str,
         user_name: str,
     ) -> None:
+        """Callback, called if the protection is triggered"""
         if action == "ban":
             comment = "banned him"
             await self.ban(chat_id, user, 0, violation)
@@ -2205,9 +2243,7 @@ Author @hikariatama
             await self._client.edit_permissions(
                 chat, user, until_date=0, send_messages=True
             )
-            msg = self.strings("unmuted").format(
-                get_link(user), get_first_name(user)
-            )
+            msg = self.strings("unmuted").format(get_link(user), get_first_name(user))
             await utils.answer(message, msg)
 
             if self.get("logchat"):
@@ -2256,9 +2292,7 @@ Author @hikariatama
                 until_date=0,
                 **{right: True for right in BANNED_RIGHTS.keys()},
             )
-            msg = self.strings("unban").format(
-                get_link(user), get_first_name(user)
-            )
+            msg = self.strings("unban").format(get_link(user), get_first_name(user))
             await utils.answer(message, msg)
 
             if self.get("logchat"):
@@ -3381,6 +3415,7 @@ Author @hikariatama
             and "antichannel" in self._my_protects[str(chat_id)]
             and getattr(message, "sender_id", 0) < 0
         ):
+            await self.ban(chat_id, user_id, 0, "", None, True)
             await message.delete()
             return True
 
