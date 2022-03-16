@@ -14,6 +14,7 @@
 
 # meta pic: https://img.icons8.com/fluency/48/000000/cloud-storage.png
 # meta developer: @hikariatama
+# requires: hashlib base64
 
 from .. import loader, utils
 import asyncio
@@ -24,11 +25,9 @@ import hashlib
 import base64
 from telethon.tl.types import Message
 
-# requires: hashlib base64
-
 
 @loader.tds
-class modCloudMod(loader.Module):
+class ModuleCloudMod(loader.Module):
     """Search and suggest modules in HikariMods Database"""
 
     strings = {
@@ -41,7 +40,8 @@ class modCloudMod(loader.Module):
         "upload_error": "🦊 <b>Upload error</b>",
         "args": "🦊 <b>Args not specified</b>",
         "mod404": "🦊 <b>Module {} not found</b>",
-        "ilink": '<b><u>{name}</u> - <a href="https://mods.hikariatama.ru/view/{file}">source</a> </b><i>| by @hikarimods with 🫀</i>\nℹ️ <i>{desc}</i>\n\n🌃 <b>Install:</b> <code>.dlmod https://mods.hikariatama.ru/{file}</code>',
+        "ilink": '<b><u>{name}</u> - <a href="https://mods.hikariatama.ru/view/{file}">source</a> </b><i>| by @hikarimods with 🫀</i>\nℹ️ <i>{desc}</i>\n{geektg_only}\n🌃 <b>Install:</b> <code>.dlmod https://mods.hikariatama.ru/{file}</code>',
+        "geektg_only": "😎 <b><u>GeekTG</u> only</b>\n",
     }
 
     async def client_ready(self, client, db):
@@ -140,13 +140,18 @@ class modCloudMod(loader.Module):
         img = requests.get(badge.json()["badge"]).content
         info = badge.json()["info"]
 
+        geektg_only = self.strings("geektg_only") if info["geektg_only"] else ""
+        del info["geektg_only"]
+
         if not message.media or not message.out:
             await self.client.send_file(
-                message.peer_id, img, caption=self.strings("ilink").format(**info)
+                message.peer_id,
+                img,
+                caption=self.strings("ilink").format(geektg_only=geektg_only, **info),
             )
             await message.delete()
         else:
-            await message.edit(self.strings("ilink").format(**info), file=img)
+            await message.edit(self.strings("ilink").format(geektg_only=geektg_only, **info), file=img)
 
     async def verifmodcmd(self, message: Message) -> None:
         """<filename>;<title>;<description>;<tags> - Verfiy module [only for @hikarimods admins]"""

@@ -14,13 +14,13 @@
 
 # meta pic: https://img.icons8.com/color/48/000000/neko-boy.png
 # meta developer: @hikariatama
+# scope: geektg_min 3.1.22
+# requires: requests
 
 from .. import loader, utils
 from telethon.tl.types import Message
-import logging
 import requests
 from random import choice
-from aiogram.types import CallbackQuery
 
 phrases = ["Uwu", "Senpai", "Uff", "Meow", "Bonk", "Ara-ara", "Hewwo", "You're cute!"]
 
@@ -36,9 +36,11 @@ faces = [
     "ಠ‿↼",
 ]
 
-# requires: requests
 
-logger = logging.getLogger(__name__)
+async def photo() -> str:
+    return (await utils.run_sync(requests.get, "https://api.catboys.com/img")).json()[
+        "url"
+    ]
 
 
 @loader.tds
@@ -47,60 +49,22 @@ class CatboyMod(loader.Module):
 
     strings = {"name": "Catboy"}
 
-    def get(self, *args) -> dict:
-        return self.db.get(self.strings["name"], *args)
-
-    def set(self, *args) -> None:
-        return self.db.set(self.strings["name"], *args)
-
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
-
-    async def inline__next(self, call: CallbackQuery, chat: int, msg_id: int) -> None:
-        url = requests.get("https://api.catboys.com/img").json()["url"]
-        caption = f"<i>{choice(phrases)}</i> {choice(faces)}"
-
-        await self.client.edit_message(chat, msg_id, file=url)
-        await call.edit(
-            caption,
-            reply_markup=[
-                [
-                    {
-                        "text": "🎲 Next",
-                        "callback": self.inline__next,
-                        "args": (chat, msg_id),
-                    }
-                ]
-            ],
-        )
+        self._client = client
 
     async def catboycmd(self, message: Message) -> None:
         """Send catboy picture"""
-        url = requests.get("https://api.catboys.com/img").json()["url"]
-        await message.delete()
-
-        caption = f"<i>{choice(phrases)}</i> {choice(faces)}"
-
         if not hasattr(self, "inline") or not self.inline.init_complete:
-            await self.client.send_file(
-                message.peer_id, url, caption=caption, reply_to=message.reply_to_msg_id
+            await self._client.send_file(
+                message.peer_id,
+                await photo(),
+                caption=f"<i>{choice(phrases)}</i> {choice(faces)}",
+                reply_to=message.reply_to_msg_id,
             )
+            await message.delete()
         else:
-            m = await self.client.send_file(
-                message.peer_id, url, reply_to=message.reply_to_msg_id
-            )
-            await self.inline.form(
-                caption,
+            await self.inline.gallery(
+                caption=lambda: f"<i>{choice(phrases)}</i> {choice(faces)}",
                 message=message,
-                reply_markup=[
-                    [
-                        {
-                            "text": "🎲 Next",
-                            "callback": self.inline__next,
-                            "args": (utils.get_chat_id(m), m.id),
-                        }
-                    ]
-                ],
-                ttl=15 * 60,
+                next_handler=photo,
             )
