@@ -175,7 +175,6 @@ class UrbanDictionaryMod(loader.Module):
                 mean, utils.escape_html(self._memory[mean][0])
             ),
             message=message,
-            reply_to=getattr(message, "reply_to_msg_id", None),
             reply_markup=[
                 [
                     *(

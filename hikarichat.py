@@ -3647,7 +3647,7 @@ class HikariChatMod(loader.Module):
             )
             and len(
                 re.findall(
-                    "[\u0300-\u0361\u0316-\u0362\u0334-\u0338\u0363-\u036F\u3164\u0338\u0336\u0334\u200f\u200e\u200e\u0335\u0337]",
+                    "[\u0300-\u0361\u0316-\u0362\u0334-\u0338\u0363-\u036F\u3164\u0338\u0336\u0334\u200f\u200e\u200e\u0335\u0337\ud83d\udd07]",
                     get_full_name(user),
                 )
             )
