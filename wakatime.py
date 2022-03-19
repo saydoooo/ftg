@@ -143,6 +143,7 @@ class WakaTimeMod(loader.Module):
                 except FloodWaitError:
                     pass
                 except Exception:
+                    logger.exception("Wakatime widget update failed")
                     self.set(
                         "widgets", list(set(self.get("widgets", [])) - set([widget]))
                     )
