@@ -14,7 +14,7 @@
 
 # meta pic: https://img.icons8.com/fluency/48/000000/logbook.png
 # meta developer: @hikariatama
-# scope: geektg_only
+# scope: hikka_only
 
 from .. import loader, utils, main
 from telethon.tl.functions.channels import CreateChannelRequest
@@ -33,13 +33,13 @@ class CommandsLoggerMod(loader.Module):
 
     async def find_db(self):
         async for d in self.client.iter_dialogs():
-            if d.title == "geektg-log":
+            if d.title == "hikka-log":
                 return d.entity
 
         return (
             await self.client(
                 CreateChannelRequest(
-                    "geektg-log", "Commands will appear there", megagroup=True
+                    "hikka-log", "Commands will appear there", megagroup=True
                 )
             )
         ).chats[0]
@@ -48,14 +48,9 @@ class CommandsLoggerMod(loader.Module):
         self.client = client
         self.db = db
         try:
-            self.geektg_ver = main.__version__
+            self.hikka_ver = main.__version__
         except Exception as e:
-            raise Exception("This module is supported only by GeekTG") from e
-
-        if self.geektg_ver < (2, 0, 2):
-            raise Exception(
-                "Module is not supported in your version of GeekTG. Please, update"
-            )
+            raise Exception("This module is supported only by Hikka") from e
 
         self.log_channel = await self.find_db()
         self.prefix = utils.escape_html(

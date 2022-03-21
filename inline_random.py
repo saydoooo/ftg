@@ -15,12 +15,12 @@
 # meta pic: https://img.icons8.com/emoji/48/000000/shiffle-tracks-button-emoji.png
 # meta developer: @hikariatama
 # scope: inline
-# scope: geektg_only
+# scope: hikka_only
 
 from .. import loader
 from aiogram.types import CallbackQuery
 import logging
-from ..inline import GeekInlineQuery, rand
+from ..inline import InlineQuery, rand
 from random import randint, choice
 import aiogram
 
@@ -46,7 +46,7 @@ class InlineRandomMod(loader.Module):
     async def inline__close(self, call: CallbackQuery) -> None:
         await call.delete()
 
-    async def coin_inline_handler(self, query: GeekInlineQuery) -> None:
+    async def coin_inline_handler(self, query: InlineQuery) -> None:
         """
         Heads or tails?
         @allow: all
@@ -72,7 +72,7 @@ class InlineRandomMod(loader.Module):
             cache_time=0,
         )
 
-    async def random_inline_handler(self, query: GeekInlineQuery) -> None:
+    async def random_inline_handler(self, query: InlineQuery) -> None:
         """
         [number] - Send random number less than specified
         @allow: all
@@ -105,7 +105,7 @@ class InlineRandomMod(loader.Module):
             cache_time=0,
         )
 
-    async def choice_inline_handler(self, query: GeekInlineQuery) -> None:
+    async def choice_inline_handler(self, query: InlineQuery) -> None:
         """
         [args, separated by comma] - Make a choice
         @allow: all

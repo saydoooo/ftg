@@ -14,6 +14,9 @@
 
 # meta pic: https://img.icons8.com/external-flat-satawat-anukul/64/000000/external-dictionary-education-flat-flat-satawat-anukul-2.png
 # meta developer: @hikariatama
+# requires: aiohttp urllib bs4
+# scope: inline
+# scope: hikka_only
 
 from .. import loader, utils  # noqa
 from telethon.tl.types import Message  # noqa
@@ -23,10 +26,6 @@ import aiohttp
 from bs4 import BeautifulSoup
 from aiogram.types import CallbackQuery
 import re
-
-# requires: aiohttp urllib bs4
-# scope: inline
-# scope: geektg_only
 
 logger = logging.getLogger(__name__)
 logging.getLogger("charset_normalizer").setLevel(logging.ERROR)

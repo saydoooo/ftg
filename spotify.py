@@ -208,11 +208,6 @@ class SpotifyMod(loader.Module):
         if db.get(self.name, "autobio", False):
             self.bio_task = asyncio.ensure_future(self.autobio())
 
-        if getattr(main, "__version__", (0, 0, 0)) < (2, 0, 4):
-            logger.warning(
-                "SpotifyNow: This module is tested only with GeekTG 2.0.4+, other versions are now fully supported. You should not use Spotify AutoBio w\\o updating"
-            )
-
     async def on_unload(self) -> None:
         logger.info("Stopping autobio loop due to unload")
         self.stop()

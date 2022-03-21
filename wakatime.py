@@ -15,7 +15,7 @@
 # meta pic: https://img.icons8.com/cute-clipart/64/000000/wakanim.png
 # meta developer: @hikariatama
 # scope: inline
-# scope: geektg_only
+# scope: hikka_only
 # requires: aiohttp
 
 from .. import loader, utils

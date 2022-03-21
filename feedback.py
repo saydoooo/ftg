@@ -15,8 +15,7 @@
 # meta pic: https://img.icons8.com/external-wanicon-lineal-color-wanicon/64/000000/external-feedback-influencer-marketing-wanicon-lineal-color-wanicon.png
 # meta developer: @hikariatama
 # scope: inline
-# scope: geektg_min 3.1.16
-# scope: geektg_only
+# scope: hikka_only
 
 import abc
 from .. import loader, utils
@@ -32,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 @loader.tds
 class FeedbackMod(loader.Module):
-    """Simple feedback bot for GeekTG"""
+    """Simple feedback bot for Hikka"""
 
     __metaclass__ = abc.ABCMeta
 
@@ -64,7 +63,7 @@ class FeedbackMod(loader.Module):
         self._name = utils.escape_html(get_display_name(await client.get_me()))
 
         if not hasattr(self, "inline"):
-            raise Exception("GeekTG Only")
+            raise Exception("Hikka Only")
 
         self._bot = self.inline._bot
         self._ratelimit = {}

@@ -15,7 +15,7 @@
 # meta pic: https://img.icons8.com/fluency/48/000000/dota.png
 # meta developer: @hikariatama
 # scope: inline
-# scope: geektg_only
+# scope: hikka_only
 
 from .. import loader
 from telethon.tl.types import Message

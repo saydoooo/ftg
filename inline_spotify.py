@@ -15,7 +15,7 @@
 # meta pic: https://img.icons8.com/cute-clipart/64/000000/playstation-buttons.png
 # meta developer: @hikariatama
 # scope: inline
-# scope: geektg_only
+# scope: hikka_only
 
 from .. import loader
 from telethon.tl.types import Message

@@ -63,7 +63,7 @@ class GroupsMod(loader.Module):
         self._db = db
         self._client = client
         self._me = (await client.get_me()).id
-        self._is_geek = hasattr(self, 'inline')
+        self._is_hikka = hasattr(self, 'inline')
 
     async def _resolve_user(self, message: Message) -> None:
         reply = await message.get_reply_message()
@@ -117,7 +117,7 @@ class GroupsMod(loader.Module):
         if isinstance(user, int):
             user = await self._client.get_entity(user)
 
-        if self._is_geek and not confirmed:
+        if self._is_hikka and not confirmed:
             await self.inline.form(
                 self.strings("warning").format(
                     user.id, utils.escape_html(get_display_name(user)), group
@@ -151,7 +151,7 @@ class GroupsMod(loader.Module):
             utils.escape_html(get_display_name(user)),
         )
 
-        if not self._is_geek:
+        if not self._is_hikka:
             m += f"\n\n{self.strings('restart')}"
 
         if isinstance(message, Message):
@@ -178,7 +178,7 @@ class GroupsMod(loader.Module):
             utils.escape_html(get_display_name(user)),
         )
 
-        if not self._is_geek:
+        if not self._is_hikka:
             m += f"\n\n{self.strings('restart')}"
 
         await utils.answer(

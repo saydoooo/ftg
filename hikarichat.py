@@ -19,7 +19,7 @@ __version__ = (9, 0, 1)
 
 # scope: disable_onload_docs
 # scope: inline
-# scope: geektg_only
+# scope: hikka_only
 # requires: aiohttp
 
 import re
@@ -582,8 +582,8 @@ class HikariChatMod(loader.Module):
         """Entry point"""
         global api
 
-        if not getattr(main, "__version__", False) or main.__version__ < (3, 1, 7):
-            raise Exception("GeekTG Update required!")
+        if not getattr(main, "__version__", False):
+            raise Exception("Hikka Update required!")
 
         def get_commands(mod) -> dict:
             return {

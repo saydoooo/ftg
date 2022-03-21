@@ -14,7 +14,6 @@
 
 # meta pic: https://img.icons8.com/external-justicon-flat-justicon/344/external-cat-animal-justicon-flat-justicon.png
 # meta developer: @hikariatama
-# scope: geektg_min 3.1.22
 # requires: requests
 
 from .. import loader, utils

@@ -14,7 +14,6 @@
 
 # meta pic: https://img.icons8.com/color/48/000000/neko-boy.png
 # meta developer: @hikariatama
-# scope: geektg_min 3.1.22
 # requires: requests
 
 from .. import loader, utils

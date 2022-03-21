@@ -15,7 +15,7 @@
 # meta pic: https://img.icons8.com/color/48/000000/anonymous-mask.png
 # meta developer: @hikariatama
 # scope: inline
-# scope: geektg_only
+# scope: hikka_only
 
 from .. import loader, utils
 from aiogram.types import (
@@ -26,7 +26,7 @@ from aiogram.types import (
     InputTextMessageContent,
 )
 import logging
-from ..inline import GeekInlineQuery, rand
+from ..inline import InlineQuery, rand
 from telethon.utils import get_display_name
 import time
 
@@ -34,10 +34,10 @@ logger = logging.getLogger(__name__)
 
 
 @loader.tds
-class GeekSpoilersMod(loader.Module):
+class HikkaSpoilersMod(loader.Module):
     """Create spoilers, that can be accessed only by certain users"""
 
-    strings = {"name": "GeekSpoilers"}
+    strings = {"name": "HikkaSpoilers"}
 
     def get(self, *args) -> dict:
         return self.db.get(self.strings["name"], *args)
@@ -57,7 +57,7 @@ class GeekSpoilersMod(loader.Module):
     async def inline__close(self, call: CallbackQuery) -> None:
         await call.delete()
 
-    async def hide_inline_handler(self, query: GeekInlineQuery) -> None:
+    async def hide_inline_handler(self, query: InlineQuery) -> None:
         """Create new hidden message"""
         text = query.args
         for_user = "Specify username in the end"

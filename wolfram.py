@@ -87,7 +87,8 @@ async def wolfram_compute(query: str) -> tuple:
                             ]
                         )
 
-                    if "plot" in pod["title"].lower():
+                for pod in reversed(answer["queryresult"]["pods"]):
+                    if "subpods" in pod and pod["title"] != "Input":
                         images += [
                             subpod["img"]["src"]
                             for subpod in pod["subpods"]

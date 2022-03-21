@@ -15,7 +15,7 @@
 # meta pic: https://img.icons8.com/external-prettycons-flat-prettycons/47/000000/external-tic-tac-toe-games-prettycons-flat-prettycons.png
 # meta developer: @hikariatama
 # scope: inline
-# scope: geektg_only
+# scope: hikka_only
 
 import enum
 import copy

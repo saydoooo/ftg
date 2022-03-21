@@ -40,8 +40,8 @@ class ModuleCloudMod(loader.Module):
         "upload_error": "🦊 <b>Upload error</b>",
         "args": "🦊 <b>Args not specified</b>",
         "mod404": "🦊 <b>Module {} not found</b>",
-        "ilink": '<b><u>{name}</u> - <a href="https://mods.hikariatama.ru/view/{file}">source</a> </b><i>| by @hikarimods with 🫀</i>\nℹ️ <i>{desc}</i>\n{geektg_only}\n🌃 <b>Install:</b> <code>.dlmod https://mods.hikariatama.ru/{file}</code>',
-        "geektg_only": "😎 <b><u>GeekTG</u> only</b>\n",
+        "ilink": '<b><u>{name}</u> - <a href="https://mods.hikariatama.ru/view/{file}">source</a> </b><i>| by @hikarimods with 🫀</i>\nℹ️ <i>{desc}</i>\n{hikka_only}\n🌃 <b>Install:</b> <code>.dlmod https://mods.hikariatama.ru/{file}</code>',
+        "hikka_only": "👩‍🎤 <b><u>Hikka</u> only</b>\n",
     }
 
     async def client_ready(self, client, db):
@@ -140,18 +140,18 @@ class ModuleCloudMod(loader.Module):
         img = requests.get(badge.json()["badge"]).content
         info = badge.json()["info"]
 
-        geektg_only = self.strings("geektg_only") if info["geektg_only"] else ""
-        del info["geektg_only"]
+        hikka_only = self.strings("hikka_only") if info["hikka_only"] else ""
+        del info["hikka_only"]
 
         if not message.media or not message.out:
             await self.client.send_file(
                 message.peer_id,
                 img,
-                caption=self.strings("ilink").format(geektg_only=geektg_only, **info),
+                caption=self.strings("ilink").format(hikka_only=hikka_only, **info),
             )
             await message.delete()
         else:
-            await message.edit(self.strings("ilink").format(geektg_only=geektg_only, **info), file=img)
+            await message.edit(self.strings("ilink").format(hikka_only=hikka_only, **info), file=img)
 
     async def verifmodcmd(self, message: Message) -> None:
         """<filename>;<title>;<description>;<tags> - Verfiy module [only for @hikarimods admins]"""

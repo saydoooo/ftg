@@ -15,7 +15,7 @@
 # meta pic: https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-read-free-time-wanicon-flat-wanicon.png
 # meta developer: @hikariatama
 # scope: inline
-# scope: geektg_only
+# scope: hikka_only
 
 from .. import loader, utils
 from aiogram.types import (
@@ -26,7 +26,7 @@ from aiogram.types import (
     InputTextMessageContent,
 )
 import logging
-from ..inline import GeekInlineQuery, rand
+from ..inline import InlineQuery, rand
 from telethon.tl.types import Message
 import time
 
@@ -73,7 +73,7 @@ class LongReadMod(loader.Module):
 
         return message_id
 
-    async def lr_inline_handler(self, query: GeekInlineQuery) -> None:
+    async def lr_inline_handler(self, query: InlineQuery) -> None:
         """Create new hidden message"""
         text = query.args
 

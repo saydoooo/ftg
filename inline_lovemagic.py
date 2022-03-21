@@ -15,7 +15,7 @@
 # meta pic: https://img.icons8.com/stickers/100/000000/like.png
 # meta developer: @hikariatama
 # scope: inline
-# scope: geektg_only
+# scope: hikka_only
 
 import random
 from .. import utils, loader
@@ -26,7 +26,7 @@ from aiogram.types import CallbackQuery
 
 @loader.tds
 class ILYMod(loader.Module):
-    """Famous TikTok hearts animation implemented in GeekTG w/o logspam"""
+    """Famous TikTok hearts animation implemented in Hikka w/o logspam"""
 
     strings = {
         "name": "LoveMagicInline",
