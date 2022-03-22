@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/system-information.png
@@ -43,8 +39,8 @@ class RextesterMod(loader.Module):
             }
 
         self.rextester_bot = "@rextester_bot"
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
         async with client.conversation(self.rextester_bot) as conv:
             m = await conv.send_message("/languages")
             res = await conv.get_response()
@@ -57,7 +53,7 @@ class RextesterMod(loader.Module):
 
         # languages_availiable = langs.replace("/", "").split()
         languages = {lang: False for lang in languages_availiable}
-        languages.update(self.db.get("RextesterMod", "languages", {}))
+        languages.update(self._db.get("RextesterMod", "languages", {}))
         self.languages = languages
         commands = get_commands(self)
         for lang, enabled in self.languages.items():
@@ -67,7 +63,7 @@ class RextesterMod(loader.Module):
 
     async def rexeval(self, message: Message, language: str):
         args = utils.escape_html(utils.get_args_raw(message))
-        async with self.client.conversation(self.rextester_bot) as conv:
+        async with self._client.conversation(self.rextester_bot) as conv:
             m = await conv.send_message(f"/{language} {args}")
             res = await conv.get_response()
             await conv.mark_read()
@@ -105,7 +101,7 @@ class RextesterMod(loader.Module):
             await utils.answer(
                 message, f"{args} is {'enabled' if enabled else 'disabled'}"
             )
-            self.db_saver()
+            self._db_saver()
         else:
             await utils.answer(message, f"{args} not found")
 
@@ -115,7 +111,7 @@ class RextesterMod(loader.Module):
         await utils.answer(message, " ".join(self.languages.keys()))
 
     def db_saver(self):
-        self.db.set(
+        self._db.set(
             "RextesterMod",
             "languages",
             dict(filter(lambda x: x[1], self.languages.items())),

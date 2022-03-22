@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/keep-away-from-children.png
@@ -38,8 +34,8 @@ class NSFWMod(loader.Module):
     }
 
     async def client_ready(self, client, db):
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
 
     async def nsfwcmd(self, message: Message) -> None:
         """<subreddit | default> [-n <quantity | 1 by default>] - Send random NSFW picture"""
@@ -61,7 +57,7 @@ class NSFWMod(loader.Module):
         args = args.strip()
 
         if not args:
-            args = self.db.get("NSFW", "default_subreddit", "nsfw")
+            args = self._db.get("NSFW", "default_subreddit", "nsfw")
 
         subreddit = f"/r/{args}"
 
@@ -95,7 +91,7 @@ class NSFWMod(loader.Module):
             title = posts[0]["title"]
         else:
             title = f"{quantity} photos from subreddit {subreddit}"
-        await self.client.send_file(
+        await self._client.send_file(
             utils.get_chat_id(message),
             file=res,
             caption=f"<i>{utils.escape_html(title)}</i>",
@@ -120,7 +116,7 @@ class NSFWMod(loader.Module):
             await utils.answer(message, self.strings("sreddit404", message))
             return
 
-        self.db.set("NSFW", "default_subreddit", args)
+        self._db.set("NSFW", "default_subreddit", args)
         await utils.answer(
             message, self.strings("default_subreddit", message).format(args)
         )

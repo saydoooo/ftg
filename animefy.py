@@ -2,19 +2,16 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-artist-professions-avatar-wanicon-flat-wanicon.png
 # meta developer: @hikariatama
 # scope: non_heroku
+# requires: requests Pillow
 
 from .. import loader, utils  # noqa
 from telethon.tl.types import Message  # noqa
@@ -29,7 +26,6 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-# requires: requests Pillow
 
 logger = logging.getLogger(__name__)
 
@@ -128,15 +124,9 @@ class AnimefyMod(loader.Module):
             "max_retries", 3, lambda: "How many times to try on unsuccess"
         )
 
-    def get(self, *args) -> dict:
-        return self.db.get(self.strings["name"], *args)
-
-    def set(self, *args) -> None:
-        return self.db.set(self.strings["name"], *args)
-
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
 
     async def animefycmd(self, message: Message, retries: int = 0) -> None:
         """<reply> - Animefy photo"""
@@ -160,14 +150,14 @@ class AnimefyMod(loader.Module):
             await upload(
                 im_2_b64(
                     Image.open(
-                        io.BytesIO(await self.client.download_file(media, bytes))
+                        io.BytesIO(await self._client.download_file(media, bytes))
                     )
                 )
             )
         )
 
         try:
-            await self.client.send_file(
+            await self._client.send_file(
                 message.peer_id,
                 file=photo,
                 caption=self.strings("finish"),

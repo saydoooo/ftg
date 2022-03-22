@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/sleep.png
@@ -55,8 +51,8 @@ class YouDBetterSleepMod(loader.Module):
     }
 
     async def client_ready(self, client, db):
-        self.client = client
-        self.db = db
+        self._client = client
+        self._db = db
         self.until = 0
         self.asleep = db.get(__name__, "asleep", False)
 
@@ -68,13 +64,13 @@ class YouDBetterSleepMod(loader.Module):
         if not args or t == 0:
             self.asleep = False
             self.until = 0
-            self.db.set(__name__, "asleep", False)
+            self._db.set(__name__, "asleep", False)
             await utils.answer(message, self.strings("awake"))
         else:
             self.asleep = True
             self.until = t + time.time()
-            self.db.set(__name__, "asleep", True)
-            self.db.set(__name__, "until", t)
+            self._db.set(__name__, "asleep", True)
+            self._db.set(__name__, "until", t)
             await utils.answer(message, self.strings("asleep").format(args))
 
     async def watcher(self, message: Message) -> None:
@@ -86,13 +82,13 @@ class YouDBetterSleepMod(loader.Module):
             if self.until <= time.time():
                 self.until = 0
                 self.asleep = False
-                await self.client.send_message(
+                await self._client.send_message(
                     "@userbot_notifies_bot", self.strings("awake")
                 )
                 return
 
             if message.mentioned:
-                await self.client.send_read_acknowledge(
+                await self._client.send_read_acknowledge(
                     message.peer_id, message, clear_mentions=True
                 )
                 await utils.answer(message, self.strings("disabled"))

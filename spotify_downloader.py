@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/spotify.png
@@ -26,8 +22,8 @@ class SpotifyDownloaderMod(loader.Module):
     strings = {"name": "SpotifyDownloader"}
 
     async def client_ready(self, client, db):
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
 
     @loader.unrestricted
     async def sdcmd(self, message: Message) -> None:
@@ -41,10 +37,10 @@ class SpotifyDownloaderMod(loader.Module):
             message = message[0]
         except Exception:
             pass
-        music = await self.client.inline_query("spotifysavebot", args)
+        music = await self._client.inline_query("spotifysavebot", args)
         for mus in music:
             if mus.result.type == "audio":
-                await self.client.send_file(
+                await self._client.send_file(
                     message.peer_id,
                     mus.result.document,
                     reply_to=message.reply_to_msg_id,

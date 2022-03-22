@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/50/000000/youtube.png
@@ -38,8 +34,8 @@ class YouTubeMod(loader.Module):
     }
 
     async def client_ready(self, client, db):
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
 
     @loader.unrestricted
     async def ytcmd(self, message: Message) -> None:
@@ -87,6 +83,6 @@ class YouTubeMod(loader.Module):
         if ext == "mp3":
             path = convert_video_to_audio_ffmpeg(path)
 
-        await self.client.send_file(message.peer_id, path)
+        await self._client.send_file(message.peer_id, path)
         os.remove(path)
         await message.delete()

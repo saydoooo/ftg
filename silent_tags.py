@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/witch.png
@@ -36,12 +32,12 @@ class SilentTagsMod(loader.Module):
     }
 
     async def find_db(self):
-        async for d in self.client.iter_dialogs():
+        async for d in self._client.iter_dialogs():
             if d.title == "silent-tags-log":
                 return d.entity
 
         return (
-            await self.client(
+            await self._client(
                 CreateChannelRequest(
                     "silent-tags-log",
                     f"Messages with @{self.un} will appear here",
@@ -51,8 +47,8 @@ class SilentTagsMod(loader.Module):
         ).chats[0]
 
     async def client_ready(self, client, db):
-        self.client = client
-        self.db = db
+        self._client = client
+        self._db = db
         self.stags = db.get("SilentTags", "stags", False)
         self.un = (await client.get_me()).username
         self._ratelimit = []
@@ -76,7 +72,7 @@ class SilentTagsMod(loader.Module):
             return
 
         args = args == "on"
-        self.db.set("SilentTags", "stags", args)
+        self._db.set("SilentTags", "stags", args)
         self.stags = args
         self._ratelimit = []
         await utils.answer(
@@ -89,7 +85,7 @@ class SilentTagsMod(loader.Module):
     async def watcher(self, message: Message) -> None:
         try:
             if message.mentioned and self.stags:
-                await self.client.send_read_acknowledge(
+                await self._client.send_read_acknowledge(
                     message.chat_id, clear_mentions=True
                 )
                 cid = utils.get_chat_id(message)
@@ -108,12 +104,12 @@ class SilentTagsMod(loader.Module):
                 uid = message.from_id
 
                 try:
-                    user = await self.client.get_entity(message.from_id)
+                    user = await self._client.get_entity(message.from_id)
                     uname = user.first_name
                 except Exception:
                     uname = "Unknown user"
 
-                await self.client.send_message(
+                await self._client.send_message(
                     self.c,
                     self.strings("tagged").format(
                         grouplink, ctitle, uid, uname, message.text, cid, message.id

@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/khan-academy.png
@@ -34,8 +30,8 @@ class HomeworkMod(loader.Module):
     }
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.hw = self.db.get("HomeWork", "hw", {})
+        self._db = db
+        self.hw = self._db.get("HomeWork", "hw", {})
 
     async def hwcmd(self, message: Message) -> None:
         """<item> - New hometask"""
@@ -55,7 +51,7 @@ class HomeworkMod(loader.Module):
 
         self.hw[random_id] = args
 
-        self.db.set("HomeWork", "hw", self.hw)
+        self._db.set("HomeWork", "hw", self.hw)
         await utils.answer(
             message, self.strings("new_hometask", message).format(random_id, str(args))
         )
@@ -81,7 +77,7 @@ class HomeworkMod(loader.Module):
             return
 
         del self.hw[args]
-        self.db.set("HomeWork", "hw", self.hw)
+        self._db.set("HomeWork", "hw", self.hw)
         await utils.answer(message, self.strings("removed", message))
         await asyncio.sleep(2)
         await message.delete()

@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-secret-emoji-wanicon-flat-wanicon.png
@@ -36,10 +32,10 @@ class SecretChatMod(loader.Module):
     strings = {"name": "SecretChat", "state": "👀 <b>SecretChat is now {}</b>"}
 
     def get(self, *args) -> dict:
-        return self.db.get(self.strings["name"], *args)
+        return self._db.get(self.strings["name"], *args)
 
     def set(self, *args) -> None:
-        return self.db.set(self.strings["name"], *args)
+        return self._db.set(self.strings["name"], *args)
 
     def _get_chat_id(self, chat) -> int:
         cid = [chat.admin_id] + [chat.participant_id]
@@ -52,13 +48,13 @@ class SecretChatMod(loader.Module):
 
         decrypted_chat = None
 
-        async for d in self.client.iter_dialogs():
+        async for d in self._client.iter_dialogs():
             if d.title == f"secret-chat-with-{cid}":
                 decrypted_chat = d.entity
 
         if not decrypted_chat:
             decrypted_chat = (
-                await self.client(
+                await self._client(
                     CreateChannelRequest(
                         f"secret-chat-with-{cid}",
                         "SecretChat conversation with {}",
@@ -67,7 +63,7 @@ class SecretChatMod(loader.Module):
                 )
             ).chats[0]
 
-        @self.client.on(NewMessage(chats=[decrypted_chat.id]))
+        @self._client.on(NewMessage(chats=[decrypted_chat.id]))
         async def secret_chat_processer(event):
             """secret_chat_processer"""
             await self._manager.send_secret_message(chat.id, event.text)
@@ -76,8 +72,8 @@ class SecretChatMod(loader.Module):
         self._chats[cid] = decrypted_chat
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
         self._manager = SecretChatManager(
             client, auto_accept=True, new_chat_created=self._new_chat
         )
@@ -95,7 +91,7 @@ class SecretChatMod(loader.Module):
         user = self._secret_chats[event.message.chat_id]
         # logger.info(e)
         if e.message:
-            await self.client.send_message(self._chats[user], f">> {e.message}")
+            await self._client.send_message(self._chats[user], f">> {e.message}")
 
         if e.file:
             try:
@@ -117,9 +113,9 @@ class SecretChatMod(loader.Module):
 
                     attrs["caption"] = ">> " + attrs["caption"]
 
-                    await self.client.send_file(self._chats[user], f, **attrs)
+                    await self._client.send_file(self._chats[user], f, **attrs)
             except Exception:
-                await self.client.send_message(self._chats[user], ">>> [File]")
+                await self._client.send_message(self._chats[user], ">>> [File]")
 
             # send_secret_document
             # send_secret_audio
@@ -133,18 +129,18 @@ class SecretChatMod(loader.Module):
         await self._create_chat(chat)
         user = self._get_chat_id(chat)
         self._secret_chats[chat.id] = user
-        u = await self.client.get_entity(user)
-        await self.client.send_message(
+        u = await self._client.get_entity(user)
+        await self._client.send_message(
             self._chats[user],
             f'㊙️ <b>New secret chat with <a href="tg://user?id={user}">{get_display_name(u)}</a> started</b>',
         )
 
     async def on_unload(self) -> None:
-        self.client.remove_event_handler(self._manager._secret_chat_event_loop)
+        self._client.remove_event_handler(self._manager._secret_chat_event_loop)
         del self._manager
-        for handler in self.client.list_event_handlers():
+        for handler in self._client.list_event_handlers():
             if handler[0].__doc__ == "secret_chat_processer":
-                self.client.remove_event_handler(handler)
+                self._client.remove_event_handler(handler)
 
     async def desecretcmd(self, message: Message) -> None:
         """Toggle secret chat handler"""

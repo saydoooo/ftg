@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-read-free-time-wanicon-flat-wanicon.png
@@ -44,14 +40,13 @@ class LongReadMod(loader.Module):
     }
 
     def get(self, *args) -> dict:
-        return self.db.get(self.strings["name"], *args)
+        return self._db.get(self.strings["name"], *args)
 
     def set(self, *args) -> None:
-        return self.db.set(self.strings["name"], *args)
+        return self._db.set(self.strings["name"], *args)
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
+        self._db = db
         self._longreads = {
             id_: obj
             for id_, obj in self.get("longreads", {}).items()

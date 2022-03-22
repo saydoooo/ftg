@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/tongue-out.png
@@ -38,8 +34,8 @@ class RPMod(loader.Module):
     }
 
     async def client_ready(self, client, db):
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
         self.rp = db.get("RPMod", "rp", {})
         self.chats = db.get("RPMod", "active", [])
 
@@ -54,11 +50,11 @@ class RPMod(loader.Module):
                 await utils.answer(message, self.strings("args", message))
             else:
                 del self.rp[command]
-                self.db.set("RPMod", "rp", self.rp)
+                self._db.set("RPMod", "rp", self.rp)
                 await utils.answer(message, self.strings("success", message))
             return
         self.rp[command] = msg
-        self.db.set("RPMod", "rp", self.rp)
+        self._db.set("RPMod", "rp", self.rp)
         await utils.answer(message, self.strings("success", message))
 
     async def rptogglecmd(self, message: Message) -> None:
@@ -70,7 +66,7 @@ class RPMod(loader.Module):
         else:
             self.chats.append(cid)
             await utils.answer(message, self.strings("rp_on", message))
-        self.db.set("RPMod", "active", self.chats)
+        self._db.set("RPMod", "active", self.chats)
 
     @loader.unrestricted
     async def rplistcmd(self, message: Message) -> None:
@@ -88,7 +84,7 @@ class RPMod(loader.Module):
         """Backup RP Commands to file"""
         file = io.BytesIO(json.dumps(self.rp).encode("utf-8"))
         file.name = "rp-backup.json"
-        await self.client.send_file(
+        await self._client.send_file(
             utils.get_chat_id(message), file, caption=self.strings("backup_caption")
         )
         await message.delete()
@@ -100,16 +96,16 @@ class RPMod(loader.Module):
             await utils.answer(message, self.strings("no_file"))
             return
 
-        file = (await self.client.download_file(reply.media)).decode("utf-8")
+        file = (await self._client.download_file(reply.media)).decode("utf-8")
         self.rp = json.loads(file)
-        self.db.set("RPMod", "rp", self.rp)
+        self._db.set("RPMod", "rp", self.rp)
         await utils.answer(message, self.strings("restored"))
 
     async def rpchatscmd(self, message: Message) -> None:
         """List chats, where RPM is active"""
         res = f"🦊 <b>RPM is active in {len(self.chats)} chats:</b>\n\n"
         for chat in self.chats:
-            chat_obj = await self.client.get_entity(int(chat))
+            chat_obj = await self._client.get_entity(int(chat))
             if getattr(chat_obj, "title", False):
                 chat_name = chat_obj.title
             else:
@@ -133,14 +129,14 @@ class RPMod(loader.Module):
 
             entity = None
             try:
-                entity = await self.client.get_entity(message.text.split(" ", 2)[1])
+                entity = await self._client.get_entity(message.text.split(" ", 2)[1])
             except Exception:
                 pass
 
             reply = await message.get_reply_message()
 
             try:
-                reply = await self.client.get_entity(reply.sender_id)
+                reply = await self._client.get_entity(reply.sender_id)
             except Exception:
                 pass
 
@@ -150,7 +146,7 @@ class RPMod(loader.Module):
             if reply and entity or not reply:
                 reply = entity
 
-            sender = await self.client.get_entity(message.sender_id)
+            sender = await self._client.get_entity(message.sender_id)
 
             await utils.answer(
                 message,

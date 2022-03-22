@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/external-wanicon-lineal-color-wanicon/64/000000/external-feedback-influencer-marketing-wanicon-lineal-color-wanicon.png
@@ -50,15 +46,7 @@ class FeedbackMod(loader.Module):
         "sent": "✅ <b>Your message has been sent to owner</b>",
     }
 
-    def get(self, *args) -> dict:
-        return self._db.get(self.strings["name"], *args)
-
-    def set(self, *args) -> None:
-        return self._db.set(self.strings["name"], *args)
-
     async def client_ready(self, client, db) -> None:
-        self._db = db
-        self._client = client
         self._me = (await client.get_me()).id
         self._name = utils.escape_html(get_display_name(await client.get_me()))
 

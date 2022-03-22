@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/upload-to-cloud.png
@@ -44,8 +40,8 @@ class FileUploaderMod(loader.Module):
     }
 
     async def client_ready(self, client, db):
-        self.client = client
-        self.db = db
+        self._client = client
+        self._db = db
 
     async def get_media(self, message: Message) -> None:
         reply = await message.get_reply_message()
@@ -62,7 +58,7 @@ class FileUploaderMod(loader.Module):
             file = io.BytesIO(bytes(reply.raw_text, "utf-8"))
             file.name = "file.txt"
         else:
-            file = io.BytesIO(await self.client.download_file(m.media))
+            file = io.BytesIO(await self._client.download_file(m.media))
             file.name = (
                 m.file.name
                 or (
@@ -111,7 +107,7 @@ class FileUploaderMod(loader.Module):
             return
         chat = "@ImgUploadBot"
 
-        async with self.client.conversation(chat) as conv:
+        async with self._client.conversation(chat) as conv:
             try:
                 m = await conv.send_message(file=file)
                 response = await conv.get_response()

@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/heart-with-pulse.png
@@ -36,8 +32,8 @@ class RateModuleMod(loader.Module):
     }
 
     async def client_ready(self, client, db):
-        self.client = client
-        self.db = db
+        self._client = client
+        self._db = db
 
     @loader.unrestricted
     async def ratemodcmd(self, message: Message) -> None:
@@ -67,7 +63,7 @@ class RateModuleMod(loader.Module):
 
         if type(checking) is not str:
             try:
-                file = await self.client.download_file(
+                file = await self._client.download_file(
                     getattr(reply, "media", None)
                     if getattr(reply, "media", None) is not None
                     else getattr(message, "media", None)

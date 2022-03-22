@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/sticker.png
@@ -89,10 +85,10 @@ class StickManagerMod(loader.Module):
     }
 
     def get(self, *args) -> dict:
-        return self.db.get(self.strings["name"], *args)
+        return self._db.get(self.strings["name"], *args)
 
     def set(self, *args) -> None:
-        return self.db.set(self.strings["name"], *args)
+        return self._db.set(self.strings["name"], *args)
 
     def find(self, args: str) -> str or False:
         if args in self.stickersets:
@@ -121,15 +117,15 @@ class StickManagerMod(loader.Module):
         img.save(dst, "PNG")
         mime = "image/png"
 
-        file = await self.client.upload_file(dst.getvalue())
+        file = await self._client.upload_file(dst.getvalue())
         file = InputMediaUploadedDocument(file, mime, [])
-        document = await self.client(UploadMediaRequest(InputPeerSelf(), file))
+        document = await self._client(UploadMediaRequest(InputPeerSelf(), file))
         document = get_input_document(document)
 
         return document
 
     async def prepare_vid(self, message: Message) -> InputDocument:
-        dl = await self.client.download_file(message.media)
+        dl = await self._client.download_file(message.media)
 
         with open("sticker.mp4", "wb") as f:
             f.write(dl)
@@ -159,8 +155,8 @@ class StickManagerMod(loader.Module):
         return "sticker.webm"
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
         self.stickersets = self.get("stickersets", {})
         self.default = self.get("default", None)
 
@@ -204,7 +200,7 @@ class StickManagerMod(loader.Module):
         stick = await self.prepare(reply)
         assert stick
 
-        async with self.client.conversation("@stickers") as conv:
+        async with self._client.conversation("@stickers") as conv:
             try:
                 m = await conv.send_message("/cancel")
                 r = await conv.get_response()
@@ -289,7 +285,7 @@ class StickManagerMod(loader.Module):
                 await utils.answer(message, f"🚫 <code>{e}</code>")
                 return
 
-        await self.client(
+        await self._client(
             InstallStickerSetRequest(
                 stickerset=InputStickerSetShortName(shortname), archived=False
             )
@@ -342,7 +338,7 @@ class StickManagerMod(loader.Module):
         stick = await self.prepare_vid(reply)
         assert stick
 
-        async with self.client.conversation("@stickers") as conv:
+        async with self._client.conversation("@stickers") as conv:
             try:
                 m = await conv.send_message("/cancel")
                 r = await conv.get_response()
@@ -447,7 +443,7 @@ class StickManagerMod(loader.Module):
                 await utils.answer(message, f"🚫 <code>{e}</code>")
                 return
 
-        await self.client(
+        await self._client(
             InstallStickerSetRequest(
                 stickerset=InputStickerSetShortName(shortname), archived=False
             )
@@ -477,7 +473,7 @@ class StickManagerMod(loader.Module):
 
         await utils.answer(message, self.strings("processing"))
 
-        async with self.client.conversation("@stickers") as conv:
+        async with self._client.conversation("@stickers") as conv:
             m = await conv.send_message("/cancel")
             r = await conv.get_response()
 
@@ -497,7 +493,7 @@ class StickManagerMod(loader.Module):
                         continue
 
                     try:
-                        stickerset = await self.client(
+                        stickerset = await self._client(
                             GetStickerSetRequest(
                                 stickerset=InputStickerSetShortName(btn),
                                 hash=round(time.time()),
@@ -617,7 +613,7 @@ class StickManagerMod(loader.Module):
             return
 
         try:
-            await self.client(
+            await self._client(
                 UninstallStickerSetRequest(
                     stickerset=InputStickerSetShortName(pack["shortname"])
                 )
@@ -630,7 +626,7 @@ class StickManagerMod(loader.Module):
 
         await utils.answer(message, self.strings("processing"))
 
-        async with self.client.conversation("@stickers") as conv:
+        async with self._client.conversation("@stickers") as conv:
             try:
                 m = await conv.send_message("/cancel")
                 r = await conv.get_response()
@@ -696,7 +692,7 @@ class StickManagerMod(loader.Module):
             await utils.answer(message, self.strings("error").format("Reply required"))
             return
 
-        async with self.client.conversation("@stickers") as conv:
+        async with self._client.conversation("@stickers") as conv:
             try:
                 m = await conv.send_message("/cancel")
                 r = await conv.get_response()
@@ -718,7 +714,7 @@ class StickManagerMod(loader.Module):
                 await m.delete()
                 await r.delete()
 
-                m = await self.client.forward_messages(
+                m = await self._client.forward_messages(
                     "@stickers", [reply.id], message.peer_id
                 )
                 r = await conv.get_response()
@@ -808,7 +804,7 @@ class StickManagerMod(loader.Module):
             await utils.answer(message, self.strings("processing"))
             stick = await self.prepare(reply)
 
-        async with self.client.conversation("@stickers") as conv:
+        async with self._client.conversation("@stickers") as conv:
             try:
                 m = await conv.send_message("/cancel")
                 r = await conv.get_response()
@@ -889,5 +885,5 @@ class StickManagerMod(loader.Module):
 
     async def rmrecentcmd(self, message: Message) -> None:
         """Clear recently used stickers"""
-        await self.client(ClearRecentStickersRequest(attached=False))
+        await self._client(ClearRecentStickersRequest(attached=False))
         await utils.answer(message, self.strings("cleaned"))

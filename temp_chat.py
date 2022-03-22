@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/time.png
@@ -86,41 +82,41 @@ class TempChatMod(loader.Module):
         return round(time.time() + seconds + minutes + hours + days + weeks + months)
 
     async def chats_handler_async(self):
-        while self.db.get("TempChat", "loop", False):
-            # await self.client.send_message('me', 'testing')
+        while self._db.get("TempChat", "loop", False):
+            # await self._client.send_message('me', 'testing')
             for chat, info in self.chats.items():
                 if int(info[0]) <= time.time():
                     try:
-                        await self.client.send_message(
+                        await self._client.send_message(
                             int(chat), self.strings("chat_is_being_removed")
                         )
-                        async for user in self.client.iter_participants(
+                        async for user in self._client.iter_participants(
                             int(chat), limit=50
                         ):
-                            await self.client.kick_participant(int(chat), user.id)
-                        await self.client.delete_dialog(int(chat))
+                            await self._client.kick_participant(int(chat), user.id)
+                        await self._client.delete_dialog(int(chat))
                     except Exception:
                         try:
-                            await self.client.send_message(
+                            await self._client.send_message(
                                 int(chat), self.strings("delete_error")
                             )
                         except Exception:
-                            await self.client.send_message(
+                            await self._client.send_message(
                                 "me", self.strings("delete_error_me").format(info[1])
                             )
 
                     del self.chats[chat]
-                    self.db.set("TempChat", "chats", self.chats)
+                    self._db.set("TempChat", "chats", self.chats)
                     break
             await asyncio.sleep(0.5)
 
     async def client_ready(self, client, db):
-        self.db = db
-        self.chats = self.db.get("TempChat", "chats", {})
-        self.client = client
-        self.db.set("TempChat", "loop", False)
+        self._db = db
+        self.chats = self._db.get("TempChat", "chats", {})
+        self._client = client
+        self._db.set("TempChat", "loop", False)
         await asyncio.sleep(1)
-        self.db.set("TempChat", "loop", True)
+        self._db.set("TempChat", "loop", True)
         asyncio.ensure_future(self.chats_handler_async())
 
     async def tmpchatcmd(self, message: Message) -> None:
@@ -150,7 +146,7 @@ class TempChatMod(loader.Module):
             await message.delete()
             return
 
-        res = await self.client(
+        res = await self._client(
             telethon.functions.messages.CreateChatRequest(
                 users=["kanekiguard_tests_bot"], title=tit
             )
@@ -158,7 +154,7 @@ class TempChatMod(loader.Module):
         await utils.answer(message, self.strings("chat_created", message))
         cid = res.chats[0].id
 
-        await self.client.send_message(
+        await self._client.send_message(
             cid,
             self.strings("temp_chat_header", message).format(
                 cid,
@@ -168,7 +164,7 @@ class TempChatMod(loader.Module):
             ),
         )
         self.chats[str(cid)] = [until, tit]
-        self.db.set("TempChat", "chats", self.chats)
+        self._db.set("TempChat", "chats", self.chats)
 
     async def tmpcurrentcmd(self, message: Message) -> None:
         """<time> - Create current chat temporary
@@ -199,8 +195,8 @@ class TempChatMod(loader.Module):
                 ),
             ),
         )
-        self.chats[str(cid)] = [until, (await self.client.get_entity(cid)).title]
-        self.db.set("TempChat", "chats", self.chats)
+        self.chats[str(cid)] = [until, (await self._client.get_entity(cid)).title]
+        self._db.set("TempChat", "chats", self.chats)
 
     async def tmpchatscmd(self, message: Message) -> None:
         """List temp chats"""
@@ -227,7 +223,7 @@ class TempChatMod(loader.Module):
             message, self.strings("tmp_cancelled", message).format(self.chats[args][1])
         )
         del self.chats[args]
-        self.db.set("TempChat", "chats", json.dumps(self.chats))
+        self._db.set("TempChat", "chats", json.dumps(self.chats))
 
     async def tmpctimecmd(self, message: Message) -> None:
         """<chat_id> <new_time>"""
@@ -259,4 +255,4 @@ class TempChatMod(loader.Module):
             return
 
         self.chats[chat][0] = new_time
-        self.db.set("TempChat", "chats", self.chats)
+        self._db.set("TempChat", "chats", self.chats)

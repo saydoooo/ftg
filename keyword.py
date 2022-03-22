@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/macbook-chat.png
@@ -42,8 +38,8 @@ class KeywordMod(loader.Module):
     }
 
     async def client_ready(self, client, db):
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
         self.keywords = db.get("Keyword", "keywords", {})
         self.bl = db.get("Keyword", "bl", [])
 
@@ -88,7 +84,7 @@ class KeywordMod(loader.Module):
             ph = ph.strip()
             kw = kw.strip()
             self.keywords[kw] = [f"🤖 {ph}", restrict, ar, l, e, c]
-            self.db.set("Keyword", "keywords", self.keywords)
+            self._db.set("Keyword", "keywords", self.keywords)
             return await utils.answer(
                 message,
                 self.strings("kw_added").format(
@@ -105,7 +101,7 @@ class KeywordMod(loader.Module):
             if kw not in self.keywords:
                 return await utils.answer(message, self.strings("kw_404").format(kw))
             del self.keywords[kw]
-            self.db.set("Keyword", "keywords", self.keywords)
+            self._db.set("Keyword", "keywords", self.keywords)
             return await utils.answer(message, self.strings("kw_removed").format(kw))
 
     async def kwordscmd(self, message: Message) -> None:
@@ -138,11 +134,11 @@ class KeywordMod(loader.Module):
         cid = utils.get_chat_id(message)
         if cid not in self.bl:
             self.bl.append(cid)
-            self.db.set("Keyword", "bl", self.bl)
+            self._db.set("Keyword", "bl", self.bl)
             return await utils.answer(message, self.strings("bl_added"))
         else:
             self.bl.remove(cid)
-            self.db.set("Keyword", "bl", self.bl)
+            self._db.set("Keyword", "bl", self.bl)
             return await utils.answer(message, self.strings("bl_removed"))
 
     async def kwbllistcmd(self, message: Message) -> None:
@@ -151,7 +147,7 @@ class KeywordMod(loader.Module):
         res = ""
         for user in self.bl:
             try:
-                u = await self.client.get_entity(user)
+                u = await self._client.get_entity(user)
             except Exception:
                 self.chats[chat]["defense"].remove(user)
                 continue
@@ -207,7 +203,7 @@ class KeywordMod(loader.Module):
                     and ph[0][offset:].startswith(
                         utils.escape_html(
                             (
-                                self.db.get(main.__name__, "command_prefix", False)
+                                self._db.get(main.__name__, "command_prefix", False)
                                 or "."
                             )[0]
                         )
@@ -216,7 +212,7 @@ class KeywordMod(loader.Module):
                     offset += 1
 
                 if ph[2]:
-                    await self.client.send_read_acknowledge(cid, clear_mentions=True)
+                    await self._client.send_read_acknowledge(cid, clear_mentions=True)
 
                 if ph[3]:
                     chat = await message.get_chat()
@@ -231,7 +227,7 @@ class KeywordMod(loader.Module):
                             if getattr(message, "title", None) is not None
                             else ""
                         )
-                    await self.client.send_message(
+                    await self._client.send_message(
                         "me", self.strings("sent").format(ch, kw, ph[0])
                     )
 

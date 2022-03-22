@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/voice-id.png
@@ -41,8 +37,8 @@ class VoicyMod(loader.Module):
     }
 
     async def client_ready(self, client, db):
-        self.db = db
-        self.chats = self.db.get("vtt", "chats", [])
+        self._db = db
+        self.chats = self._db.get("vtt", "chats", [])
 
     async def recognize(self, event):
         try:
@@ -104,4 +100,4 @@ class VoicyMod(loader.Module):
             self.chats.append(chat_id)
             await utils.answer(message, self.strings("autovoice_on"))
 
-        self.db.set("vtt", "chats", self.chats)
+        self._db.set("vtt", "chats", self.chats)

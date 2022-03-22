@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/dictionary.png
@@ -73,12 +69,12 @@ class EduTatarMod(loader.Module):
         )
 
     async def client_ready(self, client, db):
-        self.db = db
+        self._db = db
         self.sess = {"DNSID": db.get("eduTatar", "sess", None)}
         if self.sess["DNSID"] is None:
             await self.revoke_token()
 
-        self.client = client
+        self._client = client
         asyncio.ensure_future(self.parse_marks_async())
 
     async def parse_marks_async(self):
@@ -195,12 +191,12 @@ class EduTatarMod(loader.Module):
         else:
             raise ValueError("Failed logging in")
 
-        self.db.set("eduTatar", "sess", self.sess["DNSID"])
+        self._db.set("eduTatar", "sess", self.sess["DNSID"])
 
     async def check_marks(self):
-        marks_tmp = self.db.get("eduTatar", "marks", {}).copy()
+        marks_tmp = self._db.get("eduTatar", "marks", {}).copy()
         await self.scrape_term("")
-        marks_new = self.db.get("eduTatar", "marks", {}).copy()
+        marks_new = self._db.get("eduTatar", "marks", {}).copy()
         for subject, current_marks_2 in list(marks_new.items()):
             current_marks_1 = [] if subject not in marks_tmp else marks_tmp[subject]
             try:
@@ -210,7 +206,7 @@ class EduTatarMod(loader.Module):
 
             for i in range(min(len(current_marks_1), len(current_marks_2))):
                 if current_marks_1[i] != current_marks_2[i]:
-                    await self.client.send_message(
+                    await self._client.send_message(
                         "@userbot_notifies_bot",
                         utils.escape_html(
                             f'<b>{subject}: {current_marks_1[i]}->{current_marks_2[i]}\n</b><code>{" ".join(list(map(str, current_marks_2)))}</code>'
@@ -221,7 +217,7 @@ class EduTatarMod(loader.Module):
             for i in range(
                 min(len(current_marks_1), len(current_marks_2)), len(current_marks_2)
             ):
-                await self.client.send_message(
+                await self._client.send_message(
                     "@userbot_notifies_bot",
                     utils.escape_html(
                         f'<b>{subject}: {current_marks_2[i ]}\n</b><code>{" ".join(list(map(str, current_marks_2)))}</code>'
@@ -329,7 +325,7 @@ class EduTatarMod(loader.Module):
             )
             marks_temp = list(filter(lambda a: a != "", processing.split("</td>")))
             marks_tmp = " ".join(marks_temp[:-1])
-            marks_db = self.db.get("eduTatar", "marks", {})
+            marks_db = self._db.get("eduTatar", "marks", {})
             if "-n" in args:
                 marks = (
                     str(marks_tmp.count("5"))
@@ -345,7 +341,7 @@ class EduTatarMod(loader.Module):
                 marks = marks_tmp
 
             marks_db[subject] = marks_tmp.split()
-            self.db.set("eduTatar", "marks", marks_db)
+            self._db.set("eduTatar", "marks", marks_db)
 
             marks += (
                 " <b>="

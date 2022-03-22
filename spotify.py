@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/spotify.png
@@ -153,12 +149,12 @@ class SpotifyMod(loader.Module):
     }
 
     def __init__(self) -> None:
-        self.client_id = "e0708753ab60499c89ce263de9b4f57a"
-        self.client_secret = "80c927166c664ee98a43a2c0e2981b4a"
+        self._client_id = "e0708753ab60499c89ce263de9b4f57a"
+        self._client_secret = "80c927166c664ee98a43a2c0e2981b4a"
         self.scope = "user-read-playback-state playlist-read-private playlist-read-collaborative app-remote-control user-modify-playback-state user-library-modify user-library-read"
         self.sp_auth = spotipy.oauth2.SpotifyOAuth(
-            client_id=self.client_id,
-            client_secret=self.client_secret,
+            client_id=self._client_id,
+            client_secret=self._client_secret,
             redirect_uri="https://fuccsoc.com/",
             scope=self.scope,
         )
@@ -180,7 +176,7 @@ class SpotifyMod(loader.Module):
             bio = self.config["AutoBioTemplate"].format(f"{track}")
 
             try:
-                await self.client(
+                await self._client(
                     telethon.tl.functions.account.UpdateProfileRequest(about=bio[:70])
                 )
             except telethon.errors.rpcerrorlist.FloodWaitError as e:
@@ -197,8 +193,8 @@ class SpotifyMod(loader.Module):
         self.bio_task.cancel()
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
         try:
             self.sp = spotipy.Spotify(auth=db.get(self.name, "acs_tkn")["access_token"])
         except Exception:
@@ -333,7 +329,7 @@ class SpotifyMod(loader.Module):
             self.sp.next_track()
 
         await message.delete()
-        await self.client.send_file(
+        await self._client.send_file(
             message.peer_id,
             create_badge(
                 track["album"]["images"][0]["url"],
@@ -400,7 +396,7 @@ class SpotifyMod(loader.Module):
         result += f"\n<code>🞆───────── 0:00 / {track['duration_ms'] // 1000 // 60:02}:{track['duration_ms'] // 1000 % 60:02}</code>"
 
         try:
-            await self.client.send_file(
+            await self._client.send_file(
                 message.peer_id, caption=result, **create_file(track)
             )
             await message.delete()
@@ -442,7 +438,7 @@ class SpotifyMod(loader.Module):
     @error_handler
     async def sauthcmd(self, message: Message) -> None:
         """First stage of auth"""
-        if self.db.get(self.name, "acs_tkn", False) and not self.sp:
+        if self._db.get(self.name, "acs_tkn", False) and not self.sp:
             await utils.answer(message, self.strings("already_authed"))
         else:
             self.sp_auth.get_authorize_url()
@@ -456,11 +452,11 @@ class SpotifyMod(loader.Module):
         """Second stage of auth"""
         url = message.message.split(" ")[1]
         code = self.sp_auth.parse_auth_response_url(url)
-        self.db.set(
+        self._db.set(
             self.name, "acs_tkn", self.sp_auth.get_access_token(code, True, False)
         )
         self.sp = spotipy.Spotify(
-            auth=self.db.get(self.name, "acs_tkn")["access_token"]
+            auth=self._db.get(self.name, "acs_tkn")["access_token"]
         )
         await utils.answer(message, self.strings("authed"))
 
@@ -468,7 +464,7 @@ class SpotifyMod(loader.Module):
     @autodelete
     async def unauthcmd(self, message: Message) -> None:
         """Deauth from Spotify API"""
-        self.db.set(self.name, "acs_tkn", None)
+        self._db.set(self.name, "acs_tkn", None)
         del self.sp
         await utils.answer(message, self.strings("deauth"))
 
@@ -477,9 +473,9 @@ class SpotifyMod(loader.Module):
     @autodelete
     async def sbiocmd(self, message: Message) -> None:
         """Toggle bio playback streaming"""
-        current = self.db.get(self.name, "autobio", False)
+        current = self._db.get(self.name, "autobio", False)
         new = not current
-        self.db.set(self.name, "autobio", new)
+        self._db.set(self.name, "autobio", new)
         await utils.answer(
             message, self.strings("autobio").format("enabled" if new else "disabled")
         )
@@ -493,16 +489,16 @@ class SpotifyMod(loader.Module):
     @autodelete
     async def stokrefreshcmd(self, message: Message) -> None:
         """Force refresh token"""
-        self.db.set(
+        self._db.set(
             self.name,
             "acs_tkn",
             self.sp_auth.refresh_access_token(
-                self.db.get(self.name, "acs_tkn")["refresh_token"]
+                self._db.get(self.name, "acs_tkn")["refresh_token"]
             ),
         )
-        self.db.set(self.name, "NextRefresh", time.time() + 45 * 60)
+        self._db.set(self.name, "NextRefresh", time.time() + 45 * 60)
         self.sp = spotipy.Spotify(
-            auth=self.db.get(self.name, "acs_tkn")["access_token"]
+            auth=self._db.get(self.name, "acs_tkn")["access_token"]
         )
         await utils.answer(message, self.strings("authed"))
 
@@ -588,7 +584,7 @@ class SpotifyMod(loader.Module):
             )
 
             try:
-                await self.client.send_file(
+                await self._client.send_file(
                     message.peer_id,
                     caption=result,
                     **create_file(current_playback["item"]),
@@ -607,30 +603,30 @@ class SpotifyMod(loader.Module):
         if not self.sp:
             return
 
-        if self.db.get(self.name, "NextRefresh", False):
-            ttc = self.db.get(self.name, "NextRefresh", 0)
+        if self._db.get(self.name, "NextRefresh", False):
+            ttc = self._db.get(self.name, "NextRefresh", 0)
             crnt = time.time()
             if ttc < crnt:
-                self.db.set(
+                self._db.set(
                     self.name,
                     "acs_tkn",
                     self.sp_auth.refresh_access_token(
-                        self.db.get(self.name, "acs_tkn")["refresh_token"]
+                        self._db.get(self.name, "acs_tkn")["refresh_token"]
                     ),
                 )
-                self.db.set(self.name, "NextRefresh", time.time() + 45 * 60)
+                self._db.set(self.name, "NextRefresh", time.time() + 45 * 60)
                 self.sp = spotipy.Spotify(
-                    auth=self.db.get(self.name, "acs_tkn")["access_token"]
+                    auth=self._db.get(self.name, "acs_tkn")["access_token"]
                 )
         else:
-            self.db.set(
+            self._db.set(
                 self.name,
                 "acs_tkn",
                 self.sp_auth.refresh_access_token(
-                    self.db.get(self.name, "acs_tkn")["refresh_token"]
+                    self._db.get(self.name, "acs_tkn")["refresh_token"]
                 ),
             )
-            self.db.set(self.name, "NextRefresh", time.time() + 45 * 60)
+            self._db.set(self.name, "NextRefresh", time.time() + 45 * 60)
             self.sp = spotipy.Spotify(
-                auth=self.db.get(self.name, "acs_tkn")["access_token"]
+                auth=self._db.get(self.name, "acs_tkn")["access_token"]
             )

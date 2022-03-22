@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/color/48/000000/anonymous-mask.png
@@ -34,20 +30,20 @@ logger = logging.getLogger(__name__)
 
 
 @loader.tds
-class HikkaSpoilersMod(loader.Module):
+class SpoilersMod(loader.Module):
     """Create spoilers, that can be accessed only by certain users"""
 
-    strings = {"name": "HikkaSpoilers"}
+    strings = {"name": "Spoilers"}
 
     def get(self, *args) -> dict:
-        return self.db.get(self.strings["name"], *args)
+        return self._db.get(self.strings["name"], *args)
 
     def set(self, *args) -> None:
-        return self.db.set(self.strings["name"], *args)
+        return self._db.set(self.strings["name"], *args)
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
         self._messages = {
             message_id: message
             for message_id, message in self.get("messages", {}).items()
@@ -65,7 +61,7 @@ class HikkaSpoilersMod(loader.Module):
         user = None
         if len(text.split()) > 1 and text.split()[-1].startswith("@"):
             try:
-                user = await self.client.get_entity(text.split()[-1])
+                user = await self._client.get_entity(text.split()[-1])
             except Exception:
                 pass
             else:
@@ -96,7 +92,7 @@ class HikkaSpoilersMod(loader.Module):
                     input_message_content=InputTextMessageContent(
                         f'🙈 <b>Hidden message for <a href="tg://user?id={for_user_id}">{utils.escape_html(get_display_name(user))}</a></b>\n<i>You can open this message only once!</i>'
                         if user
-                        else f"🚫 <b>User not specified</b>",
+                        else "🚫 <b>User not specified</b>",
                         "HTML",
                         disable_web_page_preview=True,
                     ),
@@ -116,12 +112,11 @@ class HikkaSpoilersMod(loader.Module):
         if (
             call.data not in self._messages
             or call.from_user.id != self._messages[call.data]["for"]
-            and call.from_user.id not in self.client.dispatcher.security._owner
+            and call.from_user.id not in self._client.dispatcher.security._owner
         ):
             return
 
         await call.answer(self._messages[call.data]["text"], show_alert=True)
 
-        if call.from_user.id not in self.client.dispatcher.security._owner:
+        if call.from_user.id not in self._client.dispatcher.security._owner:
             del self._messages[call.data]
-            await call.delete()

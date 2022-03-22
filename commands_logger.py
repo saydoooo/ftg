@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/logbook.png
@@ -17,9 +13,8 @@
 # scope: hikka_only
 
 from .. import loader, utils, main
-from telethon.tl.functions.channels import CreateChannelRequest
 import logging
-import telethon.utils as tutils
+from telethon.utils import get_display_name
 from telethon.tl.types import Message
 
 logger = logging.getLogger(__name__)
@@ -31,49 +26,36 @@ class CommandsLoggerMod(loader.Module):
 
     strings = {"name": "CommandsLogger"}
 
-    async def find_db(self):
-        async for d in self.client.iter_dialogs():
-            if d.title == "hikka-log":
-                return d.entity
-
-        return (
-            await self.client(
-                CreateChannelRequest(
-                    "hikka-log", "Commands will appear there", megagroup=True
-                )
-            )
-        ).chats[0]
-
     async def client_ready(self, client, db):
-        self.client = client
-        self.db = db
-        try:
-            self.hikka_ver = main.__version__
-        except Exception as e:
-            raise Exception("This module is supported only by Hikka") from e
+        self._client = client
+        self._db = db
 
-        self.log_channel = await self.find_db()
+        self.log_channel = await utils.asset_channel(
+            client,
+            "hikka-log",
+            "Executed commands will appear there"
+        )
         self.prefix = utils.escape_html(
-            (self.db.get(main.__name__, "command_prefix", False) or ".")[0]
+            (self._db.get(main.__name__, "command_prefix", False) or ".")[0]
         )
         loader.mods = self.allmodules.modules
 
-        logger.warning("Logging installed")
+        logger.warning("CommandsLogger installed")
 
     async def process_log(self, message: Message) -> None:
         try:
             by = (
-                f'\n<b>By: <a href="tg://user?id={message.sender.id}">{tutils.get_display_name(message.sender)}</a></b>'
+                f'\n<b>By: <a href="tg://user?id={message.sender.id}">{get_display_name(message.sender)}</a></b>'
                 if not message.out
                 else ""
             )
         except AttributeError:
             by = (
-                f'\n<b>By: <a href="tg://user?id={message.chat_id}">{tutils.get_display_name(await self.client.get_entity(message.chat_id))}</a> in pm</b>'
+                f'\n<b>By: <a href="tg://user?id={message.chat_id}">{get_display_name(await self._client.get_entity(message.chat_id))}</a> in pm</b>'
                 if not message.out
                 else ""
             )
 
-        await self.client.send_message(
+        await self._client.send_message(
             self.log_channel, f"<code>{self.prefix}{message.raw_text}</code>{by}"
         )

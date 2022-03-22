@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/color/48/000000/boruto-uzumaki.png
@@ -36,8 +32,8 @@ class AniSearchMod(loader.Module):
     }
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
 
     async def anisearchcmd(self, message: Message) -> None:
         """Search anime by frame"""
@@ -53,7 +49,7 @@ class AniSearchMod(loader.Module):
         search_result = requests.post(
             "https://api.trace.moe/search",
             files={
-                "image": await self.client.download_media(
+                "image": await self._client.download_media(
                     message if message.media else reply, bytes
                 )
             },

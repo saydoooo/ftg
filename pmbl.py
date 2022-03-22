@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta title: PM->BL
@@ -83,14 +79,14 @@ class PMBLMod(loader.Module):
         )
 
     def get(self, *args) -> dict:
-        return self.db.get(self.strings["name"], *args)
+        return self._db.get(self.strings["name"], *args)
 
     def set(self, *args) -> None:
-        return self.db.set(self.strings["name"], *args)
+        return self._db.set(self.strings["name"], *args)
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
         self._whitelist = self.get("whitelist", [])
         self._me = (await client.get_me()).id
         self._ratelimit = []
@@ -141,7 +137,7 @@ class PMBLMod(loader.Module):
         await utils.answer(message, self.strings("removing").format(n))
 
         dialogs = []
-        async for dialog in self.client.iter_dialogs(ignore_pinned=True):
+        async for dialog in self._client.iter_dialogs(ignore_pinned=True):
             try:
                 if not isinstance(dialog.message.peer_id, PeerUser):
                     continue
@@ -149,7 +145,7 @@ class PMBLMod(loader.Module):
                 continue
 
             m = (
-                await self.client.get_messages(
+                await self._client.get_messages(
                     dialog.message.peer_id, limit=1, reverse=True
                 )
             )[0]
@@ -165,9 +161,9 @@ class PMBLMod(loader.Module):
         to_ban = [d for d, _ in dialogs[::-1][:n]]
 
         for d in to_ban:
-            await self.client(BlockRequest(id=d))
+            await self._client(BlockRequest(id=d))
 
-            await self.client(DeleteHistoryRequest(peer=d, just_clear=True, max_id=0))
+            await self._client(DeleteHistoryRequest(peer=d, just_clear=True, max_id=0))
 
         await utils.answer(message, self.strings("removed").format(n))
 
@@ -186,10 +182,10 @@ class PMBLMod(loader.Module):
         user = None
 
         try:
-            user = await self.client.get_entity(args)
+            user = await self._client.get_entity(args)
         except Exception:
             try:
-                user = await self.client.get_entity(reply.sender_id) if reply else None
+                user = await self._client.get_entity(reply.sender_id) if reply else None
             except Exception:
                 pass
 
@@ -226,7 +222,7 @@ class PMBLMod(loader.Module):
         contact, started_by_you, active_peer = None, None, None
 
         first_message = (
-            await self.client.get_messages(message.peer_id, limit=1, reverse=True)
+            await self._client.get_messages(message.peer_id, limit=1, reverse=True)
         )[0]
 
         if getattr(message, 'raw_text', False) and first_message.sender_id == self._me:
@@ -236,7 +232,7 @@ class PMBLMod(loader.Module):
 
         try:
             if self.config["ignore_contacts"]:
-                if (await self.client.get_entity(message.peer_id)).contact:
+                if (await self._client.get_entity(message.peer_id)).contact:
                     return self._approve(cid, "ignore_contacts")
                 else:
                     contact = False
@@ -249,7 +245,7 @@ class PMBLMod(loader.Module):
         if self.config["ignore_active"]:
             q = 0
 
-            async for msg in self.client.iter_messages(message.peer_id, limit=200):
+            async for msg in self._client.iter_messages(message.peer_id, limit=200):
                 if msg.sender_id == self._me:
                     q += 1
 
@@ -264,7 +260,7 @@ class PMBLMod(loader.Module):
 
         if len(self._ratelimit) < self._ratelimit_threshold:
             try:
-                await self.client.send_file(
+                await self._client.send_file(
                     message.peer_id,
                     guard_pic,
                     caption=self.config["custom_message"] or self.strings("banned"),
@@ -277,10 +273,10 @@ class PMBLMod(loader.Module):
             self._ratelimit += [round(time.time())]
 
             try:
-                peer = await self.client.get_entity(message.peer_id)
+                peer = await self._client.get_entity(message.peer_id)
                 if hasattr(self, "inline") and self.inline.init_complete:
                     await self.inline._bot.send_message(
-                        (await self.client.get_me()).id,
+                        (await self._client.get_me()).id,
                         self.strings("banned_log").format(
                             peer.id,
                             utils.escape_html(peer.first_name),
@@ -298,13 +294,13 @@ class PMBLMod(loader.Module):
             except ValueError:
                 pass
 
-        await self.client(BlockRequest(id=cid))
+        await self._client(BlockRequest(id=cid))
 
         if self.get("spam", False):
-            await self.client(ReportSpamRequest(peer=cid))
+            await self._client(ReportSpamRequest(peer=cid))
 
         if self.get("delete", False):
-            await self.client(DeleteHistoryRequest(peer=cid, just_clear=True, max_id=0))
+            await self._client(DeleteHistoryRequest(peer=cid, just_clear=True, max_id=0))
 
         self._approve(cid, "banned")
 

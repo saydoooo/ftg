@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/code.png
@@ -37,7 +33,7 @@ class CarbonMod(loader.Module):
     }
 
     async def client_ready(self, client, db):
-        self.client = client
+        self._client = client
 
     @loader.unrestricted
     async def carboncmd(self, message: Message) -> None:
@@ -45,7 +41,7 @@ class CarbonMod(loader.Module):
         args = utils.get_args_raw(message)
 
         try:
-            code_from_message = (await self.client.download_file(message.media)).decode(
+            code_from_message = (await self._client.download_file(message.media)).decode(
                 "utf-8"
             )
         except Exception:
@@ -53,7 +49,7 @@ class CarbonMod(loader.Module):
 
         try:
             reply = await message.get_reply_message()
-            code_from_reply = (await self.client.download_file(reply.media)).decode(
+            code_from_reply = (await self._client.download_file(reply.media)).decode(
                 "utf-8"
             )
         except Exception:
@@ -67,7 +63,7 @@ class CarbonMod(loader.Module):
         except Exception:
             pass
 
-        await self.client.send_message(
+        await self._client.send_message(
             utils.get_chat_id(message),
             file=(
                 await utils.run_sync(

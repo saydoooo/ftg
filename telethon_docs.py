@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/why-us-female.png
@@ -29,8 +25,8 @@ class TelethonDocsMod(loader.Module):
     strings = {"name": "TelethonDocs"}
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
 
     async def watcher(self, message: Message) -> None:
         if not getattr(message, "raw_text", None):
@@ -42,7 +38,7 @@ class TelethonDocsMod(loader.Module):
         ):
             return
 
-        async with self.client.conversation("@nekoboy_telethon_bot") as conv:
+        async with self._client.conversation("@nekoboy_telethon_bot") as conv:
             m = await conv.send_message(message.raw_text)
             r = await conv.get_response()
 

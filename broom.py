@@ -2,18 +2,15 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/broom.png
 # meta developer: @hikariatama
+# scope: hikka_only
 
 from .. import loader, utils
 import asyncio
@@ -47,8 +44,8 @@ class MagicBroomMod(loader.Module):
     }
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
 
     async def broom(self, message: Message) -> False or list:
         args = utils.get_args_raw(message)
@@ -75,10 +72,10 @@ class MagicBroomMod(loader.Module):
         if "-q" in args:
             query = re.search(r'-q [\'"]?([^ ]*)[\'"]?', args).group(1)
 
-        dialogs = await self.client.get_dialogs()
+        dialogs = await self._client.get_dialogs()
         todel = []
         for dialog in dialogs:
-            if "friendly" in dialog.name.lower():
+            if "hikka" in dialog.name.lower():
                 continue
 
             if (
@@ -126,7 +123,8 @@ class MagicBroomMod(loader.Module):
         if ans is False:
             return
 
-        [await self.client.delete_dialog(d.entity) for d in ans]
+        [await self._client.delete_dialog(d.entity) for d in ans]
+
         if len(ans) > 0:
             chats = "\n   🔸 ".join([d.name for d in ans])
             await utils.answer(
@@ -149,18 +147,19 @@ class MagicBroomMod(loader.Module):
             args = "-1 -2 -3 -4"
 
         res = self.strings("result")
+
         if "--filemods" in args or "-1" in args:
-            todel = [x for x in self.db.keys() if "__extmod" in x or "filemod_" in x]
+            todel = [x for x in self._db.keys() if "__extmod" in x or "filemod_" in x]
             for delete in todel:
-                self.db.pop(delete)
+                self._db.pop(delete)
 
             res += self.strings("broom_file", message).format(len(todel))
 
         if "--deadrepos" in args or "-2" in args:
             counter = 0
             mods = []
-            for mod in self.db.get(
-                "friendly-telegram.modules.loader", "loaded_modules"
+            for mod in self._db.get(
+                "hikka.modules.loader", "loaded_modules"
             ):
                 if ("http://" in mod or "https://" in mod) and requests.get(
                     mod
@@ -169,50 +168,50 @@ class MagicBroomMod(loader.Module):
                 else:
                     mods.append(mod)
 
-            self.db.set("friendly-telegram.modules.loader", "loaded_modules", mods)
+            self._db.set("hikka.modules.loader", "loaded_modules", mods)
             res += self.strings("broom_deadrepos", message).format(counter)
 
         if "--refactorrepos" in args or "-3" in args:
-            counter = json.dumps(self.db).count("githubusercontent")
+            counter = json.dumps(self._db).count("githubusercontent")
             mods = re.sub(
                 r"http[s]?:\/\/raw\.githubusercontent\.com\/([^\/]*?\/[^\/]*?)(\/[^\"\']*)",
                 r"https://github.com/\1/raw\2",
                 re.sub(
                     r"http[s]?:\/\/raw%dgithubusercontent%dcom\/([^\/]*?\/[^\/]*?)(\/[^\"\']*)",
                     r"https://github%dcom/\1/raw\2",
-                    json.dumps(self.db),
+                    json.dumps(self._db),
                     flags=re.S,
                 ),
                 flags=re.S,
             )
-            self.db.clear()
-            self.db.update(**json.loads(mods))
+            self._db.clear()
+            self._db.update(**json.loads(mods))
 
             res += self.strings("broom_refactorrepos", message).format(counter)
 
         if "--deleteconf" in args or "-4" in args:
             todel = []
-            for x in self.db.keys():
-                if x.startswith("friendly-telegram.modules."):
+            for x in self._db.keys():
+                if x.startswith("hikka.modules."):
                     link = x.split(".", 3)[2].replace("%d", ".")
                     if (
                         link
-                        not in self.db.get(
-                            "friendly-telegram.modules.loader", "loaded_modules"
+                        not in self._db.get(
+                            "hikka.modules.loader", "loaded_modules"
                         )
                         and link != "loader"
                     ):
                         todel.append(x)
 
             for delete in todel:
-                self.db.pop(delete)
+                self._db.pop(delete)
 
             res += self.strings("broom_deletedconfs", message).format(len(todel))
 
         if res == self.strings("result"):
             res += "Nothing's changed"
 
-        self.db.save()
+        self._db.save()
         await utils.answer(message, res)
 
     async def pbancmd(self, message):
@@ -220,29 +219,30 @@ class MagicBroomMod(loader.Module):
         -h - Clear history
         -hh - Clear history for both members"""
         args = utils.get_args_raw(message)
-        entity = await self.client.get_entity(message.peer_id)
-        if isinstance(entity, User):
-            try:
-                if "-hh" in args:
-                    await self.client(
-                        DeleteHistoryRequest(
-                            peer=entity, just_clear=False, revoke=True, max_id=0
-                        )
-                    )
-                elif "-h" in args:
-                    await self.client(
-                        DeleteHistoryRequest(peer=entity, just_clear=True, max_id=0)
-                    )
-                    await self.client.send_message(
-                        utils.get_chat_id(message), self.strings("fuck_off", message)
-                    )
-                else:
-                    await self.client.send_message(
-                        utils.get_chat_id(message), self.strings("fuck_off", message)
-                    )
-            except Exception:
-                pass
+        entity = await self._client.get_entity(message.peer_id)
+        if not isinstance(entity, User):
+            await self._client.delete_dialog(entity)
+            return
 
-            await self.client(BlockRequest(id=entity))
-        else:
-            await self.client.delete_dialog(entity)
+        try:
+            if "-hh" in args:
+                await self._client(
+                    DeleteHistoryRequest(
+                        peer=entity, just_clear=False, revoke=True, max_id=0
+                    )
+                )
+            elif "-h" in args:
+                await self._client(
+                    DeleteHistoryRequest(peer=entity, just_clear=True, max_id=0)
+                )
+                await self._client.send_message(
+                    utils.get_chat_id(message), self.strings("fuck_off", message)
+                )
+            else:
+                await self._client.send_message(
+                    utils.get_chat_id(message), self.strings("fuck_off", message)
+                )
+        except Exception:
+            pass
+
+        await self._client(BlockRequest(id=entity))

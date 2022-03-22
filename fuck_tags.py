@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/radio-waves.png
@@ -35,8 +31,8 @@ class FuckTagsMod(loader.Module):
     }
 
     async def client_ready(self, client, db):
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
         self._ratelimit = []
 
     async def fucktagscmd(self, message: Message) -> None:
@@ -47,20 +43,20 @@ class FuckTagsMod(loader.Module):
                 args = int(args)
             except Exception:
                 pass
-            cid = (await self.client.get_entity(args)).id
+            cid = (await self._client.get_entity(args)).id
         except Exception:
             cid = utils.get_chat_id(message)
 
         self._ratelimit = list(set(self._ratelimit) - set([cid]))
 
-        if cid not in self.db.get("FuckTags", "tags", []):
-            self.db.set("FuckTags", "tags", self.db.get("FuckTags", "tags", []) + [cid])
+        if cid not in self._db.get("FuckTags", "tags", []):
+            self._db.set("FuckTags", "tags", self._db.get("FuckTags", "tags", []) + [cid])
             await utils.answer(message, self.strings("on", message))
         else:
-            self.db.set(
+            self._db.set(
                 "FuckTags",
                 "tags",
-                list(set(self.db.get("FuckTags", "tags", [])) - set([cid])),
+                list(set(self._db.get("FuckTags", "tags", [])) - set([cid])),
             )
             await utils.answer(message, self.strings("off", message))
 
@@ -70,37 +66,37 @@ class FuckTagsMod(loader.Module):
         try:
             if str(args).isdigit():
                 args = int(args)
-            cid = (await self.client.get_entity(args)).id
+            cid = (await self._client.get_entity(args)).id
         except Exception:
             cid = utils.get_chat_id(message)
 
-        if cid not in self.db.get("FuckTags", "strict", []):
-            self.db.set(
-                "FuckTags", "strict", self.db.get("FuckTags", "strict", []) + [cid]
+        if cid not in self._db.get("FuckTags", "strict", []):
+            self._db.set(
+                "FuckTags", "strict", self._db.get("FuckTags", "strict", []) + [cid]
             )
             await utils.answer(message, self.strings("on_strict", message))
         else:
-            self.db.set(
+            self._db.set(
                 "FuckTags",
                 "strict",
-                list(set(self.db.get("FuckTags", "strict", [])) - set([cid])),
+                list(set(self._db.get("FuckTags", "strict", [])) - set([cid])),
             )
             await utils.answer(message, self.strings("off_strict", message))
 
     async def fuckchatscmd(self, message: Message) -> None:
         """Показать активные авточтения в чатах"""
         res = "<b>== FuckTags ==</b>\n"
-        for chat in self.db.get("FuckTags", "tags", []):
+        for chat in self._db.get("FuckTags", "tags", []):
             try:
-                c = await self.client.get_entity(chat)
+                c = await self._client.get_entity(chat)
                 res += (c.title if c.title is not None else c.first_name) + "\n"
             except Exception:
                 res += str(chat) + "\n"
 
         res += "\n<b>== FuckMessages ==</b>\n"
-        for chat in self.db.get("FuckTags", "strict", []):
+        for chat in self._db.get("FuckTags", "strict", []):
             try:
-                c = await self.client.get_entity(chat)
+                c = await self._client.get_entity(chat)
                 res += (c.title if c.title is not None else c.first_name) + "\n"
             except Exception:
                 res += str(chat) + "\n"
@@ -110,10 +106,10 @@ class FuckTagsMod(loader.Module):
     async def watcher(self, message: Message) -> None:
         try:
             if (
-                utils.get_chat_id(message) in self.db.get("FuckTags", "tags", [])
+                utils.get_chat_id(message) in self._db.get("FuckTags", "tags", [])
                 and message.mentioned
             ):
-                await self.client.send_read_acknowledge(
+                await self._client.send_read_acknowledge(
                     message.chat_id, message, clear_mentions=True
                 )
                 if utils.get_chat_id(message) not in self._ratelimit:
@@ -128,7 +124,7 @@ class FuckTagsMod(loader.Module):
                         pass
 
                     await msg.delete()
-            elif utils.get_chat_id(message) in self.db.get("FuckTags", "strict", []):
-                await self.client.send_read_acknowledge(message.chat_id, message)
+            elif utils.get_chat_id(message) in self._db.get("FuckTags", "strict", []):
+                await self._client.send_read_acknowledge(message.chat_id, message)
         except Exception:
             pass

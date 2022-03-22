@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/anime.png
@@ -36,7 +32,7 @@ class NekosLifeMod(loader.Module):
     strings = {"name": "NekosLife"}
 
     async def client_ready(self, client, db):
-        self.client = client
+        self._client = client
         ans = (
             await utils.run_sync(requests.get, "https://nekos.life/api/v2/endpoints")
         ).json()
@@ -64,7 +60,7 @@ class NekosLifeMod(loader.Module):
         pic = (
             await utils.run_sync(requests.get, f"{self.endpoints['img']}{args}")
         ).json()["url"]
-        await self.client.send_file(
+        await self._client.send_file(
             message.peer_id, pic, reply_to=message.reply_to_msg_id
         )
         await message.delete()

@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/cloud-storage.png
@@ -36,17 +32,17 @@ class ModuleCloudMod(loader.Module):
         "cannot_check_file": "<b>Can't read file...</b>",
         "cannot_join": "<b>Am I banned in hikari. chat?</b>",
         "sent": "<b>Module send for check</b>",
-        "tag": "<b>🦊 @hikari_alt, add to database</b>",
+        "tag": "<b>🦊 Request to add module to database</b>",
         "upload_error": "🦊 <b>Upload error</b>",
         "args": "🦊 <b>Args not specified</b>",
         "mod404": "🦊 <b>Module {} not found</b>",
         "ilink": '<b><u>{name}</u> - <a href="https://mods.hikariatama.ru/view/{file}">source</a> </b><i>| by @hikarimods with 🫀</i>\nℹ️ <i>{desc}</i>\n{hikka_only}\n🌃 <b>Install:</b> <code>.dlmod https://mods.hikariatama.ru/{file}</code>',
-        "hikka_only": "👩‍🎤 <b><u>Hikka</u> only</b>\n",
+        "hikka_only": "\n👩‍🎤 <b><u>Hikka</u> only</b>\n",
     }
 
     async def client_ready(self, client, db):
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
 
     async def addmodcmd(self, message: Message) -> None:
         """<reply_to_file|file> - Send module to @hikari_chat to add to database"""
@@ -60,37 +56,37 @@ class ModuleCloudMod(loader.Module):
             await client.send_message("t.me/hikari_chat", self.strings("tag", message))
             await utils.answer(message, self.strings("sent", message))
 
-        # await send(self.client)
+        # await send(self._client)
 
         try:
-            await send(self.client)
+            await send(self._client)
         except Exception:
             try:
-                await self.client(
+                await self._client(
                     telethon.tl.functions.channels.JoinChannelRequest(
-                        await self.client.get_entity("t.me/hikari_chat")
+                        await self._client.get_entity("t.me/hikari_chat")
                     )
                 )
             except Exception:
                 await utils.answer(message, self.strings("cannot_join", message))
                 return
 
-            await send(self.client)
+            await send(self._client)
 
     async def search(self, entity, message: Message) -> None:
         args = utils.get_args_raw(message)
         try:
-            msgs = await self.client.get_messages(entity, limit=100)
+            msgs = await self._client.get_messages(entity, limit=100)
         except Exception:
             try:
-                await self.client(
+                await self._client(
                     telethon.tl.functions.channels.JoinChannelRequest(entity)
                 )
             except Exception:
                 await utils.answer(message, self.strings("cannot_join", message))
                 return
 
-            msgs = await self.client.get_messages(entity, limit=100)
+            msgs = await self._client.get_messages(entity, limit=100)
 
         for msg in msgs:
             try:
@@ -113,7 +109,7 @@ class ModuleCloudMod(loader.Module):
             await utils.answer(message, self.strings("args", message))
             return
 
-        entity = await self.client.get_entity("@hikarimods_database")
+        entity = await self._client.get_entity("@hikarimods_database")
         await self.search(entity, message)
 
     @loader.unrestricted
@@ -124,7 +120,7 @@ class ModuleCloudMod(loader.Module):
             await utils.answer(message, self.strings("args", message))
             return
 
-        entity = await self.client.get_entity("@hikarimods")
+        entity = await self._client.get_entity("@hikarimods")
         await self.search(entity, message)
 
     @loader.unrestricted
@@ -144,7 +140,7 @@ class ModuleCloudMod(loader.Module):
         del info["hikka_only"]
 
         if not message.media or not message.out:
-            await self.client.send_file(
+            await self._client.send_file(
                 message.peer_id,
                 img,
                 caption=self.strings("ilink").format(hikka_only=hikka_only, **info),
@@ -164,7 +160,7 @@ class ModuleCloudMod(loader.Module):
         media = reply.media
 
         try:
-            file = await self.client.download_file(media)
+            file = await self._client.download_file(media)
         except Exception:
             await utils.answer(message, self.strings("no_file", message))
             return
@@ -204,7 +200,7 @@ class ModuleCloudMod(loader.Module):
         await utils.answer(
             message, "<b>👾 Module verified and can be found in @hikarimods_database</b>"
         )
-        await self.client.send_message(
+        await self._client.send_message(
             "t.me/hikarimods_database",
             f"🦊 <b><u>{title}</u></b>\n<i>{description}</i>\n\n📋 <b><u>Команды:</u></b>\n{commands}\n🚀 <code>.dlmod {url}</code>\n\n#"
             + " #".join(tags.split(",")),

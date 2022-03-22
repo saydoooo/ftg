@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/pdf-mail.png
@@ -33,8 +29,8 @@ class Img2PdfMod(loader.Module):
     strings = {"name": "Img2Pdf"}
 
     async def client_ready(self, client, db):
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
 
     @loader.unrestricted
     async def img2pdfcmd(self, message: Message) -> None:
@@ -48,12 +44,12 @@ class Img2PdfMod(loader.Module):
 
         images = []
 
-        async for ms in self.client.iter_messages(
+        async for ms in self._client.iter_messages(
             message.peer_id, offset_id=start_offset - 1, reverse=True
         ):
             if not ms.media:
                 break
-            im = await self.client.download_file(ms.media)
+            im = await self._client.download_file(ms.media)
             try:
                 images.append(Image.open(io.BytesIO(im)))
             except UnidentifiedImageError:
@@ -66,5 +62,5 @@ class Img2PdfMod(loader.Module):
         )
         f = io.BytesIO(file.getvalue())
         f.name = utils.get_args_raw(message) or "packed_images.pdf"
-        await self.client.send_file(message.peer_id, f)
+        await self._client.send_file(message.peer_id, f)
         await message.delete()

@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/cards.png
@@ -208,8 +204,8 @@ class FlashCardsMod(loader.Module):
     }
 
     async def client_ready(self, client, db):
-        self.db = db
-        self.decks = self.db.get("FlashCards", "decks", {})
+        self._db = db
+        self.decks = self._db.get("FlashCards", "decks", {})
 
     def get_fucking_deck_from_fucking_reply(self, fucking_reply, fucking_limit=None):
         if fucking_reply is None:
@@ -288,7 +284,7 @@ class FlashCardsMod(loader.Module):
 
         self.decks[random_id] = {"name": args, "cards": [("sample", "sample")]}
 
-        self.db.set("FlashCards", "decks", self.decks)
+        self._db.set("FlashCards", "decks", self.decks)
         await utils.answer(
             message, self.strings("deck_created", message).format(random_id, args)
         )
@@ -315,7 +311,7 @@ class FlashCardsMod(loader.Module):
             return
 
         del self.decks[deck_id]
-        self.db.set("FlashCards", "decks", self.decks)
+        self._db.set("FlashCards", "decks", self.decks)
         reply = await message.get_reply_message()
         if reply:
             if "#Decks" in reply.text:
@@ -389,7 +385,7 @@ class FlashCardsMod(loader.Module):
         except Exception:
             pass
 
-        self.db.set("FlashCards", "decks", self.decks)
+        self._db.set("FlashCards", "decks", self.decks)
 
         res = f"📋#Deck #{deck_id} <b>{deck['name']}</b>:\n➖➖➖➖➖➖➖➖➖➖"
         for i, (front, back) in enumerate(deck["cards"], start=1):

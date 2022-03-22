@@ -2,23 +2,19 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/change-user-male.png
 # meta developer: @hikariatama
+# scope: hikka_only
 
 from .. import loader, utils
 import re
 
-from telethon.tl.functions.channels import CreateChannelRequest
 from telethon.tl.functions.users import GetFullUserRequest
 from telethon.tl.functions.account import UpdateUsernameRequest, UpdateProfileRequest
 from telethon.tl.functions.photos import UploadProfilePhotoRequest
@@ -37,37 +33,27 @@ class AccountSwitcherMod(loader.Module):
     }
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
-        self.accounts = db.get("AccountSwitcher", "accounts", {})
-
-    async def _search_db(self) -> None:
-        async for d in self.client.iter_dialogs():
-            if d.title == "acc-switcher-db":
-                return d.entity
-
-        return (
-            await self.client(
-                CreateChannelRequest(
-                    "acc-switcher-db",
-                    "This chat will handle your saved account via AccountSwitcher Module",
-                    megagroup=True,
-                )
-            )
-        ).chats[0]
+        self._db = db
+        self._client = client
+        self._accounts = db.get("AccountSwitcher", "accounts", {})
 
     async def _save_acc(self, photo, fn, ln, bio, un):
-        accs_db = await self._search_db()
+        accs_db, _ = await utils.asset_channel(
+            self._client,
+            "acc-switcher-db",
+            "This chat will handle your saved profiles via AccountSwitcher Module",
+        )
+
         info = f'<b>First name</b>: "{fn}"\n<b>Last name</b>: "{ln}"\n<b>Bio</b>: "{bio}"\n<b>Username</b>: "{un}"'
         if photo is not None:
-            await self.client.send_file(accs_db, photo, caption=info)
+            await self._client.send_file(accs_db, photo, caption=info)
         else:
-            await self.client.send_message(accs_db, info)
+            await self._client.send_message(accs_db, info)
 
     async def accsavecmd(self, message: Message) -> None:
         """[-n] - Save account for future restoring. -n - To save username, and change it while restoring"""
         args = utils.get_args_raw(message)
-        full = await self.client(GetFullUserRequest("me"))
+        full = await self._client(GetFullUserRequest("me"))
         photo, fn, ln, bio, un = None, None, None, None, None
         acc = await message.client.get_entity("me")
         if full.full_user.profile_photo:
@@ -108,14 +94,14 @@ class AccountSwitcherMod(loader.Module):
 
         if un != "not_saved_username":
             try:
-                await self.client(UpdateUsernameRequest(un))
+                await self._client(UpdateUsernameRequest(un))
             except Exception:
                 log += "👉🏻 Error while restoring username\n"
         else:
             log += "👉🏻 Username not restored\n"
 
         try:
-            await self.client(UpdateProfileRequest(fn, ln, bio))
+            await self._client(UpdateProfileRequest(fn, ln, bio))
             log += (
                 "👉🏻 First name restored\n"
                 if fn is not None
@@ -132,10 +118,10 @@ class AccountSwitcherMod(loader.Module):
 
         try:
             if reply.media:
-                upload = await self.client.upload_file(
-                    await self.client.download_media(reply.media)
+                upload = await self._client.upload_file(
+                    await self._client.download_media(reply.media)
                 )
-                await self.client(UploadProfilePhotoRequest(upload))
+                await self._client(UploadProfilePhotoRequest(upload))
                 log += "👉🏻 Profile photo restored"
             else:
                 log += "👉🏻 Profile photo not restored"

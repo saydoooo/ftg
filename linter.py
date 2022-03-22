@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/stickers/100/000000/python.png
@@ -64,14 +60,14 @@ class PyLinterMod(loader.Module):
     strings = {"name": "PyLinter", "no_code": "🚫 <b>Please, specify code to lint</b>"}
 
     def get(self, *args) -> dict:
-        return self.db.get(self.strings["name"], *args)
+        return self._db.get(self.strings["name"], *args)
 
     def set(self, *args) -> None:
-        return self.db.set(self.strings["name"], *args)
+        return self._db.set(self.strings["name"], *args)
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
 
     async def lintcmd(self, message: Message) -> None:
         """[code|reply] - Perform automatic lint to python code"""
@@ -81,7 +77,7 @@ class PyLinterMod(loader.Module):
 
         if media:
             try:
-                args = (await self.client.download_file(media)).decode("utf-8")
+                args = (await self._client.download_file(media)).decode("utf-8")
             except TypeError:
                 pass
 
@@ -113,7 +109,7 @@ class PyLinterMod(loader.Module):
 
         file = io.BytesIO(args.encode("utf-8"))
         file.name = "lint_result.py"
-        await self.client.send_file(
+        await self._client.send_file(
             message.peer_id,
             file,
             caption=f"<i>{choice(captions)}</i> <b>{choice(faces)}</b>",

@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/bank-card-back-side.png
@@ -29,10 +25,6 @@ class BinCheckerMod(loader.Module):
         "name": "BinCheck",
         "args": "💳 <b>To get bin info, you need to specify Bin of card (first 6 digits)</b>",
     }
-
-    async def client_ready(self, client, db):
-        self.db = db
-        self.client = client
 
     @loader.unrestricted
     async def bincheckcmd(self, message: Message) -> None:
@@ -67,7 +59,7 @@ class BinCheckerMod(loader.Module):
                         ans["country"]["name"],
                     )
                 )
-            except:
+            except Exception:
                 return "BIN data unavailable"
 
         await utils.answer(message, await bincheck(args))

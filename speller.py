@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/spell-check.png
@@ -170,10 +166,6 @@ class SpellCheckMod(loader.Module):
         "name": "SpellCheck",
         "processing": "👩‍🏫 <b>Let me take a look... Seems like this message is misspelled!</b>",
     }
-
-    async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
 
     async def spellcmd(self, message: Message) -> None:
         """Perform spell check on reply"""

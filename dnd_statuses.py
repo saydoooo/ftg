@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/envelope-number.png
@@ -41,8 +37,7 @@ class StatusesMod(loader.Module):
     }
 
     async def client_ready(self, client, db):
-        self.db = db
-        self.client = client
+        self._db = db
         self._me = await client.get_me(True)
         self._ratelimit = []
         self._sent_messages = []
@@ -51,7 +46,7 @@ class StatusesMod(loader.Module):
         if not isinstance(message, types.Message):
             return
 
-        if not self.db.get("Statuses", "status", False):
+        if not self._db.get("Statuses", "status", False):
             return
 
         if getattr(message.to_id, "user_id", None) == self._me.user_id:
@@ -71,8 +66,8 @@ class StatusesMod(loader.Module):
 
         m = await utils.answer(
             message,
-            self.db.get("Statuses", "texts", {"": ""})[
-                self.db.get("Statuses", "status", "")
+            self._db.get("Statuses", "texts", {"": ""})[
+                self._db.get("Statuses", "status", "")
             ],
         )
 
@@ -81,8 +76,8 @@ class StatusesMod(loader.Module):
 
         self._sent_messages += [m]
 
-        if not self.db.get("Statuses", "notif", {"": False})[
-            self.db.get("Statuses", "status", "")
+        if not self._db.get("Statuses", "notif", {"": False})[
+            self._db.get("Statuses", "status", "")
         ]:
             await message.client.send_read_acknowledge(
                 message.chat_id, clear_mentions=True
@@ -93,19 +88,19 @@ class StatusesMod(loader.Module):
     async def statuscmd(self, message: Message) -> None:
         """<short_name> - Set status"""
         args = utils.get_args_raw(message)
-        if args not in self.db.get("Statuses", "texts", {}):
+        if args not in self._db.get("Statuses", "texts", {}):
             await utils.answer(message, self.strings("status_not_found", message))
             await asyncio.sleep(3)
             await message.delete()
             return
 
-        self.db.set("Statuses", "status", args)
+        self._db.set("Statuses", "status", args)
         self._ratelimit = []
         await utils.answer(
             message,
             self.strings("status_set", message).format(
-                utils.escape_html(self.db.get("Statuses", "texts", {})[args]),
-                str(self.db.get("Statuses", "notif")[args]),
+                utils.escape_html(self._db.get("Statuses", "texts", {})[args]),
+                str(self._db.get("Statuses", "notif")[args]),
             ),
         )
 
@@ -121,13 +116,13 @@ class StatusesMod(loader.Module):
             return
 
         args[1] = args[1] in ["1", "true", "yes", "+"]
-        texts = self.db.get("Statuses", "texts", {})
+        texts = self._db.get("Statuses", "texts", {})
         texts[args[0]] = args[2]
-        self.db.set("Statuses", "texts", texts)
+        self._db.set("Statuses", "texts", texts)
 
-        notif = self.db.get("Statuses", "notif", {})
+        notif = self._db.get("Statuses", "notif", {})
         notif[args[0]] = args[1]
-        self.db.set("Statuses", "notif", notif)
+        self._db.set("Statuses", "notif", notif)
         await utils.answer(
             message,
             self.strings("status_created", message).format(
@@ -138,19 +133,19 @@ class StatusesMod(loader.Module):
     async def delstatuscmd(self, message: Message) -> None:
         """<short_name> - Delete status"""
         args = utils.get_args_raw(message)
-        if args not in self.db.get("Statuses", "texts", {}):
+        if args not in self._db.get("Statuses", "texts", {}):
             await utils.answer(message, self.strings("status_not_found", message))
             await asyncio.sleep(3)
             await message.delete()
             return
 
-        texts = self.db.get("Statuses", "texts", {})
+        texts = self._db.get("Statuses", "texts", {})
         del texts[args]
-        self.db.set("Statuses", "texts", texts)
+        self._db.set("Statuses", "texts", texts)
 
-        notif = self.db.get("Statuses", "notif", {})
+        notif = self._db.get("Statuses", "notif", {})
         del notif[args]
-        self.db.set("Statuses", "notif", notif)
+        self._db.set("Statuses", "notif", notif)
         await utils.answer(
             message,
             self.strings("status_removed", message).format(utils.escape_html(args)),
@@ -158,13 +153,13 @@ class StatusesMod(loader.Module):
 
     async def unstatuscmd(self, message: Message) -> None:
         """Remove status"""
-        if not self.db.get("Statuses", "status", False):
+        if not self._db.get("Statuses", "status", False):
             await utils.answer(message, self.strings("no_status", message))
             await asyncio.sleep(3)
             await message.delete()
             return
 
-        self.db.set("Statuses", "status", False)
+        self._db.set("Statuses", "status", False)
         self._ratelimit = []
 
         for m in self._sent_messages:
@@ -180,7 +175,7 @@ class StatusesMod(loader.Module):
     async def statusescmd(self, message: Message) -> None:
         """Show available statuses"""
         res = self.strings("available_statuses", message)
-        for short_name, status in self.db.get("Statuses", "texts", {}).items():
-            res += f"<b><u>{short_name}</u></b> | Notify: <b>{self.db.get('Statuses', 'notif', {})[short_name]}</b>\n{status}\n➖➖➖➖➖➖➖➖➖\n"
+        for short_name, status in self._db.get("Statuses", "texts", {}).items():
+            res += f"<b><u>{short_name}</u></b> | Notify: <b>{self._db.get('Statuses', 'notif', {})[short_name]}</b>\n{status}\n➖➖➖➖➖➖➖➖➖\n"
 
         await utils.answer(message, res)

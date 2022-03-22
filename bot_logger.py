@@ -2,18 +2,15 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/50/000000/event-log.png
 # meta developer: @hikariatama
+# scope: hikka_only
 
 from .. import loader, utils, main
 import logging
@@ -24,18 +21,11 @@ import asyncio
 from telethon.tl.functions.channels import (
     InviteToChannelRequest,
     EditAdminRequest,
-    CreateChannelRequest,
     EditPhotoRequest,
 )
 
 import requests
-from telethon.tl.types import ChatAdminRights, Message
-
-# requires: pytelegrambotapi
-
-
-def chunks(lst: list, n: int) -> list:
-    return [lst[i : i + n] for i in range(0, len(lst), n)]
+from telethon.tl.types import ChatAdminRights
 
 
 @loader.tds
@@ -51,11 +41,6 @@ class BotLoggerMod(loader.Module):
     }
 
     async def install_logging(self, inline: bool) -> None:
-        if not inline:
-            import telebot
-
-            bot = telebot.TeleBot(self.token)
-
         _formatter = logging.Formatter
 
         class MemoryHandler(logging.Handler):
@@ -87,7 +72,7 @@ class BotLoggerMod(loader.Module):
                 ]
 
             async def emit_to_tg(self):
-                for chunk in chunks(
+                for chunk in utils.chunks(
                     self.tg_buff.replace("&", "&amp;")
                     .replace("<", "&lt;")
                     .replace(">", "&gt;"),
@@ -102,22 +87,13 @@ class BotLoggerMod(loader.Module):
 
                 if not chunk:
                     return
-
-                if not inline:
-                    await utils.run_sync(
-                        bot.send_message,
-                        self.mod._logchat,
-                        f"<code>{chunk}</code>",
-                        parse_mode="HTML",
-                        disable_notification=True,
-                    )
-                else:
-                    await self.mod.inline._bot.send_message(
-                        self.mod._logchat,
-                        f"<code>{chunk}</code>",
-                        parse_mode="HTML",
-                        disable_notification=True,
-                    )
+                
+                await self.mod.inline._bot.send_message(
+                    self.mod._logchat,
+                    f"<code>{chunk}</code>",
+                    parse_mode="HTML",
+                    disable_notification=True,
+                )
 
             def emit(self, record):
                 if record.exc_info is not None:
@@ -187,7 +163,7 @@ class BotLoggerMod(loader.Module):
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         logging.getLogger().handlers = []
-        handl = MemoryHandler(handler, 500, self._me, self)
+        handl = MemoryHandler(handler, 2000, self._me, self)
 
         logger = logging.getLogger()
 
@@ -202,11 +178,15 @@ class BotLoggerMod(loader.Module):
         logging.getLogger("telethon.client.telegrambaseclient").setLevel(
             logging.WARNING
         )
-        # logging.getLogger("").setLevel(logging.WARNING)
-        # logging.getLogger("").setLevel(logging.WARNING)
         logging.captureWarnings(True)
+        ver_ = "Hikka" if hasattr(main, "__version__") else "FTG"
 
-        chat, is_new = await self.find_db()
+        chat, is_new = await utils.asset_channel(
+            self._client,
+            f"{ver_.lower()}-logs",
+            f"👩‍🎤 Your {ver_} logs will appear in this chat"
+        )
+
         self._logchat = int(f"-100{chat.id}")
 
         self._task = asyncio.ensure_future(emit_to_tg(handl))
@@ -220,20 +200,16 @@ class BotLoggerMod(loader.Module):
         logger.info("New logging chat created, init setup...")
         await handl.emit_to_tg()
 
-        bot_username = (
-            self.inline._bot_username if self._inline else bot.get_me().username
-        )
-
         try:
-            await self.client(InviteToChannelRequest(chat, [bot_username]))
+            await self._client(InviteToChannelRequest(chat, [self.inline._bot_username]))
         except Exception:
             logger.warning("Unable to invite logger to chat. Maybe he's already there?")
 
         try:
-            await self.client(
+            await self._client(
                 EditAdminRequest(
                     channel=chat,
-                    user_id=bot_username,
+                    user_id=self.inline._bot_username,
                     admin_rights=ChatAdminRights(ban_users=True),
                     rank="Logger",
                 )
@@ -246,10 +222,10 @@ class BotLoggerMod(loader.Module):
                 await utils.run_sync(requests.get, "https://i.imgur.com/MWoMKp0.jpeg")
             ).content
 
-            await self.client(
+            await self._client(
                 EditPhotoRequest(
                     channel=chat,
-                    photo=await self.client.upload_file(f, file_name="photo.jpg"),
+                    photo=await self._client.upload_file(f, file_name="photo.jpg"),
                 )
             )
         except Exception:
@@ -257,38 +233,14 @@ class BotLoggerMod(loader.Module):
 
         logger.info("Bot logging installed")
 
-    async def find_db(self) -> tuple:
-        ver_ = "Hikka" if hasattr(main, "__version__") else "FTG"
-
-        async for d in self.client.iter_dialogs():
-            if d.title == f"{ver_.lower()}-logs":
-                return (d.entity, False)
-
-        return (
-            (
-                await self.client(
-                    CreateChannelRequest(
-                        f"{ver_.lower()}-logs",
-                        f"👩‍🎤 Your {ver_} logs will appear in this chat",
-                        megagroup=True,
-                    )
-                )
-            ).chats[0],
-            True,
-        )
-
     async def client_ready(self, client, db) -> None:
-        self.client = client
-        self.db = db
+        self._client = client
+        self._db = db
         self._me = (await client.get_me()).id
 
-        self.token = db.get(self.strings("name"), "token", False)
         self._inline = hasattr(self, "inline") and self.inline.init_complete
 
         if not self._inline:
-            setattr(self, "setlogtokencmd", self.setlogtokencmd_)
-
-        if not self.token and not self._inline:
             return
 
         await self.install_logging(self._inline)
@@ -299,30 +251,3 @@ class BotLoggerMod(loader.Module):
 
         if hasattr(self, "_task2") and self._task2:
             self._task2.cancel()
-
-    async def setlogtokencmd_(self, message: Message) -> None:
-        """<BOT token> - Install logging
-        1. Create bot in @BotFather
-        2. Write any message to your bot
-        3. Commit changes via .setlogtoken <token>"""
-        args = utils.get_args_raw(message)
-        if not args:
-            await utils.answer(message, self.strings("no_token"))
-            return
-
-        try:
-            import telebot
-
-            bot = telebot.TeleBot(args)
-            bot.send_message(self._me, self.strings("installing"), parse_mode="HTML")
-        except Exception:
-            await utils.answer(message, self.strings("error"))
-            return
-
-        self.token = args
-        self.db.set(self.strings("name"), "token", args)
-
-        await self.install_logging(self._inline)
-        bot.send_message(self._me, self.strings("installed"), parse_mode="HTML")
-
-        await utils.answer(message, self.strings("installed"))

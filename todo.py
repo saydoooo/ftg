@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/todo-list.png
@@ -33,8 +29,8 @@ class TodoMod(loader.Module):
     }
 
     async def client_ready(self, client, db):
-        self.db = db
-        self.todolist = self.db.get("ToDo", "todo", {})
+        self._db = db
+        self.todolist = self._db.get("ToDo", "todo", {})
 
         self.imp_levels = [
             "🌌 Watchlist",
@@ -70,7 +66,7 @@ class TodoMod(loader.Module):
 
         self.todolist[random_id] = [task, importance]
 
-        self.db.set("ToDo", "todo", self.todolist)
+        self._db.set("ToDo", "todo", self.todolist)
         await utils.answer(
             message,
             self.strings("new_task", message).format(
@@ -112,7 +108,7 @@ class TodoMod(loader.Module):
             return
 
         del self.todolist[args]
-        self.db.set("ToDo", "todo", self.todolist)
+        self._db.set("ToDo", "todo", self.todolist)
         await utils.answer(message, self.strings("task_removed", message))
         await asyncio.sleep(2)
         await message.delete()

@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/external-prettycons-flat-prettycons/47/000000/external-tic-tac-toe-games-prettycons-flat-prettycons.png
@@ -226,8 +222,8 @@ class TicTacToeMod(loader.Module):
     }
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
         self._games = {}
         self._me = await client.get_me()
 
@@ -397,7 +393,7 @@ class TicTacToeMod(loader.Module):
                 first: "x",
                 (call.from_user.id if call.from_user.id != first else self._me.id): "o",
             },
-            "name": get_display_name(await self.client.get_entity(call.from_user.id)),
+            "name": get_display_name(await self._client.get_entity(call.from_user.id)),
             "score": "...|...|...",
         }
 
@@ -406,7 +402,7 @@ class TicTacToeMod(loader.Module):
     async def inline__start_game_ai(self, call: CallbackQuery) -> None:
         uid = call.form["uid"]
 
-        user = await self.client.get_entity(call.from_user.id)
+        user = await self._client.get_entity(call.from_user.id)
 
         first = choice(["bear", user.id])
         self._games[uid] = {

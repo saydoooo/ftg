@@ -2,14 +2,10 @@
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
+    © Copyright 2022 t.me/hikariatama
+    Licensed under CC BY-NC-ND 4.0
 
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # meta pic: https://img.icons8.com/external-justicon-flat-justicon/64/000000/external-note-education-justicon-flat-justicon.png
@@ -38,14 +34,14 @@ class NotesMod(loader.Module):
     }
 
     def get(self, *args) -> dict:
-        return self.db.get(self.strings["name"], *args)
+        return self._db.get(self.strings["name"], *args)
 
     def set(self, *args) -> None:
-        return self.db.set(self.strings["name"], *args)
+        return self._db.set(self.strings["name"], *args)
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
         self._notes = self.get("notes", {})
 
     async def hsavecmd(self, message: Message) -> None:
@@ -68,7 +64,7 @@ class NotesMod(loader.Module):
             self._notes[folder] = {}
             logger.warning(f"Created new folder {folder}")
 
-        asset = await self.db.store_asset(reply)
+        asset = await self._db.store_asset(reply)
 
         if getattr(reply, "video", False):
             type_ = "🎞"
@@ -121,9 +117,9 @@ class NotesMod(loader.Module):
             await utils.answer(message, self.strings("no_note"))
             return
 
-        await self.client.send_message(
+        await self._client.send_message(
             message.peer_id,
-            await self.db.fetch_asset(asset["id"]),
+            await self._db.fetch_asset(asset["id"]),
             reply_to=getattr(message, "reply_to_msg_id", False),
         )
 
@@ -143,7 +139,7 @@ class NotesMod(loader.Module):
             return
 
         try:
-            await (await self.db.fetch_asset(asset["id"])).delete()
+            await (await self._db.fetch_asset(asset["id"])).delete()
         except Exception:
             pass
 
