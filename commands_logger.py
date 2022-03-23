@@ -57,5 +57,5 @@ class CommandsLoggerMod(loader.Module):
             )
 
         await self._client.send_message(
-            self.log_channel, f"<code>{self.prefix}{message.raw_text}</code>{by}"
+            self.log_channel, f"🤖 <code>{self.prefix}{message.raw_text}</code>{by}"
         )

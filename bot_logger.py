@@ -179,7 +179,7 @@ class BotLoggerMod(loader.Module):
             logging.WARNING
         )
         logging.captureWarnings(True)
-        ver_ = "Hikka" if hasattr(main, "__version__") else "FTG"
+        ver_ = "Hikka" if hasattr(self, "hikka") else "FTG"
 
         chat, is_new = await utils.asset_channel(
             self._client,
