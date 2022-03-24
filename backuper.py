@@ -69,7 +69,7 @@ class BackuperMod(loader.Module):
         data = json.dumps(
             {
                 "loaded": self._db.get(
-                    "friendly-telegram.modules.loader", "loaded_modules", []
+                    "hikka.modules.loader", "loaded_modules", []
                 ),
                 "unloaded": [],
             }
@@ -82,7 +82,7 @@ class BackuperMod(loader.Module):
             caption=self.strings("modules_backup", message).format(
                 len(
                     self._db.get(
-                        "friendly-telegram.modules.loader", "loaded_modules", []
+                        "hikka.modules.loader", "loaded_modules", []
                     )
                 )
             ),
@@ -103,10 +103,10 @@ class BackuperMod(loader.Module):
         file = await message.client.download_file(reply.media)
         decoded_text = json.loads(file.decode("utf-8"))
         self._db.set(
-            "friendly-telegram.modules.loader", "loaded_modules", decoded_text["loaded"]
+            "hikka.modules.loader", "loaded_modules", decoded_text["loaded"]
         )
         self._db.set(
-            "friendly-telegram.modules.loader",
+            "hikka.modules.loader",
             "unloaded_modules",
             decoded_text["unloaded"],
         )
@@ -116,14 +116,14 @@ class BackuperMod(loader.Module):
 
     async def backupnotescmd(self, message: Message) -> None:
         """Create the backup of notes"""
-        data = json.dumps(self._db.get("friendly-telegram.modules.notes", "notes", []))
+        data = json.dumps(self._db.get("hikka.modules.notes", "notes", []))
         txt = io.BytesIO(data.encode("utf-8"))
         txt.name = f"notes-{getattr(datetime, 'datetime', datetime).now().strftime('%d-%m-%Y-%H-%M')}.notes"
         await self._client.send_file(
             utils.get_chat_id(message),
             txt,
             caption=self.strings("notes_backup", message).format(
-                len(self._db.get("friendly-telegram.modules.notes", "notes", []))
+                len(self._db.get("hikka.modules.notes", "notes", []))
             ),
         )
         await message.delete()
@@ -141,6 +141,6 @@ class BackuperMod(loader.Module):
 
         file = await message.client.download_file(reply.media)
         decoded_text = json.loads(file.decode("utf-8"))
-        self._db.set("friendly-telegram.modules.notes", "notes", decoded_text)
+        self._db.set("hikka.modules.notes", "notes", decoded_text)
         self._db.save()
         await utils.answer(message, self.strings("notes_restored", message))
