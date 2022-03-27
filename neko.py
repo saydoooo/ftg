@@ -9,20 +9,36 @@
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/anime.png
+# scope: hikka_only
 # meta developer: @hikariatama
+# requires: urllib requests
 
 from .. import loader, utils
 import requests
 import json
 from urllib.parse import quote_plus
 import asyncio
+import random
 from telethon.tl.types import Message
+import functools
 
-# requires: urllib requests
+phrases = ["Uwu", "Senpai", "Uff", "Meow", "Bonk", "Ara-ara", "Hewwo", "You're cute!"]
+
+faces = [
+    "ʕ•ᴥ•ʔ",
+    "(ᵔᴥᵔ)",
+    "(◕‿◕✿)",
+    "(づ￣ ³￣)づ",
+    "♥‿♥",
+    "~(˘▾˘~)",
+    "(｡◕‿◕｡)",
+    "｡◕‿◕｡",
+    "ಠ‿↼",
+]
 
 
-def chunks(lst, n):
-    return [lst[i : i + n] for i in range(0, len(lst), n)]
+async def photo(self, args: str) -> str:
+    return (await utils.run_sync(requests.get, f"{self.endpoints['img']}{args}")).json()["url"]
 
 
 @loader.tds
@@ -57,22 +73,22 @@ class NekosLifeMod(loader.Module):
         """Send anime pic"""
         args = utils.get_args_raw(message)
         args = "neko" if args not in self.categories else args
-        pic = (
-            await utils.run_sync(requests.get, f"{self.endpoints['img']}{args}")
-        ).json()["url"]
-        await self._client.send_file(
-            message.peer_id, pic, reply_to=message.reply_to_msg_id
+        pic = functools.partial(photo, self=self, args=args)
+        await self.inline.gallery(
+            message=message,
+            next_handler=pic,
+            caption=lambda: f"<i>{random.choice(phrases)}</i> {random.choice(faces)}",
         )
-        await message.delete()
 
     @loader.pm
     async def nkctcmd(self, message: Message) -> None:
         """Show available categories"""
         cats = "\n".join(
-            [" | </code><code>".join(_) for _ in chunks(self.categories, 5)]
+            [" | </code><code>".join(_) for _ in utils.chunks(self.categories, 5)]
         )
         await utils.answer(
-            message, f"<b>Available categories:</b>\n<code>{cats}</code>"
+            message,
+            f"<b>Available categories:</b>\n<code>{cats}</code>",
         )
 
     @loader.unrestricted
@@ -96,7 +112,7 @@ class NekosLifeMod(loader.Module):
 
         args = quote_plus(args)
         owo = ""
-        for chunk in chunks(args, 180):
+        for chunk in utils.chunks(args, 180):
             owo += (
                 await utils.run_sync(requests.get, f"{self.endpoints['owoify']}{chunk}")
             ).json()["owo"]

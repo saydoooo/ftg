@@ -352,6 +352,7 @@ def reverse_dict(d: dict) -> dict:
     return {val: key for key, val in d.items()}
 
 
+@loader.tds
 class HikariChatMod(loader.Module):
     """
     Advanced chat admin toolkit
@@ -371,8 +372,8 @@ class HikariChatMod(loader.Module):
         "antizalgo_off": "🌀 <b>AntiZALGO is now off in this chat</b>",
         "antistick_on": "🎨 <b>AntiStick is now on in this chat\nAction: {}</b>",
         "antistick_off": "🎨 <b>AntiStick is now off in this chat</b>",
-        "antihelp_on": "🐺 <b>Anti Help On</b>",
-        "antihelp_off": "🐺 <b>Anti Help Off</b>",
+        "antihelp_on": "🐺 <b>AntiHelp is now on in this chat</b>",
+        "antihelp_off": "🐺 <b>AntiHelp is now off in this chat</b>",
         "antiraid_on": "🐶 <b>AntiRaid is now on in this chat\nAction: {}</b>",
         "antiraid_off": "🐶 <b>AntiRaid is now off in this chat</b>",
         "antiraid": '🐶 <b>AntiRaid is On. I {} <a href="{}">{}</a> in chat {}</b>',
@@ -411,7 +412,7 @@ class HikariChatMod(loader.Module):
         "clrwarns_fed": '👮‍♂️ <b>Forgave all federative warns from <a href="tg://user?id={}">{}</a></b>',
         "warns_limit": '👮‍♂️ <b><a href="{}">{}</a> reached warns limit.\nAction: I {}</b>',
         "welcome": "👋 <b>Now I will greet people in this chat</b>\n{}",
-        "unwelcome": "👋 <b>Not I will not greet people in this chat</b>",
+        "unwelcome": "👋 <b>Now I will not greet people in this chat</b>",
         "chat404": "🔓 <b>I am not protecting this chat yet.</b>\n",
         "protections": (
             "<b>🐻 <code>.AntiArab</code> - Bans spammy arabs\n"
@@ -546,6 +547,9 @@ class HikariChatMod(loader.Module):
         "confirm_rmfed_btn": "🗑 Delete",
         "decline_rmfed_btn": "🚫 Cancel",
         "pil_unavailable": "🚫 <b>Pillow package unavailable</b>",
+        "action": "<action>",
+        "configure": "Configure",
+        "toggle": "Toggle"
     }
 
     def get(self, *args) -> dict:
@@ -830,15 +834,15 @@ class HikariChatMod(loader.Module):
         func.__self__ = self
 
         args = (
-            "<action>"
+            self.strings("action")
             if protection in self.variables["argumented_protects"]
             else "<on/off>"
         )
 
         action = (
-            "Configure"
+            self.strings("configure")
             if protection in self.variables["argumented_protects"]
-            else "Toggle"
+            else self.strings("toggle")
         )
 
         func.__doc__ = f"{args} - {action} {comments[protection]}"
@@ -3329,7 +3333,6 @@ class HikariChatMod(loader.Module):
             if self._is_inline:
                 await self.inline.form(
                     message=chat.id,
-                    reply_to=reply,
                     text=msg,
                     reply_markup=[
                         [

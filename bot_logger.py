@@ -12,7 +12,7 @@
 # meta developer: @hikariatama
 # scope: hikka_only
 
-from .. import loader, utils, main
+from .. import loader, utils
 import logging
 import time
 import traceback
@@ -32,13 +32,7 @@ from telethon.tl.types import ChatAdminRights
 class BotLoggerMod(loader.Module):
     """Transfer your userbot logs to classic bot"""
 
-    strings = {
-        "name": "BotLogger",
-        "no_token": "🚫 <b>You need to specify token</b>",
-        "installing": "⛎ <b>Configuring logger...</b>",
-        "installed": "🥳 <b>Logging installed!</b>",
-        "error": "🚫 <b>Error occurred while installing logger!</b>",
-    }
+    strings = {"name": "BotLogger"}
 
     async def install_logging(self, inline: bool) -> None:
         _formatter = logging.Formatter

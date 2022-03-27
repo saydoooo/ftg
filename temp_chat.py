@@ -121,8 +121,7 @@ class TempChatMod(loader.Module):
 
     async def tmpchatcmd(self, message: Message) -> None:
         """<time> <title> - Create new temp chat
-        You can specified time only in this format: 30s, 30min, 1h, 1d, 1w, 1m
-        30 secods, 30 minutes, 1 hour, 1 day, 1 week, 1 month"""
+        Time format: 30s, 30min, 1h, 1d, 1w, 1m"""
         args = utils.get_args_raw(message)
         if args == "":
             await utils.answer(message, self.strings("args", message))
@@ -168,8 +167,7 @@ class TempChatMod(loader.Module):
 
     async def tmpcurrentcmd(self, message: Message) -> None:
         """<time> - Create current chat temporary
-        You can specified time only in this format: 30s, 30min, 1h, 1d, 1w, 1m
-        30 secods, 30 minutes, 1 hour, 1 day, 1 week, 1 month"""
+        Time format: 30s, 30min, 1h, 1d, 1w, 1m"""
         args = utils.get_args_raw(message)
         if not args:
             await utils.answer(message, self.strings("args", message))
@@ -208,7 +206,7 @@ class TempChatMod(loader.Module):
         await utils.answer(message, res)
 
     async def tmpcancelcmd(self, message: Message) -> None:
-        """<chat-id | optional> - Disable deleting chat by id, or current chat if unspecified."""
+        """[chat-id] - Disable deleting chat by id, or current chat if unspecified."""
         args = utils.get_args_raw(message)
         if args not in self.chats:
             args = str(utils.get_chat_id(message))
@@ -226,7 +224,7 @@ class TempChatMod(loader.Module):
         self._db.set("TempChat", "chats", json.dumps(self.chats))
 
     async def tmpctimecmd(self, message: Message) -> None:
-        """<chat_id> <new_time>"""
+        """<chat_id> <new_time> - Change chat deletion time"""
         args = utils.get_args_raw(message)
         if args == "":
             await utils.answer(message, self.strings("args", message))

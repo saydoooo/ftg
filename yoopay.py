@@ -15,7 +15,7 @@ from .. import loader, utils
 from yoomoney import Quickpay
 from telethon.tl.types import Message
 
-
+@loader.tds
 class YooMoneyMod(loader.Module):
     """Send Yoomoney pay link"""
 

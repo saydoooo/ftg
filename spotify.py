@@ -212,7 +212,7 @@ class SpotifyMod(loader.Module):
         @functools.wraps(func)
         async def wrapped(*args, **kwargs):
             if (
-                not args[0].db.get(args[0].strings["name"], "acs_tkn", False)
+                not args[0]._db.get(args[0].strings["name"], "acs_tkn", False)
                 or not args[0].sp
             ):
                 await utils.answer(args[1], args[0].strings("need_auth"))

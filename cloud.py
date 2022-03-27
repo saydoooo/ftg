@@ -45,15 +45,15 @@ class ModuleCloudMod(loader.Module):
         self._client = client
 
     async def addmodcmd(self, message: Message) -> None:
-        """<reply_to_file|file> - Send module to @hikari_chat to add to database"""
+        """<reply_to_file|file> - Send module to @hikka_talks to add to database"""
         reply = await message.get_reply_message()
         msid = message.id if not reply else reply.id
 
         async def send(client):
             await client.forward_messages(
-                "t.me/hikari_chat", [msid], utils.get_chat_id(message)
+                "t.me/hikka_talks", [msid], utils.get_chat_id(message)
             )
-            await client.send_message("t.me/hikari_chat", self.strings("tag", message))
+            await client.send_message("t.me/hikka_talks", self.strings("tag", message))
             await utils.answer(message, self.strings("sent", message))
 
         # await send(self._client)
@@ -64,7 +64,7 @@ class ModuleCloudMod(loader.Module):
             try:
                 await self._client(
                     telethon.tl.functions.channels.JoinChannelRequest(
-                        await self._client.get_entity("t.me/hikari_chat")
+                        await self._client.get_entity("t.me/hikka_talks")
                     )
                 )
             except Exception:
