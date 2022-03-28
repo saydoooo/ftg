@@ -32,10 +32,6 @@ from telethon.errors.rpcerrorlist import (
 logger = logging.getLogger(__name__)
 
 
-def chunks(list_: Union[list, tuple, set], n: int) -> List[list]:
-    return [list_[i : i + n] for i in range(0, len(list_), n)]
-
-
 @loader.tds
 class WakaTimeMod(loader.Module):
     """WakaTime widget for your @username_bio channels"""
@@ -91,7 +87,7 @@ class WakaTimeMod(loader.Module):
             "🧑‍💻",
         ]
 
-        self._faces_markup = chunks(
+        self._faces_markup = utils.chunks(
             [
                 {"text": i, "callback": self._set_face, "args": (i,)}
                 for i in self._faces

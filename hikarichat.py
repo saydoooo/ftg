@@ -668,7 +668,9 @@ class HikariChatMod(loader.Module):
             f.write(json.dumps(self.flood_cache))
 
     async def check_admin(
-        self, chat_id: Union[Chat, Channel, int], user_id: Union[User, int]
+        self,
+        chat_id: Union[Chat, Channel, int],
+        user_id: Union[User, int],
     ) -> bool:
         """
         Checks if user is admin in target chat

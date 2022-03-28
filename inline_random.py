@@ -13,12 +13,12 @@
 # scope: inline
 # scope: hikka_only
 
-from .. import loader
+from .. import loader, utils
 from aiogram.types import CallbackQuery
 import logging
-from ..inline import InlineQuery, rand
+from ..inline.types import InlineQuery
 from random import randint, choice
-import aiogram
+from aiogram.types import InlineQueryResultArticle, InputTextMessageContent
 
 logger = logging.getLogger(__name__)
 
@@ -41,11 +41,11 @@ class InlineRandomMod(loader.Module):
         r = "🦅 Heads" if randint(0, 1) else "🪙 Tails"
         await query.answer(
             [
-                aiogram.types.inline_query_result.InlineQueryResultArticle(
-                    id=rand(20),
+                InlineQueryResultArticle(
+                    id=utils.rand(20),
                     title="Toss a coin",
                     description="Trust in the God of luck, and he will be by your side!",
-                    input_message_content=aiogram.types.input_message_content.InputTextMessageContent(
+                    input_message_content=InputTextMessageContent(
                         f"<i>The God of luck tells us...</i> <b>{r}</b>",
                         "HTML",
                         disable_web_page_preview=True,
@@ -74,11 +74,11 @@ class InlineRandomMod(loader.Module):
 
         await query.answer(
             [
-                aiogram.types.inline_query_result.InlineQueryResultArticle(
-                    id=rand(20),
+                InlineQueryResultArticle(
+                    id=utils.rand(20),
                     title=f"Toss random number less or equal to {a}",
                     description="Trust in the God of luck, and he will be by your side!",
-                    input_message_content=aiogram.types.input_message_content.InputTextMessageContent(
+                    input_message_content=InputTextMessageContent(
                         f"<i>The God of luck screams...</i> <b>{randint(1, int(a))}</b>",
                         "HTML",
                         disable_web_page_preview=True,
@@ -104,11 +104,11 @@ class InlineRandomMod(loader.Module):
 
         await query.answer(
             [
-                aiogram.types.inline_query_result.InlineQueryResultArticle(
-                    id=rand(20),
+                InlineQueryResultArticle(
+                    id=utils.rand(20),
                     title="Choose one item from list",
                     description="Trust in the God of luck, and he will be by your side!",
-                    input_message_content=aiogram.types.input_message_content.InputTextMessageContent(
+                    input_message_content=InputTextMessageContent(
                         f"<i>The God of luck whispers...</i> <b>{choice(a.split(',')).strip()}</b>",
                         "HTML",
                         disable_web_page_preview=True,

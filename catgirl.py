@@ -8,37 +8,35 @@
     🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-# meta pic: https://img.icons8.com/external-justicon-flat-justicon/344/external-cat-animal-justicon-flat-justicon.png
+# meta pic: https://img.icons8.com/color/48/000000/neko-boy.png
 # meta developer: @hikariatama
 # requires: requests
+# scope: hikka_only
+# scope: hikka_min 1.0.7
 
 from .. import loader, utils
 from telethon.tl.types import Message
 import requests
-from random import choice
-
-phrases = ["Uwu", "Senpai", "Uff", "Meow", "Bonk", "Ara-ara", "Hewwo", "You're cute!"]
-
-faces = [
-    "ʕ•ᴥ•ʔ",
-    "(ᵔᴥᵔ)",
-    "(◕‿◕✿)",
-    "(づ￣ ³￣)づ",
-    "♥‿♥",
-    "~(˘▾˘~)",
-    "(｡◕‿◕｡)",
-    "｡◕‿◕｡",
-    "ಠ‿↼",
-]
+import functools
+import asyncio
 
 
-async def photo() -> str:
-    tag = "nsfw"
-    while tag == "nsfw":
-        img = (
-            await utils.run_sync(requests.get, "https://nekos.moe/api/v1/random/image")
-        ).json()["images"][0]
-        tag = "nsfw" if img["nsfw"] else "sfw"
+async def photo(nsfw: bool) -> str:
+    tag = "not_found"
+    while tag == "not_found":
+        try:
+            img = (
+                await utils.run_sync(requests.get, "https://nekos.moe/api/v1/random/image")
+            ).json()["images"][0]
+        except KeyError:
+            await asyncio.sleep(1)
+            continue
+
+        tag = (
+            "not_found"
+            if img["nsfw"] and not nsfw or not img["nsfw"] and nsfw
+            else "found"
+        )
 
     return f'https://nekos.moe/image/{img["id"]}.jpg'
 
@@ -53,19 +51,13 @@ class CatgirlMod(loader.Module):
         self._client = client
 
     async def catgirlcmd(self, message: Message) -> None:
-        """Send catgirl picture"""
-        if not hasattr(self, "inline") or not self.inline.init_complete:
-            await self._client.send_file(
-                message.peer_id,
-                await photo(),
-                caption=f"<i>{choice(phrases)}</i> {choice(faces)}",
-                reply_to=message.reply_to_msg_id,
-            )
-            await message.delete()
-            return
-
+        """[nsfw] - Send catgirl picture"""
         await self.inline.gallery(
-            caption=lambda: f"<i>{choice(phrases)}</i> {choice(faces)}",
+            caption=lambda: f"<i>{utils.escape_html(utils.ascii_face())}</i>",
             message=message,
-            next_handler=photo,
+            next_handler=functools.partial(
+                photo,
+                nsfw="nsfw" in utils.get_args_raw(message).lower(),
+            ),
+            preload=5,
         )

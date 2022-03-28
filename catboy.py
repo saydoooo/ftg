@@ -11,30 +11,22 @@
 # meta pic: https://img.icons8.com/color/48/000000/neko-boy.png
 # meta developer: @hikariatama
 # requires: requests
+# scope: hikka_only
+# scope: hikka_min 1.0.7
 
 from .. import loader, utils
 from telethon.tl.types import Message
 import requests
-from random import choice
-
-phrases = ["Uwu", "Senpai", "Uff", "Meow", "Bonk", "Ara-ara", "Hewwo", "You're cute!"]
-
-faces = [
-    "ʕ•ᴥ•ʔ",
-    "(ᵔᴥᵔ)",
-    "(◕‿◕✿)",
-    "(づ￣ ³￣)づ",
-    "♥‿♥",
-    "~(˘▾˘~)",
-    "(｡◕‿◕｡)",
-    "｡◕‿◕｡",
-    "ಠ‿↼",
-]
 
 
 async def photo() -> str:
-    return (await utils.run_sync(requests.get, "https://api.catboys.com/img")).json()[
-        "url"
+    return [
+        (
+            await utils.run_sync(
+                requests.get,
+                "https://api.catboys.com/img"
+            )
+        ).json()["url"]
     ]
 
 
@@ -49,18 +41,9 @@ class CatboyMod(loader.Module):
 
     async def catboycmd(self, message: Message) -> None:
         """Send catboy picture"""
-        if not hasattr(self, "inline") or not self.inline.init_complete:
-            await self._client.send_file(
-                message.peer_id,
-                await photo(),
-                caption=f"<i>{choice(phrases)}</i> {choice(faces)}",
-                reply_to=message.reply_to_msg_id,
-            )
-            await message.delete()
-            return
-
         await self.inline.gallery(
-            caption=lambda: f"<i>{choice(phrases)}</i> {choice(faces)}",
+            caption=lambda: f"<i>{utils.escape_html(utils.ascii_face())}</i>",
             message=message,
             next_handler=photo,
+            preload=5,
         )

@@ -22,7 +22,7 @@ from aiogram.types import (
     InputTextMessageContent,
 )
 import logging
-from ..inline import InlineQuery, rand
+from ..inline.types import InlineQuery
 from telethon.utils import get_display_name
 import time
 
@@ -71,7 +71,7 @@ class SpoilersMod(loader.Module):
         markup = None
 
         if for_user_id:
-            message_id = rand(16)
+            message_id = utils.rand(16)
             markup = InlineKeyboardMarkup()
             markup.add(InlineKeyboardButton("👀 Open", callback_data=message_id))
 
@@ -86,7 +86,7 @@ class SpoilersMod(loader.Module):
         await query.answer(
             [
                 InlineQueryResultArticle(
-                    id=rand(20),
+                    id=utils.rand(20),
                     title=for_user,
                     description="ℹ Only (s)he will be able to open it",
                     input_message_content=InputTextMessageContent(

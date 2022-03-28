@@ -22,7 +22,7 @@ from aiogram.types import (
     InputTextMessageContent,
 )
 import logging
-from ..inline import InlineQuery, rand
+from ..inline.types import InlineQuery
 from telethon.tl.types import Message
 import time
 
@@ -57,7 +57,7 @@ class LongReadMod(loader.Module):
         await call.delete()
 
     def _create_longread(self, text: str) -> InlineKeyboardMarkup:
-        message_id = rand(16)
+        message_id = utils.rand(16)
 
         self._longreads[message_id] = {
             "text": text,
@@ -85,7 +85,7 @@ class LongReadMod(loader.Module):
         await query.answer(
             [
                 InlineQueryResultArticle(
-                    id=rand(20),
+                    id=utils.rand(20),
                     title="Create new longread",
                     description="ℹ This will create button-spoiler",
                     input_message_content=InputTextMessageContent(
