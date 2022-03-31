@@ -35,12 +35,6 @@ class SpoilersMod(loader.Module):
 
     strings = {"name": "Spoilers"}
 
-    def get(self, *args) -> dict:
-        return self._db.get(self.strings["name"], *args)
-
-    def set(self, *args) -> None:
-        return self._db.set(self.strings["name"], *args)
-
     async def client_ready(self, client, db) -> None:
         self._db = db
         self._client = client
@@ -106,7 +100,8 @@ class SpoilersMod(loader.Module):
         )
 
     async def button_callback_handler(self, call: CallbackQuery) -> None:
-        """Process button presses
+        """
+        Process button presses
         @allow: all
         """
         if (

@@ -84,12 +84,6 @@ class StickManagerMod(loader.Module):
         "cleaned": "⏳ <b>最近使用したステッカーのリストがクリアされました.</b>",
     }
 
-    def get(self, *args) -> dict:
-        return self._db.get(self.strings["name"], *args)
-
-    def set(self, *args) -> None:
-        return self._db.set(self.strings["name"], *args)
-
     def find(self, args: str) -> str or False:
         if args in self.stickersets:
             p = self.stickersets[args].copy()

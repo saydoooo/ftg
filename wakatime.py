@@ -57,12 +57,6 @@ class WakaTimeMod(loader.Module):
             lambda: "Messages update interval. Not recommended < 300 seconds",
         )
 
-    def get(self, *args) -> dict:
-        return self._db.get(self.strings["name"], *args)
-
-    def set(self, *args) -> None:
-        return self._db.set(self.strings["name"], *args)
-
     async def client_ready(self, client, db) -> None:
         self._db = db
         self._client = client

@@ -39,12 +39,6 @@ class LongReadMod(loader.Module):
         "longread": "🗄 <b>This is long read</b>\n<i>Click button to show text!\nThis button is active withing 6 hours</i>",  # noqa
     }
 
-    def get(self, *args) -> dict:
-        return self._db.get(self.strings["name"], *args)
-
-    def set(self, *args) -> None:
-        return self._db.set(self.strings["name"], *args)
-
     async def client_ready(self, client, db) -> None:
         self._db = db
         self._longreads = {

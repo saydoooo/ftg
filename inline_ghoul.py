@@ -73,5 +73,4 @@ class InlineGhoulMod(loader.Module):
                     },
                 ]
             ],
-            force_me=False,
         )

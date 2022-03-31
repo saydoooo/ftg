@@ -155,12 +155,6 @@ class WolframAlphaMod(loader.Module):
         "hard": "🤯 <b>I don't know how to solve this problem</b>",
     }
 
-    def get(self, *args) -> dict:
-        return self._db.get(self.strings["name"], *args)
-
-    def set(self, *args) -> None:
-        return self._db.set(self.strings["name"], *args)
-
     async def client_ready(self, client, db) -> None:
         self._db = db
         self._client = client

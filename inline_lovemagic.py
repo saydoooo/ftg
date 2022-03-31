@@ -254,9 +254,7 @@ class ILYMod(loader.Module):
                     }
                 ]
             ],
-            force_me=False,
             message=message,
-            ttl=60 * 60,
         )
 
     async def ilymatecmd(self, message: Message) -> None:
@@ -273,7 +271,5 @@ class ILYMod(loader.Module):
                     }
                 ]
             ],
-            force_me=False,
             message=message,
-            ttl=60 * 60,
         )

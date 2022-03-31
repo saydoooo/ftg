@@ -31,12 +31,6 @@ class SecretChatMod(loader.Module):
 
     strings = {"name": "SecretChat", "state": "👀 <b>SecretChat is now {}</b>"}
 
-    def get(self, *args) -> dict:
-        return self._db.get(self.strings["name"], *args)
-
-    def set(self, *args) -> None:
-        return self._db.set(self.strings["name"], *args)
-
     def _get_chat_id(self, chat) -> int:
         cid = [chat.admin_id] + [chat.participant_id]
         cid.remove(self._me)

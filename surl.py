@@ -29,12 +29,6 @@ class AutoShortenerMod(loader.Module):
         "no_args": "🔗 <b>No link to shorten</b>",
     }
 
-    def get(self, *args) -> dict:
-        return self._db.get(self.strings["name"], *args)
-
-    def set(self, *args) -> None:
-        return self._db.set(self.strings["name"], *args)
-
     def __init__(self):
         self.config = loader.ModuleConfig(
             "threshold",

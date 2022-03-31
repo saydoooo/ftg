@@ -57,7 +57,7 @@ class InlineSpotifyMod(loader.Module):
             if once:
                 break
 
-            await asyncio.sleep(10)
+            await asyncio.sleep(5)
 
     async def client_ready(self, client, db) -> None:
         self.sp = None
@@ -66,11 +66,6 @@ class InlineSpotifyMod(loader.Module):
         await self._reload_sp(True)
 
         self._active_forms = []
-
-        if not self.sp:
-            raise Exception(
-                "Install fucking SpotifyNow, this module is just an extension!"
-            )
 
     async def on_unload(self) -> None:
         for task in self._tasks:

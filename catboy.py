@@ -17,17 +17,16 @@
 from .. import loader, utils
 from telethon.tl.types import Message
 import requests
+from ..inline.types import InlineQuery
 
 
 async def photo() -> str:
-    return [
-        (
-            await utils.run_sync(
-                requests.get,
-                "https://api.catboys.com/img"
-            )
-        ).json()["url"]
-    ]
+    return (
+        await utils.run_sync(
+            requests.get,
+            "https://api.catboys.com/img",
+        )
+    ).json()["url"]
 
 
 @loader.tds
@@ -46,4 +45,24 @@ class CatboyMod(loader.Module):
             message=message,
             next_handler=photo,
             preload=5,
+        )
+
+    async def catboy_inline_handler(self, query: InlineQuery) -> None:
+        """
+        Send Catboys
+        """
+        await self.inline.query_gallery(
+            query,
+            [
+                {
+                    "title": "👩‍🎤 Catboy",
+                    "description": "Send catboy photo",
+                    "next_handler": photo,
+                    "thumb_handler": photo,  # Optional
+                    "caption": lambda: f"<i>Enjoy! {utils.escape_html(utils.ascii_face())}</i>",  # Optional
+                    # Because of ^ this lambda, face will be generated every time the photo is switched
+                    # "caption": f"<i>Enjoy! {utils.escape_html(utils.ascii_face())}</i>",
+                    # If you make it without lambda ^, it will be generated once
+                }
+            ],
         )
