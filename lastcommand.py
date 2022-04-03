@@ -1,12 +1,12 @@
-"""
-    █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
-    █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
-
-    © Copyright 2022 t.me/hikariatama
-    Licensed under CC BY-NC-ND 4.0
-
-    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
-"""
+# █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
+# █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
+#
+#              © Copyright 2022
+#
+#          https://t.me/hikariatama
+#
+# 🔒 Licensed under the GNU GPLv3
+# 🌐 https://www.gnu.org/licenses/agpl-3.0.html
 
 # meta pic: https://img.icons8.com/fluency/48/000000/last-12-hours.png
 # meta developer: @hikariatama

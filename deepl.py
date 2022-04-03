@@ -1,10 +1,12 @@
-"""
-    █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
-    █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
-
-    Copyright 2022 t.me/hikariatama
-    Licensed under the Apache License, Version 2.0
-"""
+# █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
+# █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
+#
+#              © Copyright 2022
+#
+#          https://t.me/hikariatama
+#
+# 🔒 Licensed under the GNU GPLv3
+# 🌐 https://www.gnu.org/licenses/agpl-3.0.html
 
 # meta pic: https://img.icons8.com/external-kosonicon-flat-kosonicon/50/000000/external-translate-chat-messages-kosonicon-flat-kosonicon.png
 # meta developer: @hikariatama

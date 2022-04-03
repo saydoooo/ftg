@@ -1,13 +1,13 @@
 __version__ = (9, 0, 1)
-"""
-    █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
-    █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
-
-    © Copyright 2022 t.me/hikariatama
-    Licensed under CC BY-NC-ND 4.0
-
-    🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
-"""
+# █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
+# █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
+#
+#              © Copyright 2022
+#
+#          https://t.me/hikariatama
+#
+# 🔒 Licensed under the GNU GPLv3
+# 🌐 https://www.gnu.org/licenses/agpl-3.0.html
 
 # meta pic: https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/240/google/313/foggy_1f301.png
 # meta desc: Chat administrator toolkit with everything you need and much more
