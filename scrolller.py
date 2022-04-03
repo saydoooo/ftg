@@ -46,6 +46,10 @@ async def photos(subreddit: str, quantity: int) -> List[str]:
     return [post["mediaSources"][0]["url"] for post in posts]
 
 
+def caption(subreddit: dict) -> str:
+    return f"{'🔞' if subreddit['isNsfw'] else '👨‍👩‍👧'} <b>{utils.escape_html(subreddit['secondaryTitle'])} ({utils.escape_html(subreddit['url'])})</b>\n\n<i>{utils.escape_html(subreddit['description'])}</i>\n\n<i>Enjoy! {utils.escape_html(utils.ascii_face())}</i>"
+
+
 async def search_subreddit(query: str) -> List[dict]:
     """Searches for subreddits using `query`"""
     ans = (
@@ -61,7 +65,7 @@ async def search_subreddit(query: str) -> List[dict]:
     ).json()
     res = ans["data"]["searchSubreddits"]
     random.shuffle(res)
-    return res[:10]
+    return res[:30]
 
 
 async def fetch_multiple_subreddits(subreddits: List[str]) -> Union[List[str], bool]:
@@ -181,7 +185,10 @@ class ScrolllerMod(loader.Module):
                         quantity=15,
                     ),
                     "thumb_handler": [thumbs[i]],
-                    "caption": lambda: f"{'🔞' if subreddit['isNsfw'] else '👨‍👩‍👧'} <b>{utils.escape_html(subreddit['secondaryTitle'])} ({utils.escape_html(subreddit['url'])})</b>\n\n<i>{utils.escape_html(subreddit['description'])}</i>\n\n<i>Enjoy! {utils.escape_html(utils.ascii_face())}</i>"
+                    "caption": functools.partial(
+                        caption,
+                        subreddit=subreddit,
+                    )
                 }
                 for i, subreddit in enumerate(subreddits)
             ],

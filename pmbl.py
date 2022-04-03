@@ -22,6 +22,7 @@ from telethon.utils import get_peer_id, get_display_name
 import requests
 import io
 from typing import Union
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -215,15 +216,6 @@ class PMBLMod(loader.Module):
 
         contact, started_by_you, active_peer = None, None, None
 
-        first_message = (
-            await self._client.get_messages(message.peer_id, limit=1, reverse=True)
-        )[0]
-
-        if getattr(message, 'raw_text', False) and first_message.sender_id == self._me:
-            return self._approve(cid, "started_by_you")
-        else:
-            started_by_you = False
-
         try:
             if self.config["ignore_contacts"]:
                 if (await self._client.get_entity(message.peer_id)).contact:
@@ -235,6 +227,19 @@ class PMBLMod(loader.Module):
             # user is not a contact. So just ignore
             # this exception
             pass
+
+        first_message = (
+            await self._client.get_messages(
+                message.peer_id,
+                limit=1,
+                reverse=True,
+            )
+        )[0]
+
+        if getattr(message, 'raw_text', False) and first_message.sender_id == self._me:
+            return self._approve(cid, "started_by_you")
+        else:
+            started_by_you = False
 
         if self.config["ignore_active"]:
             q = 0
@@ -249,7 +254,10 @@ class PMBLMod(loader.Module):
             active_peer = False
 
         self._ratelimit = list(
-            filter(lambda x: x + self._ratelimit_timeout < time.time(), self._ratelimit)
+            filter(
+                lambda x: x + self._ratelimit_timeout < time.time(),
+                self._ratelimit,
+            )
         )
 
         if len(self._ratelimit) < self._ratelimit_threshold:
@@ -268,25 +276,26 @@ class PMBLMod(loader.Module):
 
             try:
                 peer = await self._client.get_entity(message.peer_id)
-                if hasattr(self, "inline") and self.inline.init_complete:
-                    await self.inline._bot.send_message(
-                        (await self._client.get_me()).id,
-                        self.strings("banned_log").format(
-                            peer.id,
-                            utils.escape_html(peer.first_name),
-                            format_(contact),
-                            format_(started_by_you),
-                            format_(active_peer),
-                            format_(self.get("spam", False)),
-                            format_(self.get("delete", False)),
-                            format_(True),
-                            utils.escape_html(message.raw_text[:3000]),
-                        ),
-                        parse_mode="HTML",
-                        disable_web_page_preview=True,
-                    )
             except ValueError:
-                pass
+                await asyncio.sleep(1)
+                peer = await self._client.get_entity(message.peer_id)
+
+            await self.inline.bot.send_message(
+                (await self._client.get_me()).id,
+                self.strings("banned_log").format(
+                    peer.id,
+                    utils.escape_html(peer.first_name),
+                    format_(contact),
+                    format_(started_by_you),
+                    format_(active_peer),
+                    format_(self.get("spam", False)),
+                    format_(self.get("delete", False)),
+                    format_(True),
+                    utils.escape_html(message.raw_text[:3000]),
+                ),
+                parse_mode="HTML",
+                disable_web_page_preview=True,
+            )
 
         await self._client(BlockRequest(id=cid))
 

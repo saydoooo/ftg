@@ -10,12 +10,15 @@
 
 # meta pic: https://img.icons8.com/fluency/48/000000/witch.png
 # meta developer: @hikariatama
+# scope: hikka_only
+# scope: hikka_min 1.0.18
 
 from .. import loader, utils
-from telethon.tl.functions.channels import CreateChannelRequest
 import logging
 import asyncio
 from telethon.tl.types import Message
+
+from ..types import LoadError
 
 logger = logging.getLogger(__name__)
 
@@ -31,21 +34,6 @@ class SilentTagsMod(loader.Module):
         "stags_status": "<b>👾 Silent Tags are {}</b>",
     }
 
-    async def find_db(self):
-        async for d in self._client.iter_dialogs():
-            if d.title == "silent-tags-log":
-                return d.entity
-
-        return (
-            await self._client(
-                CreateChannelRequest(
-                    "silent-tags-log",
-                    f"Messages with @{self.un} will appear here",
-                    megagroup=True,
-                )
-            )
-        ).chats[0]
-
     async def client_ready(self, client, db):
         self._client = client
         self._db = db
@@ -53,10 +41,14 @@ class SilentTagsMod(loader.Module):
         self.un = (await client.get_me()).username
         self._ratelimit = []
         if self.un is None:
-            raise Exception(
-                "You cannot load this module because you do not have username"
-            )
-        self.c = await self.find_db()
+            raise LoadError("You cannot load this module because you do not have username")  # fmt: skip
+
+        self.c, _ = await utils.asset_channel(
+            self._client,
+            "silent-tags",
+            "🔇 Chat for silent tags",
+            silent=True,
+        )
 
     async def stagscmd(self, message: Message) -> None:
         """<on\\off> - Toggle notifications about tags"""
@@ -86,7 +78,8 @@ class SilentTagsMod(loader.Module):
         try:
             if message.mentioned and self.stags:
                 await self._client.send_read_acknowledge(
-                    message.chat_id, clear_mentions=True
+                    message.chat_id,
+                    clear_mentions=True,
                 )
                 cid = utils.get_chat_id(message)
 
@@ -112,7 +105,13 @@ class SilentTagsMod(loader.Module):
                 await self._client.send_message(
                     self.c,
                     self.strings("tagged").format(
-                        grouplink, ctitle, uid, uname, message.text, cid, message.id
+                        grouplink,
+                        ctitle,
+                        uid,
+                        uname,
+                        message.raw_text,
+                        cid,
+                        message.id,
                     ),
                     link_preview=False,
                 )

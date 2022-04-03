@@ -10,6 +10,7 @@
 
 # meta pic: https://img.icons8.com/fluency/344/class-dojo.png
 # meta developer: @hikariatama
+# scope: hikka_only
 
 from .. import loader, utils
 from telethon.tl.types import Message
@@ -29,7 +30,7 @@ def base(bytes_: bytes) -> str:
     return f"data:image/jpeg;base64,{base64.b64encode(bytes_).decode()}"
 
 
-async def jojoify(image: bytes, engine: str) -> Union[bytes, bool]:
+async def animefy(image: bytes, engine: str) -> Union[bytes, bool]:
     answ = await utils.run_sync(
         requests.post,
         "https://hf.space/embed/akhaliq/JoJoGAN/api/queue/push/",
@@ -117,8 +118,8 @@ class ArtAIMod(loader.Module):
         self._db = db
         self._client = client
 
-    async def jojocmd(self, message: Message) -> None:
-        """<photo> - Jojoify photo"""
+    async def artaicmd(self, message: Message) -> None:
+        """<photo> - Create anime art from photo"""
         reply = await message.get_reply_message()
 
         if not reply or not reply.photo:
@@ -151,7 +152,7 @@ class ArtAIMod(loader.Module):
         )
 
         if engine != "All":
-            async for status in jojoify(media, engine):
+            async for status in animefy(media, engine):
                 if status == "QUEUED":
                     await call.edit(self.strings("queued"))
                 elif status == "PENDING":
@@ -171,32 +172,33 @@ class ArtAIMod(loader.Module):
         else:
             res = []
 
-            for engine in {
-                "JoJo",
-                "Disney",
-                "Jinx",
-                "Caitlyn",
-                "Yasuho",
-                "Arcane Multi",
-                "Art",
-                "Spider-Verse",
-                "Sketch",
-            }:
-                async for status in jojoify(media, engine):
+            statuses = {
+                "JoJo": "⬜️",
+                "Disney": "⬜️",
+                "Jinx": "⬜️",
+                "Caitlyn": "⬜️",
+                "Yasuho": "⬜️",
+                "Arcane Multi": "⬜️",
+                "Art": "⬜️",
+                "Spider-Verse": "⬜️",
+                "Sketch": "⬜️",
+            }
+
+            for engine in statuses:
+                suffix = lambda: f" | <i>Engine: {engine}</i>\n\n{''.join(statuses.values())}"  # noqa: E731
+                async for status in animefy(media, engine):
                     if status == "QUEUED":
-                        await call.edit(
-                            self.strings("queued") + f" | <i>Engine: {engine}</i>"
-                        )
+                        await call.edit(self.strings("queued") + suffix())
+                        statuses[engine] = "🟨"
                     elif status == "PENDING":
-                        await call.edit(
-                            self.strings("processing") + f" | <i>Engine: {engine}</i>"
-                        )
+                        await call.edit(self.strings("processing") + suffix())
+                        statuses[engine] = "🟦"
                     elif status == "FAILED":
-                        await call.edit(
-                            self.strings("failed") + f" | <i>Engine: {engine}</i>"
-                        )
-                        return
+                        await call.edit(self.strings("failed") + suffix())
+                        statuses[engine] = "🟥"
+                        break
                     else:
+                        statuses[engine] = "🟩"
                         res += [status]
                         break
 

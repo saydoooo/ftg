@@ -13,6 +13,7 @@
 # requires: requests
 # scope: hikka_only
 # scope: hikka_min 1.0.7
+# scope: inline
 
 from .. import loader, utils
 from telethon.tl.types import Message

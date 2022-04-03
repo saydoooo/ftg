@@ -11,6 +11,7 @@
 # meta pic: https://img.icons8.com/fluency/50/000000/event-log.png
 # meta developer: @hikariatama
 # scope: hikka_only
+# scope: hikka_min 1.0.18
 
 from .. import loader, utils, main
 import logging
@@ -29,8 +30,9 @@ class OnloadExecutorMod(loader.Module):
 
         self.c, _ = await utils.asset_channel(
             client,
-            f"onload-commands-{self._me}",
+            "onload-commands",
             "All commands from this chat will be executed once FTG is started, be careful!",
+            archive=True,
         )
 
         self.prefix = utils.escape_html(
@@ -45,6 +47,4 @@ class OnloadExecutorMod(loader.Module):
                     logger.info("Registered onload command")
                     await m.delete()
                 except Exception:
-                    logger.exception(
-                        f"Exception while executing command {message.raw_text[:15]}..."
-                    )
+                    logger.exception(f"Exception while executing command {message.raw_text[:15]}...")  # fmt: skip

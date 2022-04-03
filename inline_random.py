@@ -12,13 +12,12 @@
 # meta developer: @hikariatama
 # scope: inline
 # scope: hikka_only
+# scope: hikka_min 1.0.19
 
-from .. import loader, utils
-from aiogram.types import CallbackQuery
+from .. import loader
 import logging
 from ..inline.types import InlineQuery
 from random import randint, choice
-from aiogram.types import InlineQueryResultArticle, InputTextMessageContent
 
 logger = logging.getLogger(__name__)
 
@@ -29,36 +28,22 @@ class InlineRandomMod(loader.Module):
 
     strings = {"name": "InlineRandom"}
 
-    async def inline__close(self, call: CallbackQuery) -> None:
-        await call.delete()
-
-    async def coin_inline_handler(self, query: InlineQuery) -> None:
+    async def coin_inline_handler(self, query: InlineQuery) -> dict:
         """
         Heads or tails?
         @allow: all
         """
 
         r = "🦅 Heads" if randint(0, 1) else "🪙 Tails"
-        await query.answer(
-            [
-                InlineQueryResultArticle(
-                    id=utils.rand(20),
-                    title="Toss a coin",
-                    description="Trust in the God of luck, and he will be by your side!",
-                    input_message_content=InputTextMessageContent(
-                        f"<i>The God of luck tells us...</i> <b>{r}</b>",
-                        "HTML",
-                        disable_web_page_preview=True,
-                    ),
-                    thumb_url="https://img.icons8.com/external-justicon-flat-justicon/64/000000/external-coin-pirates-justicon-flat-justicon-1.png",
-                    thumb_width=128,
-                    thumb_height=128,
-                )
-            ],
-            cache_time=0,
-        )
 
-    async def random_inline_handler(self, query: InlineQuery) -> None:
+        return {
+            "title": "Toss a coin",
+            "description": "Trust in the God of luck, and he will be by your side!",
+            "message": f"<i>The God of luck tells us...</i> <b>{r}</b>",
+            "thumb": "https://img.icons8.com/external-justicon-flat-justicon/64/000000/external-coin-pirates-justicon-flat-justicon-1.png",
+        }
+
+    async def random_inline_handler(self, query: InlineQuery) -> dict:
         """
         [number] - Send random number less than specified
         @allow: all
@@ -72,26 +57,14 @@ class InlineRandomMod(loader.Module):
         if not str(a).isdigit():
             return
 
-        await query.answer(
-            [
-                InlineQueryResultArticle(
-                    id=utils.rand(20),
-                    title=f"Toss random number less or equal to {a}",
-                    description="Trust in the God of luck, and he will be by your side!",
-                    input_message_content=InputTextMessageContent(
-                        f"<i>The God of luck screams...</i> <b>{randint(1, int(a))}</b>",
-                        "HTML",
-                        disable_web_page_preview=True,
-                    ),
-                    thumb_url="https://img.icons8.com/external-flaticons-flat-flat-icons/64/000000/external-numbers-auction-house-flaticons-flat-flat-icons.png",
-                    thumb_width=128,
-                    thumb_height=128,
-                )
-            ],
-            cache_time=0,
-        )
+        return {
+            "title": f"Toss random number less or equal to {a}",
+            "description": "Trust in the God of luck, and he will be by your side!",
+            "message": f"<i>The God of luck screams...</i> <b>{randint(1, int(a))}</b>",
+            "thumb": "https://img.icons8.com/external-flaticons-flat-flat-icons/64/000000/external-numbers-auction-house-flaticons-flat-flat-icons.png",
+        }
 
-    async def choice_inline_handler(self, query: InlineQuery) -> None:
+    async def choice_inline_handler(self, query: InlineQuery) -> dict:
         """
         [args, separated by comma] - Make a choice
         @allow: all
@@ -102,21 +75,17 @@ class InlineRandomMod(loader.Module):
 
         a = query.args
 
-        await query.answer(
-            [
-                InlineQueryResultArticle(
-                    id=utils.rand(20),
-                    title="Choose one item from list",
-                    description="Trust in the God of luck, and he will be by your side!",
-                    input_message_content=InputTextMessageContent(
-                        f"<i>The God of luck whispers...</i> <b>{choice(a.split(',')).strip()}</b>",
-                        "HTML",
-                        disable_web_page_preview=True,
-                    ),
-                    thumb_url="https://img.icons8.com/external-filled-outline-geotatah/64/000000/external-choice-customer-satisfaction-filled-outline-filled-outline-geotatah.png",
-                    thumb_width=128,
-                    thumb_height=128,
-                )
-            ],
-            cache_time=0,
-        )
+        return {
+            "title": "Choose one item from list",
+            "description": "Trust in the God of luck, and he will be by your side!",
+            "message": f"<i>The God of luck whispers...</i> <b>{choice(a.split(',')).strip()}</b>",
+            "thumb": "https://img.icons8.com/external-filled-outline-geotatah/64/000000/external-choice-customer-satisfaction-filled-outline-filled-outline-geotatah.png",
+        }
+
+    async def person_inline_handler(self, query: InlineQuery) -> dict:
+        """
+        This person doesn't exist
+        @allow: all
+        """
+
+        return {"photo": "https://thispersondoesnotexist.com/image"}
