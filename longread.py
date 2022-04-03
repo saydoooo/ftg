@@ -12,15 +12,10 @@
 # meta developer: @hikariatama
 # scope: inline
 # scope: hikka_only
+# scope: hikka_min 1.0.20
 
 from .. import loader, utils
-from aiogram.types import (
-    CallbackQuery,
-    InlineKeyboardMarkup,
-    InlineQueryResultArticle,
-    InlineKeyboardButton,
-    InputTextMessageContent,
-)
+from aiogram.types import CallbackQuery
 import logging
 from ..inline.types import InlineQuery
 from telethon.tl.types import Message
@@ -36,7 +31,7 @@ class LongReadMod(loader.Module):
     strings = {
         "name": "LongRead",
         "no_text": "🚫 <b>Please, specify text to hide</b>",
-        "longread": "🗄 <b>This is long read</b>\n<i>Click button to show text!\nThis button is active withing 6 hours</i>",  # noqa
+        "longread": "🗄 <b>This is long read</b>\n<i>Click button to show text!\nThis button is active withing 6 hours</i>",
     }
 
     async def client_ready(self, client, db) -> None:
@@ -50,7 +45,7 @@ class LongReadMod(loader.Module):
     async def inline__close(self, call: CallbackQuery) -> None:
         await call.delete()
 
-    def _create_longread(self, text: str) -> InlineKeyboardMarkup:
+    def _create_longread(self, text: str) -> str:
         message_id = utils.rand(16)
 
         self._longreads[message_id] = {
@@ -69,30 +64,16 @@ class LongReadMod(loader.Module):
         if not text:
             return
 
-        markup = InlineKeyboardMarkup()
-        markup.add(
-            InlineKeyboardButton(
-                "📖 Open spoiler", callback_data=self._create_longread(text)
-            )
-        )
-
-        await query.answer(
-            [
-                InlineQueryResultArticle(
-                    id=utils.rand(20),
-                    title="Create new longread",
-                    description="ℹ This will create button-spoiler",
-                    input_message_content=InputTextMessageContent(
-                        self.strings("longread"), "HTML", disable_web_page_preview=True
-                    ),
-                    thumb_url="https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-read-free-time-wanicon-flat-wanicon.png",  # noqa
-                    thumb_width=128,
-                    thumb_height=128,
-                    reply_markup=markup,
-                )
-            ],
-            cache_time=0,
-        )
+        return {
+            "title": "Create new longread",
+            "description": "ℹ This will create button-spoiler",
+            "message": self.strings("longread"),
+            "reply_markup": {
+                "text": "📖 Open spoiler",
+                "data": self._create_longread(text),
+            },
+            "thumb": "https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-read-free-time-wanicon-flat-wanicon.png",
+        }
 
     async def lrcmd(self, message: Message) -> None:
         """<text> - Create new longread"""
@@ -116,7 +97,7 @@ class LongReadMod(loader.Module):
         if call.data not in self._longreads:
             return
 
-        await self.inline._bot.edit_message_text(
+        await self.inline.bot.edit_message_text(
             inline_message_id=call.inline_message_id,
             text=self._longreads[call.data]["text"],
             disable_web_page_preview=True,
