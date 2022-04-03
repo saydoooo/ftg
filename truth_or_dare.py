@@ -5,8 +5,8 @@
 #
 #          https://t.me/hikariatama
 #
-# 🔒 Licensed under the CC BY-NC-ND 4.0
-# 🌐 https://creativecommons.org/licenses/by-nc-nd/4.0
+# 🔒 Licensed under the GNU GPLv3
+# 🌐 https://www.gnu.org/licenses/agpl-3.0.html
 
 # meta pic: https://img.icons8.com/external-wanicon-flat-wanicon/344/external-game-free-time-wanicon-flat-wanicon.png
 # scope: inline
