@@ -10,25 +10,18 @@
 
 # meta pic: https://img.icons8.com/stickers/100/000000/python.png
 # meta developer: @hikariatama
+# requires: black
 
 from .. import loader, utils
 from telethon.tl.types import Message
 import logging
 import requests
-import os
 import re
 import io
 from random import choice
+import black
 
 logger = logging.getLogger(__name__)
-
-CMD = (
-    'black --exclude "/(\\.direnv|\\.eggs|\\.git'
-    "|\\.h g|\\.mypy_cache|\\.nox|\\.tox|\\.venv|"
-    "venv|\\.svn |_build|buck-out|build|dist|"
-    '__pycache__)/" '
-    "-l 10000 -t py39 linter_tmp.py"
-)
 
 URL = r"(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-&?=%.]+"
 
@@ -85,19 +78,12 @@ class PyLinterMod(loader.Module):
         if re.match(URL, args):
             args = (await utils.run_sync(requests.get, args)).text
 
-        with open("linter_tmp.py", "w") as f:
-            f.write(args)
-
-        os.popen(CMD).read()
-
-        with open("linter_tmp.py", "r") as f:
-            lint_result = f.read()
-
-        os.remove("linter_tmp.py")
+        lint_result = black.format_str(args, mode=black.Mode())
 
         if len(lint_result) < 2048:
             await utils.answer(
-                message, f"<code>{utils.escape_html(lint_result)}</code>"
+                message,
+                f"<code>{utils.escape_html(lint_result)}</code>",
             )
             return
 

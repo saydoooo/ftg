@@ -18,7 +18,7 @@ import logging
 import asyncio
 from telethon.tl.types import Message
 
-from ..types import LoadError
+from .._types import LoadError
 
 logger = logging.getLogger(__name__)
 

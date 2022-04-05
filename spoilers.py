@@ -40,9 +40,6 @@ class SpoilersMod(loader.Module):
             if message["ttl"] > time.time()
         }
 
-    async def inline__close(self, call: CallbackQuery) -> None:
-        await call.delete()
-
     async def hide_inline_handler(self, query: InlineQuery) -> None:
         """Create new hidden message"""
         text = query.args

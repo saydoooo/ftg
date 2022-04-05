@@ -53,7 +53,7 @@ class FeedbackMod(loader.Module):
         if not hasattr(self, "inline"):
             raise Exception("Hikka Only")
 
-        self._bot = self.inline._bot
+        self._bot = self.inline.bot
         self._ratelimit = {}
         self._markup = InlineKeyboardMarkup()
         self._markup.add(
@@ -67,7 +67,7 @@ class FeedbackMod(loader.Module):
 
         self.__doc__ = (
             "Feedback bot\n"
-            f"Your feeback link: t.me/{self.inline._bot_username}?start=feedback\n"
+            f"Your feeback link: t.me/{self.inline.bot_username}?start=feedback\n"
             "You can freely share it"
         )
 

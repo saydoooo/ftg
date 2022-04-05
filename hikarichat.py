@@ -3153,12 +3153,12 @@ class HikariChatMod(loader.Module):
 
         if len(self._join_ratelimit) > int(self.config["join_ratelimit"]):
             if not await self.check_admin(
-                utils.get_chat_id(message), f"@{self.inline._bot_username}"
+                utils.get_chat_id(message), f"@{getattr(self.inline, 'bot_username', self.inline._bot_username)}"
             ):
                 try:
                     await self._client(
                         InviteToChannelRequest(
-                            utils.get_chat_id(message), [self.inline._bot_username]
+                            utils.get_chat_id(message), [getattr(self.inline, 'bot_username', self.inline._bot_username)]
                         )
                     )
                 except Exception:
@@ -3170,7 +3170,7 @@ class HikariChatMod(loader.Module):
                     await self._client(
                         EditAdminRequest(
                             channel=utils.get_chat_id(message),
-                            user_id=self.inline._bot_username,
+                            user_id=getattr(self.inline, 'bot_username', self.inline._bot_username),
                             admin_rights=ChatAdminRights(ban_users=True),
                             rank="Ban Ninja",
                         )
