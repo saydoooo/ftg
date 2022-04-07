@@ -139,7 +139,8 @@ class GrustnoGramMod(loader.Module):
         self._task = asyncio.ensure_future(self._poller())
 
     async def on_unload(self) -> None:
-        self._task.cancel()
+        if hasattr(self, "_task"):
+            self._task.cancel()
 
     def _register(self) -> None:
         self.sadmecmd = self.sadmecmd_

@@ -19,7 +19,10 @@ import requests
 import re
 import io
 from random import choice
-import black
+
+logging.getLogger("blib2to3.pgen2.driver").setLevel(logging.ERROR)
+
+import black  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

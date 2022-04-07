@@ -1,4 +1,4 @@
-__version__ = (9, 0, 1)
+__version__ = (9, 0, 2)
 # █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
 # █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 #
@@ -3775,9 +3775,33 @@ class HikariChatMod(loader.Module):
                         continue
 
                     if note.lower() in message.raw_text.lower():
-                        await utils.answer(message, note_info["text"])
+                        txt = note_info["text"]
                         self._ratelimit["notes"][str(user_id)] = time.time() + 3
-                        break
+                        
+                        if not txt.startswith("@inline"):
+                            await utils.answer(message, txt)
+                            break
+
+                        txt = "\n".join(txt.splitlines()[1:])
+                        buttons = []
+                        button_re = r"\[(.+)\]\((https?://.*)\)"
+                        txt_r = []
+                        for line in txt.splitlines():
+                            if re.match(button_re, re.sub(r"<.*?>", "", line).strip()):
+                                match = re.search(button_re, re.sub(r"<.*?>", "", line).strip())
+                                buttons += [[{"text": match.group(1), "url": match.group(2)}]]
+                            else:
+                                txt_r += [line]
+
+                        if not buttons:
+                            await utils.answer(message, txt)
+                            break
+
+                        await self.inline.form(
+                            message=message,
+                            text="\n".join(txt_r),
+                            reply_markup=buttons,
+                        )
 
             if int(user_id) in (
                 list(map(int, self._feds[fed]["fdef"]))
