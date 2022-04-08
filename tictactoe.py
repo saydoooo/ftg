@@ -12,6 +12,7 @@
 # meta developer: @hikariatama
 # scope: inline
 # scope: hikka_only
+# scope: hikka_min 1.0.25
 
 import enum
 import copy
@@ -430,9 +431,9 @@ class TicTacToeMod(loader.Module):
         await self.inline.form(
             self.strings("gamestart"),
             message=message,
-            reply_markup=[[{"text": "💪 Play", "callback": self.inline__start_game}]],
+            reply_markup={"text": "💪 Play", "callback": self.inline__start_game},
             ttl=15 * 60,
-            force_me=False,
+            disable_security=True,
         )
 
     def _render_ai(self, uid: str) -> dict:
@@ -504,9 +505,7 @@ class TicTacToeMod(loader.Module):
         await self.inline.form(
             self.strings("gamestart_ai"),
             message=message,
-            reply_markup=[
-                [{"text": "🧠 Let's go!", "callback": self.inline__start_game_ai}]
-            ],
+            reply_markup={"text": "🧠 Let's go!", "callback": self.inline__start_game_ai},
             ttl=15 * 60,
-            force_me=False,
+            disable_security=True,
         )

@@ -12,6 +12,7 @@
 # meta developer: @hikariatama
 # scope: inline
 # scope: hikka_only
+# scope: hikka_min 1.0.25
 
 import random
 from .. import utils, loader
@@ -193,7 +194,7 @@ class ILYMod(loader.Module):
         await sleep(10)
         await call.edit(
             f"<b>{text}</b>",
-            reply_markup=[[{"text": "💔 Хочу также!", "url": "https://t.me/chat_ftg"}]],
+            reply_markup={"text": "💔 Хочу также!", "url": "https://t.me/hikka_talks"},
         )
 
         await call.unload()
@@ -235,7 +236,7 @@ class ILYMod(loader.Module):
         await sleep(10)
         await call.edit(
             f"<b>{text}</b>",
-            reply_markup=[[{"text": "💔 Хочу также!", "url": "https://t.me/chat_ftg"}]],
+            reply_markup={"text": "💔 Хочу также!", "url": "https://t.me/hikka_talks"},
         )
 
         await call.unload()
@@ -245,16 +246,13 @@ class ILYMod(loader.Module):
         args = utils.get_args_raw(message)
         await self.inline.form(
             self.strings("message").format("*" * (len(args) or 9)),
-            reply_markup=[
-                [
-                    {
-                        "text": "🧸 Open",
-                        "callback": self.inline__handler,
-                        "args": (args or "I ❤️ you!",),
-                    }
-                ]
-            ],
+            reply_markup={
+                "text": "🧸 Open",
+                "callback": self.inline__handler,
+                "args": (args or "I ❤️ you!",),
+            },
             message=message,
+            disable_security=True,
         )
 
     async def ilymatecmd(self, message: Message) -> None:
@@ -262,14 +260,11 @@ class ILYMod(loader.Module):
         args = utils.get_args_raw(message)
         await self.inline.form(
             self.strings("message").format("*" * (len(args) or 21)),
-            reply_markup=[
-                [
-                    {
-                        "text": "🧸 Open",
-                        "callback": self.inline__handler_gay,
-                        "args": (args or "I am gay and I 💙 you!",),
-                    }
-                ]
-            ],
+            reply_markup={
+                "text": "🧸 Open",
+                "callback": self.inline__handler_gay,
+                "args": (args or "I am gay and I 💙 you!",),
+            },
             message=message,
+            disable_security=True,
         )

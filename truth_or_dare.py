@@ -11,6 +11,7 @@
 # meta pic: https://img.icons8.com/external-wanicon-flat-wanicon/344/external-game-free-time-wanicon-flat-wanicon.png
 # scope: inline
 # scope: hikka_only
+# scope: hikka_min 1.0.25
 # meta developer: @hikariatama
 
 from .. import loader, utils
@@ -138,18 +139,16 @@ class TruthOrDareMod(loader.Module):
         await call.edit(
             f"<b>{action_babel}</b>:\n\n{await self.truth_or_dare(action, category)}",
             reply_markup=[
-                [
-                    {
-                        "text": self.strings(f"truth_{self.get('lang')}"),
-                        "callback": self._inline_process,
-                        "args": ("truth", category),
-                    },
-                    {
-                        "text": self.strings(f"dare_{self.get('lang')}"),
-                        "callback": self._inline_process,
-                        "args": ("dare", category),
-                    },
-                ]
+                {
+                    "text": self.strings(f"truth_{self.get('lang')}"),
+                    "callback": self._inline_process,
+                    "args": ("truth", category),
+                },
+                {
+                    "text": self.strings(f"dare_{self.get('lang')}"),
+                    "callback": self._inline_process,
+                    "args": ("dare", category),
+                },
             ],
         )
 
@@ -157,18 +156,16 @@ class TruthOrDareMod(loader.Module):
         await call.edit(
             self.strings(f"truth_or_dare_{self.get('lang')}"),
             reply_markup=[
-                [
-                    {
-                        "text": self.strings(f"truth_{self.get('lang')}"),
-                        "callback": self._inline_process,
-                        "args": ("truth", category),
-                    },
-                    {
-                        "text": self.strings(f"dare_{self.get('lang')}"),
-                        "callback": self._inline_process,
-                        "args": ("dare", category),
-                    },
-                ]
+                {
+                    "text": self.strings(f"truth_{self.get('lang')}"),
+                    "callback": self._inline_process,
+                    "args": ("truth", category),
+                },
+                {
+                    "text": self.strings(f"dare_{self.get('lang')}"),
+                    "callback": self._inline_process,
+                    "args": ("dare", category),
+                },
             ],
         )
 
@@ -179,18 +176,16 @@ class TruthOrDareMod(loader.Module):
                 self.strings("choose_language"),
                 message=message,
                 reply_markup=[
-                    [
-                        {
-                            "text": "🇷🇺 Русский",
-                            "callback": self._inline_set_language,
-                            "args": ("ru",),
-                        },
-                        {
-                            "text": "🇬🇧 English",
-                            "callback": self._inline_set_language,
-                            "args": ("en",),
-                        },
-                    ]
+                    {
+                        "text": "🇷🇺 Русский",
+                        "callback": self._inline_set_language,
+                        "args": ("ru",),
+                    },
+                    {
+                        "text": "🇬🇧 English",
+                        "callback": self._inline_set_language,
+                        "args": ("en",),
+                    },
                 ],
             )
             return
@@ -199,6 +194,7 @@ class TruthOrDareMod(loader.Module):
             self.strings(f"category_{self.get('lang')}"),
             message=message,
             reply_markup=self._markup,
+            disable_security=True,
         )
 
     async def todlangcmd(self, message: Message) -> None:

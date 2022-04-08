@@ -12,6 +12,7 @@
 # meta developer: @hikariatama
 # scope: inline
 # scope: hikka_only
+# scope: hikka_min 1.0.25
 
 from .. import loader
 from telethon.tl.types import Message
@@ -50,7 +51,7 @@ class InlineGhoulMod(loader.Module):
         await asyncio.sleep(10)
         await call.edit(
             self.strings("tired"),
-            reply_markup=[[{"text": "💔 Хочу также!", "url": "https://t.me/chat_ftg"}]],
+            reply_markup={"text": "💔 Хочу также!", "url": "https://t.me/chat_ftg"},
         )
         await call.unload()
 
@@ -60,17 +61,16 @@ class InlineGhoulMod(loader.Module):
             self.strings("iamghoul"),
             message=message,
             reply_markup=[
-                [
-                    {
-                        "text": "🧠 Ghoul",
-                        "callback": self.inline__handler,
-                        "args": (True,),
-                    },
-                    {
-                        "text": "💃 Ballerina",
-                        "callback": self.inline__handler,
-                        "args": (False,),
-                    },
-                ]
+                {
+                    "text": "🧠 Ghoul",
+                    "callback": self.inline__handler,
+                    "args": (True,),
+                },
+                {
+                    "text": "💃 Ballerina",
+                    "callback": self.inline__handler,
+                    "args": (False,),
+                },
             ],
+            disable_security=True,
         )
