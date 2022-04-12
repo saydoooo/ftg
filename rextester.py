@@ -3,13 +3,13 @@
 #
 #              © Copyright 2022
 #
-#          https://t.me/hikariatama
+#          https://t.me/aiexz
 #
 # 🔒 Licensed under the GNU GPLv3
 # 🌐 https://www.gnu.org/licenses/agpl-3.0.html
 
 # meta pic: https://img.icons8.com/fluency/48/000000/system-information.png
-# meta developer: @hikariatama
+# meta developer: @aiexz
 
 import logging
 from telethon import TelegramClient

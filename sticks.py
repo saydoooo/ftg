@@ -776,7 +776,7 @@ class StickManagerMod(loader.Module):
 
         emoji = "".join(distinct_emoji_lis(emoji))
 
-        if reply.media.document.mime_type.startswith("video"):
+        if getattr(getattr(reply.media, "document", None), "mime_type", "").startswith("video"):
             if "video" not in pack:
                 pack = [
                     self.find(_) for _, p in self.stickersets.items() if "video" in p
@@ -836,7 +836,7 @@ class StickManagerMod(loader.Module):
 
                 if (
                     "Now send me an emoji" not in r.raw_text
-                    and "Пожалуйста, отправьте мне новый смайл" not in r.raw_text
+                    and "Пожалуйста, пришлите смайл" not in r.raw_text
                 ):
                     raise HikariException(
                         "UNEXPECTED_ANSWER - Error while sending file"
