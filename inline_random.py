@@ -12,7 +12,7 @@
 # meta developer: @hikariatama
 # scope: inline
 # scope: hikka_only
-# scope: hikka_min 1.0.19
+# scope: hikka_min 1.0.29
 
 from .. import loader
 import logging
@@ -28,11 +28,9 @@ class InlineRandomMod(loader.Module):
 
     strings = {"name": "InlineRandom"}
 
+    @loader.inline_everyone
     async def coin_inline_handler(self, query: InlineQuery) -> dict:
-        """
-        Heads or tails?
-        @allow: all
-        """
+        """Heads or tails?"""
 
         r = "🦅 Heads" if randint(0, 1) else "🪙 Tails"
 
@@ -43,11 +41,9 @@ class InlineRandomMod(loader.Module):
             "thumb": "https://img.icons8.com/external-justicon-flat-justicon/64/000000/external-coin-pirates-justicon-flat-justicon-1.png",
         }
 
+    @loader.inline_everyone
     async def random_inline_handler(self, query: InlineQuery) -> dict:
-        """
-        [number] - Send random number less than specified
-        @allow: all
-        """
+        """[number] - Send random number less than specified"""
 
         if not query.args:
             return
@@ -64,11 +60,9 @@ class InlineRandomMod(loader.Module):
             "thumb": "https://img.icons8.com/external-flaticons-flat-flat-icons/64/000000/external-numbers-auction-house-flaticons-flat-flat-icons.png",
         }
 
+    @loader.inline_everyone
     async def choice_inline_handler(self, query: InlineQuery) -> dict:
-        """
-        [args, separated by comma] - Make a choice
-        @allow: all
-        """
+        """[args, separated by comma] - Make a choice"""
 
         if not query.args or not query.args.count(","):
             return
@@ -82,10 +76,8 @@ class InlineRandomMod(loader.Module):
             "thumb": "https://img.icons8.com/external-filled-outline-geotatah/64/000000/external-choice-customer-satisfaction-filled-outline-filled-outline-geotatah.png",
         }
 
+    @loader.inline_everyone
     async def person_inline_handler(self, query: InlineQuery) -> dict:
-        """
-        This person doesn't exist
-        @allow: all
-        """
+        """This person doesn't exist"""
 
         return {"photo": "https://thispersondoesnotexist.com/image"}

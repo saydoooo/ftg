@@ -12,10 +12,15 @@
 # meta developer: @hikariatama
 # scope: inline
 # scope: hikka_only
-# scope: hikka_min 1.0.20
 
 from .. import loader, utils
-from aiogram.types import CallbackQuery
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardMarkup,
+    InlineQueryResultArticle,
+    InlineKeyboardButton,
+    InputTextMessageContent,
+)
 import logging
 from ..inline.types import InlineQuery
 from telethon.tl.types import Message
@@ -45,7 +50,7 @@ class LongReadMod(loader.Module):
     async def inline__close(self, call: CallbackQuery) -> None:
         await call.delete()
 
-    def _create_longread(self, text: str) -> str:
+    def _create_longread(self, text: str) -> InlineKeyboardMarkup:
         message_id = utils.rand(16)
 
         self._longreads[message_id] = {
@@ -64,16 +69,32 @@ class LongReadMod(loader.Module):
         if not text:
             return
 
-        return {
-            "title": "Create new longread",
-            "description": "ℹ This will create button-spoiler",
-            "message": self.strings("longread"),
-            "reply_markup": {
-                "text": "📖 Open spoiler",
-                "data": self._create_longread(text),
-            },
-            "thumb": "https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-read-free-time-wanicon-flat-wanicon.png",
-        }
+        markup = InlineKeyboardMarkup()
+        markup.add(
+            InlineKeyboardButton(
+                "📖 Open spoiler", callback_data=self._create_longread(text)
+            )
+        )
+
+        await query.answer(
+            [
+                InlineQueryResultArticle(
+                    id=utils.rand(20),
+                    title="Create new longread",
+                    description="ℹ This will create button-spoiler",
+                    input_message_content=InputTextMessageContent(
+                        self.strings("longread"),
+                        "HTML",
+                        disable_web_page_preview=True,
+                    ),
+                    thumb_url="https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-read-free-time-wanicon-flat-wanicon.png",
+                    thumb_width=128,
+                    thumb_height=128,
+                    reply_markup=markup,
+                )
+            ],
+            cache_time=0,
+        )
 
     async def lrcmd(self, message: Message) -> None:
         """<text> - Create new longread"""

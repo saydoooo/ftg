@@ -10,11 +10,12 @@
 
 # meta pic: https://img.icons8.com/fluency/50/000000/crowdfunding.png
 # meta developer: @hikariatama
-# scope: inline_content
+# scope: inline
+# scope: hikka_only
 # requires: websockets requests
 
-from .. import loader, utils  # noqa
-from telethon.tl.types import Message  # noqa
+from .. import loader, utils
+from telethon.tl.types import Message
 import logging
 import websockets
 import asyncio
@@ -23,7 +24,6 @@ import time
 import json
 from urllib.parse import quote_plus
 import datetime
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.exceptions import MessageNotModified
 
 logger = logging.getLogger(__name__)
@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 @loader.tds
 class RealTimeValutesMod(loader.Module):
     """Track valutes in real time. Updates more than once a second"""
+
     strings = {
         "name": "RealTimeValutes",
         "loading": "😌 <b>Loading the most actual info from Forex...</b>",
@@ -63,39 +64,18 @@ class RealTimeValutesMod(loader.Module):
                     valute = rate[0].split('|')[1].split('/')[0]
                     rate = float(rate[0].split('|')[3])
 
-                    if valute not in self._rates:
-                        self._rates[valute] = []
-                    
-                    if valute not in self._means:
-                        self._means[valute] = 0
-
-                    if not self._rates[valute] or abs(rate - self._rates[valute][-1][0]) >= .1:
-                        self._rates[valute] += [(rate, round(time.time()))]
-
-                    self._rates[valute] = list(
-                        filter(
-                            lambda x: x[1] + 2 * 60 * 60 >= time.time(),
-                            self._rates[valute]
-                        )
-                    )
+                    self._rates[valute] = rate
+                    self._upd_time = time.time()
 
             return await self._connect()
 
     async def client_ready(self, client, db) -> None:
-        self._me = (await client.get_me()).id
         self._rates = {}
-        self._means = {}
-        self._threshold = .03
+        self._upd_time = 0
 
-        self._is_inline = hasattr(self, "inline") and self.inline.init_complete
         self._ratelimit = 0
 
-        self._reload_markup = InlineKeyboardMarkup()
-        self._reload_markup.add(
-            InlineKeyboardButton(
-                "🔄 Update", callback_data="update_exchanges"
-            )
-        )
+        self._reload_markup = self.inline._generate_markup({"text": "🔄 Update", "data": "update_exchanges"})
 
         self._task = asyncio.ensure_future(self._connect())
 
@@ -103,9 +83,9 @@ class RealTimeValutesMod(loader.Module):
         """Show exchange rates"""
         try:
             m = self.strings("exchanges").format(
-                self._rates['USD'][-1][0],
-                self._rates['EUR'][-1][0],
-                getattr(datetime, 'datetime', datetime).fromtimestamp(self._rates['EUR'][-1][1])
+                self._rates['USD'],
+                self._rates['EUR'],
+                getattr(datetime, 'datetime', datetime).fromtimestamp(self._upd_time)
             )
         except (KeyError, IndexError):
             await utils.answer(message, self.strings('wss_error'))
@@ -115,13 +95,16 @@ class RealTimeValutesMod(loader.Module):
             await self.inline.form(
                 m,
                 message=message,
-                reply_markup=[[{"text": "🔄 Update", "data": "update_exchanges"}]],
+                reply_markup={"text": "🔄 Update", "data": "update_exchanges"},
+                disable_security=True,
+                silent=True,
             )
         except Exception:
             await utils.answer(message, m)
 
     async def reload_callback_handler(
-        self, call: "aiogram.types.CallbackQuery"  # noqa: F821
+        self,
+        call: "aiogram.types.CallbackQuery",  # noqa: F821
     ):
         """
         Processes 'reload' button clicks
@@ -140,9 +123,9 @@ class RealTimeValutesMod(loader.Module):
             await self.inline._bot.edit_message_text(
                 inline_message_id=call.inline_message_id,
                 text=self.strings("exchanges").format(
-                    self._rates['USD'][-1][0],
-                    self._rates['EUR'][-1][0],
-                    getattr(datetime, 'datetime', datetime).fromtimestamp(self._rates['EUR'][-1][1])
+                    self._rates['USD'],
+                    self._rates['EUR'],
+                    getattr(datetime, 'datetime', datetime).fromtimestamp(self._upd_time)
                 ),
                 reply_markup=self._reload_markup,
                 parse_mode="HTML",

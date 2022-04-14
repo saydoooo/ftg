@@ -3120,20 +3120,17 @@ class HikariChatMod(loader.Module):
         async for chat in self._client.iter_dialogs():
             ent = chat.entity
 
-            if not (
-                isinstance(ent, Chat)
-                or (isinstance(ent, Channel) and getattr(ent, "megagroup", False))
+            if (
+                not (
+                    isinstance(ent, Chat)
+                    or (isinstance(ent, Channel) and getattr(ent, "megagroup", False))
+                )
+                or not ent.admin_rights
+                or ent.participants_count < 5
             ):
-                # logger.info(ent)
                 continue
 
             r = ent.admin_rights
-
-            if not r:
-                continue
-
-            if ent.participants_count < 5:
-                continue
 
             rights += [
                 [
@@ -3345,7 +3342,7 @@ class HikariChatMod(loader.Module):
         user: Union[User, Channel],
         message: Message,
     ) -> None:
-        if self.api.should_protect(chat_id, "report") or not getattr(
+        if not self.api.should_protect(chat_id, "report") or not getattr(
             message, "reply_to_msg_id", False
         ):
             return

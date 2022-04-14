@@ -12,7 +12,7 @@
 # meta developer: @hikariatama
 # scope: inline
 # scope: hikka_only
-# scope: hikka_min 1.0.20
+# scope: hikka_min 1.0.29
 
 from .. import loader, utils
 from aiogram.types import CallbackQuery
@@ -82,11 +82,9 @@ class SpoilersMod(loader.Module):
             else {},
         }
 
+    @loader.inline_everyone
     async def button_callback_handler(self, call: CallbackQuery) -> None:
-        """
-        Process button presses
-        @allow: all
-        """
+        """Process button presses"""
         if (
             call.data not in self._messages
             or call.from_user.id != self._messages[call.data]["for"]
