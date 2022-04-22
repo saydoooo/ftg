@@ -14,7 +14,7 @@
 # scope: hikka_only
 # scope: hikka_min 1.0.29
 
-from .. import loader
+from .. import loader, utils
 import logging
 from ..inline.types import InlineQuery
 from random import randint, choice
@@ -80,4 +80,4 @@ class InlineRandomMod(loader.Module):
     async def person_inline_handler(self, query: InlineQuery) -> dict:
         """This person doesn't exist"""
 
-        return {"photo": "https://thispersondoesnotexist.com/image"}
+        return {"photo": f"https://thispersondoesnotexist.com/image?id={utils.rand(10)}", "title": "This person doesn't exist"}

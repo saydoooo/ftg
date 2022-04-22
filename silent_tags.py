@@ -17,8 +17,7 @@ from .. import loader, utils
 import logging
 import asyncio
 from telethon.tl.types import Message
-
-from .._types import LoadError
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -38,10 +37,9 @@ class SilentTagsMod(loader.Module):
         self._client = client
         self._db = db
         self.stags = db.get("SilentTags", "stags", False)
-        self.un = (await client.get_me()).username
         self._ratelimit = []
-        if self.un is None:
-            raise LoadError("You cannot load this module because you do not have username")  # fmt: skip
+        self._fw_protect = {}
+        self._fw_protect_limit = 5
 
         self.c, _ = await utils.asset_channel(
             self._client,
@@ -83,6 +81,15 @@ class SilentTagsMod(loader.Module):
                 )
                 cid = utils.get_chat_id(message)
 
+                if (
+                    cid in self._fw_protect
+                    and len(
+                        list(filter(lambda x: x > time.time(), self._fw_protect[cid]))
+                    )
+                    > self._fw_protect_limit
+                ):
+                    return
+
                 if message.is_private:
                     ctitle = "pm"
                 else:
@@ -93,6 +100,9 @@ class SilentTagsMod(loader.Module):
                         else ""
                     )
                     ctitle = chat.title
+
+                if cid not in self._fw_protect:
+                    self._fw_protect[cid] = []
 
                 uid = message.from_id
 
@@ -115,8 +125,10 @@ class SilentTagsMod(loader.Module):
                     ),
                     link_preview=False,
                 )
+                self._fw_protect[cid] += [time.time() + 5 * 60]
+
                 if cid not in self._ratelimit:
-                    self._ratelimit.append(cid)
+                    self._ratelimit += [cid]
                     ms = await utils.answer(message, self.strings("tag_mentioned"))
                     ms = ms[0] if isinstance(ms, list) else ms
                     await asyncio.sleep(5)

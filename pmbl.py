@@ -19,20 +19,10 @@ from telethon.tl.functions.contacts import BlockRequest
 from telethon.tl.functions.messages import DeleteHistoryRequest, ReportSpamRequest
 import time
 from telethon.utils import get_peer_id, get_display_name
-import requests
-import io
 from typing import Union
 import asyncio
 
 logger = logging.getLogger(__name__)
-
-
-guard_pic = io.BytesIO(
-    requests.get(
-        "https://i.imgur.com/agBB5ZB.jpeg"
-    ).content
-)
-guard_pic.name = "picture.png"
 
 
 def format_(state: Union[bool, None]) -> str:
@@ -52,12 +42,13 @@ class PMBLMod(loader.Module):
         "args": "ℹ️ <b>Example usage: </b><code>.pmblsett 0 0</code>",
         "args_pmban": "ℹ️ <b>Example usage: </b><code>.pmbanlast 5</code>",
         "config": "😶‍🌫️ <b>Yeiks! Config saved</b>\n<i>Report spam? - {}\nDelete dialog? - {}</i>",
-        "banned": "🤵 <b>Hello •ᴗ•</b>\nI'm the <b>guardian</b> of this account and you are <b>not approved</b>! You can contact my owner <b>in chat</b>, if you need help.\n<b>Sorry, but I need to ban you in terms of security</b> 😥",
+        "banned": "😊 <b>Hewwo •ᴗ•</b>\nI'm Kirito, the <b>guardian</b> of this account and you are <b>not approved</b>! You can contact my owner <b>in chat</b>, if you need help.\n<b>Sorry, but I need to ban you in terms of security</b> 😥",
         "removing": "😶‍🌫️ <b>Removing {} last dialogs...</b>",
         "removed": "😶‍🌫️ <b>Removed {} last dialogs!</b>",
         "user_not_specified": "🚫 <b>You haven't specified user</b>",
         "approved": '😶‍🌫️ <b><a href="tg://user?id={}">{}</a> approved in pm</b>',
         "banned_log": '👮 <b>I banned <a href="tg://user?id={}">{}</a>.</b>\n\n<b>{} Contact</b>\n<b>{} Started by you</b>\n<b>{} Active conversation</b>\n\n<b>✊ Actions</b>\n\n<b>{} Reported spam</b>\n<b>{} Deleted dialog</b>\n<b>{} Banned</b>\n\n<b>ℹ️ Message</b>\n<code>{}</code>',
+        "hello": "😊 <b>Hewwo!</b>\n<b>I'm Kirito</b> - your personal personal messages guardian. I will block everyone, who's trying to intrude you.\n\nUse <code>.pmbl</code> to enable protection, <code>.pmblsett</code> to configure it and <code>.pmbanlast</code> if you've already been pm-raided.\n\n<i>Glad to be your safeguard!</i>",
     }
 
     def __init__(self):
@@ -77,6 +68,12 @@ class PMBLMod(loader.Module):
             "custom_message",
             "",
             lambda: "Custom message to notify untrusted peers. Leave empty for default one",
+            "photo_url",
+            "https://kartinkin.net/uploads/posts/2021-07/1625528600_10-kartinkin-com-p-anime-kirito-anime-krasivo-11.jpg",
+            lambda: "Photo, which is sent along with banned notification",
+            "use_maid",
+            0,
+            lambda: "Whether to replace normal Kirito with maid-Kirito",
         )
 
     async def client_ready(self, client, db) -> None:
@@ -87,6 +84,15 @@ class PMBLMod(loader.Module):
         self._ratelimit = []
         self._ratelimit_timeout = 5 * 60
         self._ratelimit_threshold = 10
+        if not self.get("ignore_qs", False):
+            await self.inline.bot.send_photo(
+                self._me,
+                photo=r"https://static.zerochan.net/Kirito.%28GGO%29.full.2814614.jpg",
+                caption=self.strings("hello"),
+                parse_mode="HTML",
+            )
+
+            self.set("ignore_qs", True)
 
     async def pmblcmd(self, message: Message) -> None:
         """Toggle PMAntiRaid"""
@@ -141,7 +147,9 @@ class PMBLMod(loader.Module):
 
             m = (
                 await self._client.get_messages(
-                    dialog.message.peer_id, limit=1, reverse=True
+                    dialog.message.peer_id,
+                    limit=1,
+                    reverse=True,
                 )
             )[0]
 
@@ -236,7 +244,7 @@ class PMBLMod(loader.Module):
             )
         )[0]
 
-        if getattr(message, 'raw_text', False) and first_message.sender_id == self._me:
+        if getattr(message, "raw_text", False) and first_message.sender_id == self._me:
             return self._approve(cid, "started_by_you")
         else:
             started_by_you = False
@@ -264,12 +272,15 @@ class PMBLMod(loader.Module):
             try:
                 await self._client.send_file(
                     message.peer_id,
-                    guard_pic,
+                    self.config["photo_url"]
+                    if not int(self.config["use_maid"])
+                    else "http://img0.reactor.cc/pics/post/full/Kirito-Sword-Art-Online-Anime-Maid-2200117.jpeg",
                     caption=self.config["custom_message"] or self.strings("banned"),
                 )
             except Exception:
                 await utils.answer(
-                    message, self.config["custom_message"] or self.strings("banned")
+                    message,
+                    self.config["custom_message"] or self.strings("banned"),
                 )
 
             self._ratelimit += [round(time.time())]
@@ -303,7 +314,9 @@ class PMBLMod(loader.Module):
             await self._client(ReportSpamRequest(peer=cid))
 
         if self.get("delete", False):
-            await self._client(DeleteHistoryRequest(peer=cid, just_clear=True, max_id=0))
+            await self._client(
+                DeleteHistoryRequest(peer=cid, just_clear=True, max_id=0)
+            )
 
         self._approve(cid, "banned")
 

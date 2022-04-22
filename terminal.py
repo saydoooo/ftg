@@ -205,7 +205,7 @@ class MessageEditor:
         strings,
         request_message,
     ):
-        self.message = [message]
+        self.message = message
         self.command = command
         self.stdout = ""
         self.stderr = ""

@@ -30,7 +30,7 @@ from telethon.tl.types import (
     InputDocument,
     InputMediaUploadedDocument,
     InputStickerSetShortName,
-    InputPeerSelf
+    InputPeerSelf,
 )
 
 from telethon.utils import get_input_document
@@ -163,7 +163,7 @@ class StickManagerMod(loader.Module):
         """<short_name> <name> [-a <alias>] - Create new pack"""
         args = utils.get_args_raw(message)
         if "-a" in args:
-            alias = args[args.find("-a") + 3:]
+            alias = args[args.find("-a") + 3 :]
             args = args[: args.find("-a")]
         else:
             alias = None
@@ -231,9 +231,9 @@ class StickManagerMod(loader.Module):
                 m = await conv.send_file(stick, force_document=True)
                 r = await conv.get_response()
 
-                if (
-                    "Now send me an emoji" not in r.raw_text
-                    and "Пожалуйста, отправьте мне новый смайл" not in r.raw_text
+                if not (
+                    "Now send me an emoji" in r.raw_text
+                    or ("Пожалуйста" in r.raw_text and "смайл" in r.raw_text)
                 ):
                     raise HikariException("UNEXPECTED_ANSWER - Error when sending file")
 
@@ -302,7 +302,7 @@ class StickManagerMod(loader.Module):
         """<short_name> <name> [-a <alias>] - Create new video stickers pack"""
         args = utils.get_args_raw(message)
         if "-a" in args:
-            alias = args[args.find("-a") + 3:]
+            alias = args[args.find("-a") + 3 :]
             args = args[: args.find("-a")]
         else:
             alias = None
@@ -776,7 +776,9 @@ class StickManagerMod(loader.Module):
 
         emoji = "".join(distinct_emoji_lis(emoji))
 
-        if getattr(getattr(reply.media, "document", None), "mime_type", "").startswith("video"):
+        if getattr(getattr(reply.media, "document", None), "mime_type", "").startswith(
+            "video"
+        ):
             if "video" not in pack:
                 pack = [
                     self.find(_) for _, p in self.stickersets.items() if "video" in p

@@ -1,4 +1,4 @@
-__version__ = (10, 0, 1)
+__version__ = (10, 0, 3)
 
 # █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
 # █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
@@ -63,6 +63,7 @@ from telethon.tl.functions.channels import (
     GetParticipantRequest,
     InviteToChannelRequest,
     EditAdminRequest,
+    GetFullChannelRequest,
 )
 
 from math import ceil
@@ -345,7 +346,13 @@ class HikariChatAPI:
 
                     await wss.send(json.dumps({"ok": True, "queue": self._queue}))
                     self._queue = []
-
+                    for chat in self.chats:
+                        if str(chat) not in self.module._linked_channels:
+                            channel = (
+                                await self._client(GetFullChannelRequest(int(chat)))
+                            ).full_chat.linked_chat_id
+                            self.module._linked_channels[str(chat)] = channel or False
+                
                 if ans["event"] == "queue_status":
                     await self._client.edit_message(
                         ans["chat_id"],
@@ -501,8 +508,8 @@ class HikariChatMod(loader.Module):
         "no_warns": '👮‍♂️ <b><a href="{}">{}</a> has no warns yet</b>',
         "warns": '👮‍♂️ <b><a href="{}">{}</a> has {}/{} warns</b>\n<i>{}</i>',
         "warns_adm_fed": "👮‍♂️ <b>Warns in this federation</b>:\n",
-        "dwarn_fed": '👮‍♂️ <b>Forgave last federative warn from <a href="tg://user?id={}">{}</a></b>',
-        "clrwarns_fed": '👮‍♂️ <b>Forgave all federative warns from <a href="tg://user?id={}">{}</a></b>',
+        "dwarn_fed": '👮‍♂️ <b>Forgave last federative warn of <a href="tg://user?id={}">{}</a></b>',
+        "clrwarns_fed": '👮‍♂️ <b>Forgave all federative warns of <a href="tg://user?id={}">{}</a></b>',
         "warns_limit": '👮‍♂️ <b><a href="{}">{}</a> reached warns limit.\nAction: I {}</b>',
         "welcome": "👋 <b>Now I will greet people in this chat</b>\n{}",
         "unwelcome": "👋 <b>Now I will not greet people in this chat</b>",
@@ -593,7 +600,7 @@ class HikariChatMod(loader.Module):
         "error": "😵 <b>HikariChat Issued error</b>",
         "reported": '💼 <b><a href="{}">{}</a> reported this message to admins\nReason: </b><i>{}</i>',
         "no_federations": "💼 <b>You have no active federations</b>",
-        "clrallwarns_fed": "👮‍♂️ <b>Forgave all federative warns from federation</b>",
+        "clrallwarns_fed": "👮‍♂️ <b>Forgave all federative warns of federation</b>",
         "cleaning": "🧹 <b>Looking for Deleted accounts...</b>",
         "deleted": "🧹 <b>Removed {} Deleted accounts</b>",
         "fcleaning": "🧹 <b>Looking for Deleted accounts in federation...</b>",
@@ -602,7 +609,7 @@ class HikariChatMod(loader.Module):
         "btn_unwarn": "♻️ De-Warn (ADM)",
         "inline_unbanned": '🔓 <b><a href="{}">{}</a> unbanned by <a href="{}">{}</a></b>',
         "inline_unmuted": '🔈 <b><a href="{}">{}</a> unmuted by <a href="{}">{}</a></b>',
-        "inline_unwarned": '♻️ <b>Forgave last warn from <a href="{}">{}</a> by <a href="{}">{}</a></b>',
+        "inline_unwarned": '♻️ <b>Forgave last warn of <a href="{}">{}</a> by <a href="{}">{}</a></b>',
         "inline_funbanned": '🔓 <b><a href="{}">{}</a> unbanned in federation by <a href="{}">{}</a></b>',
         "inline_funmuted": '🔈 <b><a href="{}">{}</a> unmuted in federation by <a href="{}">{}</a></b>',
         "btn_funmute": "🔈 Fed Unmute (ADM)",
@@ -1595,9 +1602,7 @@ class HikariChatMod(loader.Module):
                 channel = await self._client.get_entity(self._linked_channels[str(c)])
                 kicked = 0
                 try:
-                    async for user in self._client.iter_participants(
-                        self._linked_channels[str(c)]
-                    ):  # fmt: ski[]
+                    async for user in self._client.iter_participants(self._linked_channels[str(c)]):  # fmt: skip
                         if user.deleted:
                             try:
                                 await self._client.kick_participant(
@@ -3699,7 +3704,7 @@ class HikariChatMod(loader.Module):
                 )
                 and len(
                     re.findall(
-                        "[\u0300-\u0361\u0316-\u0362\u0334-\u0338\u0363-\u036F\u3164\u0338\u0336\u0334\u200f\u200e\u200e\u0335\u0337\ud83d\udd07\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u2028\u205F\u3000]",
+                        "[\u200f\u200e\u0300-\u0361\u0316-\u0362\u0334-\u0338\u0363-\u036F\u3164\ud83d\udd07\u0020\u00A0\u2000-\u2009\u200A\u2028\u205F]",
                         get_full_name(user),
                     )
                 )

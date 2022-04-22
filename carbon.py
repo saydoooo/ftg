@@ -16,6 +16,7 @@ from .. import loader, utils
 import requests
 import logging
 from telethon.tl.types import Message
+import io
 
 # requires: urllib requests
 
@@ -41,9 +42,9 @@ class CarbonMod(loader.Module):
         args = utils.get_args_raw(message)
 
         try:
-            code_from_message = (await self._client.download_file(message.media)).decode(
-                "utf-8"
-            )
+            code_from_message = (
+                await self._client.download_file(message.media)
+            ).decode("utf-8")
         except Exception:
             code_from_message = ""
 
@@ -63,14 +64,20 @@ class CarbonMod(loader.Module):
         except Exception:
             pass
 
-        await self._client.send_message(
-            utils.get_chat_id(message),
-            file=(
+        doc = io.BytesIO(
+            (
                 await utils.run_sync(
                     requests.post,
                     "https://carbonara-42.herokuapp.com/api/cook",
                     json={"code": args},
                 )
-            ).content,
+            ).content
+        )
+        doc.name = "carbonized.jpg"
+
+        await self._client.send_message(
+            utils.get_chat_id(message),
+            file=doc,
+            force_document=(len(args.splitlines()) > 50),
         )
         await message.delete()

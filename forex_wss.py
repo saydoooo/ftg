@@ -120,7 +120,7 @@ class RealTimeValutesMod(loader.Module):
         self._ratelimit = time.time() + 1
 
         try:
-            await self.inline._bot.edit_message_text(
+            await self.inline.bot.edit_message_text(
                 inline_message_id=call.inline_message_id,
                 text=self.strings("exchanges").format(
                     self._rates['USD'],
