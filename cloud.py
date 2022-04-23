@@ -20,11 +20,17 @@ import telethon
 import hashlib
 import base64
 from telethon.tl.types import Message
+import inspect
+import io
+import difflib
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @loader.tds
 class ModuleCloudMod(loader.Module):
-    """Search and suggest modules in HikariMods Database"""
+    """Hikari modules management"""
 
     strings = {
         "name": "ModuleCloud",
@@ -32,46 +38,16 @@ class ModuleCloudMod(loader.Module):
         "cannot_check_file": "<b>Can't read file...</b>",
         "cannot_join": "<b>Am I banned in hikari. chat?</b>",
         "sent": "<b>Module send for check</b>",
-        "tag": "<b>🦊 Request to add module to database</b>",
         "upload_error": "🦊 <b>Upload error</b>",
         "args": "🦊 <b>Args not specified</b>",
         "mod404": "🦊 <b>Module {} not found</b>",
-        "ilink": '<b><u>{name}</u> - <a href="https://mods.hikariatama.ru/view/{file}">source</a> </b><i>| by @hikarimods with 🫀</i>\nℹ️ <i>{desc}</i>\n{hikka_only}\n🌃 <b>Install:</b> <code>.dlmod https://mods.hikariatama.ru/{file}</code>',
+        "ilink": '<b><u>{name}</u> - <a href="https://mods.hikariatama.ru/view/{file}">source</a></b>\u0020\u2800|\u0020\u2800<i>By @hikarimods with ❤️‍🩹</i>\nℹ️ <i>{desc}</i>\n{hikka_only}\n🌃 <b>Install:</b> <code>.dlmod https://mods.hikariatama.ru/{file}</code>',
         "hikka_only": "\n👩‍🎤 <b><u>Hikka</u> only</b>\n",
     }
 
     async def client_ready(self, client, db):
         self._db = db
         self._client = client
-
-    async def addmodcmd(self, message: Message) -> None:
-        """<reply_to_file|file> - Send module to @hikka_talks to add to database"""
-        reply = await message.get_reply_message()
-        msid = message.id if not reply else reply.id
-
-        async def send(client):
-            await client.forward_messages(
-                "t.me/hikka_talks", [msid], utils.get_chat_id(message)
-            )
-            await client.send_message("t.me/hikka_talks", self.strings("tag", message))
-            await utils.answer(message, self.strings("sent", message))
-
-        # await send(self._client)
-
-        try:
-            await send(self._client)
-        except Exception:
-            try:
-                await self._client(
-                    telethon.tl.functions.channels.JoinChannelRequest(
-                        await self._client.get_entity("t.me/hikka_talks")
-                    )
-                )
-            except Exception:
-                await utils.answer(message, self.strings("cannot_join", message))
-                return
-
-            await send(self._client)
 
     async def search(self, entity, message: Message) -> None:
         args = utils.get_args_raw(message)
@@ -147,7 +123,9 @@ class ModuleCloudMod(loader.Module):
             )
             await message.delete()
         else:
-            await message.edit(self.strings("ilink").format(hikka_only=hikka_only, **info), file=img)
+            await message.edit(
+                self.strings("ilink").format(hikka_only=hikka_only, **info), file=img
+            )
 
     async def verifmodcmd(self, message: Message) -> None:
         """<filename>;<title>;<description>;<tags> - Verfiy module [only for @hikarimods admins]"""
@@ -198,10 +176,75 @@ class ModuleCloudMod(loader.Module):
         )
 
         await utils.answer(
-            message, "<b>👾 Module verified and can be found in @hikarimods_database</b>"
+            message,
+            "<b>👾 Module verified and can be found in @hikarimods_database</b>",
         )
         await self._client.send_message(
             "t.me/hikarimods_database",
             f"🦊 <b><u>{title}</u></b>\n<i>{description}</i>\n\n📋 <b><u>Команды:</u></b>\n{commands}\n🚀 <code>.dlmod {url}</code>\n\n#"
             + " #".join(tags.split(",")),
         )
+
+    async def mlcmd(self, message: Message):
+        """<module name> - Send link to module"""
+        args = utils.get_args_raw(message)
+        if not args:
+            await utils.answer(message, "🚫 <b>No args</b>")
+            return
+
+        try:
+            try:
+                class_name = next(
+                    module.strings["name"]
+                    for module in self.allmodules.modules
+                    if args.lower() == module.strings["name"].lower()
+                )
+            except Exception:
+                try:
+                    class_name = next(
+                        reversed(
+                            sorted(
+                                [
+                                    module.strings["name"]
+                                    for module in self.allmodules.modules
+                                ],
+                                key=lambda x: difflib.SequenceMatcher(
+                                    None,
+                                    args.lower(),
+                                    x,
+                                ).ratio(),
+                            )
+                        )
+                    )
+                except Exception:
+                    await utils.answer(message, "😔 <b>Module not found</b>")
+                    return
+
+            module = next(
+                filter(
+                    lambda mod: class_name.lower() == mod.strings["name"].lower(),
+                    self.allmodules.modules,
+                )
+            )
+
+            sys_module = inspect.getmodule(module)
+
+            link = module.__origin__
+
+            text = (
+                f"<b>🧳 {utils.escape_html(class_name)}</b>"
+                if not utils.check_url(link)
+                else f'📼 <b><a href="{link}">Link</a> for {utils.escape_html(class_name)}:</b> <code>{link}</code>'
+            )
+
+            file = io.BytesIO(sys_module.__loader__.data)
+            file.name = f"{class_name}.py"
+            file.seek(0)
+
+            await message.respond(text, file=file)
+
+            if message.out:
+                await message.delete()
+        except Exception:
+            raise
+            await utils.answer(message, "😔 <b>Module not found</b>")
