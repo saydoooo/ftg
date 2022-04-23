@@ -25,6 +25,7 @@ import json
 from urllib.parse import quote_plus
 import datetime
 from aiogram.utils.exceptions import MessageNotModified
+from ..inline.types import InlineCall
 
 logger = logging.getLogger(__name__)
 
@@ -41,28 +42,33 @@ class RealTimeValutesMod(loader.Module):
     }
 
     async def _connect(self) -> None:
-        r = await utils.run_sync(requests.get, f'https://rates-live.efxnow.com/signalr/negotiate?clientProtocol=2.1&connectionData=%5B%7B%22name%22%3A%22ratesstreamer%22%7D%5D&_={time.time() * 1000:.0f}')
+        r = await utils.run_sync(
+            requests.get,
+            f"https://rates-live.efxnow.com/signalr/negotiate?clientProtocol=2.1&connectionData=%5B%7B%22name%22%3A%22ratesstreamer%22%7D%5D&_={time.time() * 1000:.0f}",
+        )
 
-        token = quote_plus(r.json()['ConnectionToken'])
+        token = quote_plus(r.json()["ConnectionToken"])
         base = f"wss://rates-live.efxnow.com/signalr/connect?transport=webSockets&clientProtocol=2.1&connectionToken={token}&connectionData=%5B%7B%22name%22%3A%22ratesstreamer%22%7D%5D&tid=8"
 
         async with websockets.connect(base) as wss:
-            await wss.send('{"H":"ratesstreamer","M":"SubscribeToPricesUpdates","A":[["401203106","401203109"]],"I":8}')  # USD/RUB | EUR/RUB
+            await wss.send(
+                '{"H":"ratesstreamer","M":"SubscribeToPricesUpdates","A":[["401203106","401203109"]],"I":8}'
+            )  # USD/RUB | EUR/RUB
 
             self._restart_at = time.time() + 5 * 60
 
             while time.time() < self._restart_at:
                 rates = json.loads(await wss.recv())
-                if 'M' not in rates or not rates['M']:
+                if "M" not in rates or not rates["M"]:
                     continue
 
-                for row in rates['M']:
-                    if 'A' not in row:
+                for row in rates["M"]:
+                    if "A" not in row:
                         continue
 
-                    rate = row['A']
-                    valute = rate[0].split('|')[1].split('/')[0]
-                    rate = float(rate[0].split('|')[3])
+                    rate = row["A"]
+                    valute = rate[0].split("|")[1].split("/")[0]
+                    rate = float(rate[0].split("|")[3])
 
                     self._rates[valute] = rate
                     self._upd_time = time.time()
@@ -75,7 +81,9 @@ class RealTimeValutesMod(loader.Module):
 
         self._ratelimit = 0
 
-        self._reload_markup = self.inline._generate_markup({"text": "🔄 Update", "data": "update_exchanges"})
+        self._reload_markup = self.inline._generate_markup(
+            {"text": "🔄 Update", "data": "update_exchanges"}
+        )
 
         self._task = asyncio.ensure_future(self._connect())
 
@@ -83,12 +91,12 @@ class RealTimeValutesMod(loader.Module):
         """Show exchange rates"""
         try:
             m = self.strings("exchanges").format(
-                self._rates['USD'],
-                self._rates['EUR'],
-                getattr(datetime, 'datetime', datetime).fromtimestamp(self._upd_time)
+                self._rates["USD"],
+                self._rates["EUR"],
+                getattr(datetime, "datetime", datetime).fromtimestamp(self._upd_time),
             )
         except (KeyError, IndexError):
-            await utils.answer(message, self.strings('wss_error'))
+            await utils.answer(message, self.strings("wss_error"))
             return
 
         try:
@@ -102,14 +110,9 @@ class RealTimeValutesMod(loader.Module):
         except Exception:
             await utils.answer(message, m)
 
-    async def reload_callback_handler(
-        self,
-        call: "aiogram.types.CallbackQuery",  # noqa: F821
-    ):
-        """
-        Processes 'reload' button clicks
-        @allow: all
-        """
+    @loader.inline_everyone
+    async def reload_callback_handler(self, call: InlineCall):
+        """Processes 'reload' button clicks"""
         if call.data != "update_exchanges":
             return
 
@@ -123,9 +126,11 @@ class RealTimeValutesMod(loader.Module):
             await self.inline.bot.edit_message_text(
                 inline_message_id=call.inline_message_id,
                 text=self.strings("exchanges").format(
-                    self._rates['USD'],
-                    self._rates['EUR'],
-                    getattr(datetime, 'datetime', datetime).fromtimestamp(self._upd_time)
+                    self._rates["USD"],
+                    self._rates["EUR"],
+                    getattr(datetime, "datetime", datetime).fromtimestamp(
+                        self._upd_time
+                    ),
                 ),
                 reply_markup=self._reload_markup,
                 parse_mode="HTML",
@@ -133,10 +138,12 @@ class RealTimeValutesMod(loader.Module):
 
             await call.answer("😌 Exchange rates update complete!", show_alert=True)
         except (IndexError, KeyError):
-            await call.answer('Socket connection error', show_alert=True)
+            await call.answer("Socket connection error", show_alert=True)
             return
         except MessageNotModified:
-            await call.answer('Exchange rates have not changes since last update', show_alert=True)
+            await call.answer(
+                "Exchange rates have not changes since last update", show_alert=True
+            )
             return
 
     async def on_unload(self) -> None:

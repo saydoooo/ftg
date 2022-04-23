@@ -19,8 +19,7 @@ from telethon.tl.types import Message
 import logging
 import aiohttp
 import re
-from typing import Union, List
-from aiogram.types import CallbackQuery
+from ..inline.types import InlineCall
 from random import choice
 from telethon.utils import get_display_name
 import asyncio
@@ -153,7 +152,7 @@ class WakaTimeMod(loader.Module):
             result,
         )
 
-    async def _set_face(self, call: CallbackQuery, face: str) -> None:
+    async def _set_face(self, call: InlineCall, face: str) -> None:
         self.set("face", face)
         await call.edit(self.strings("face_set").format(face))
 

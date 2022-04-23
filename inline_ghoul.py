@@ -16,7 +16,7 @@
 
 from .. import loader
 from telethon.tl.types import Message
-from aiogram.types import CallbackQuery
+from ..inline.types import InlineCall
 import logging
 import asyncio
 
@@ -33,10 +33,7 @@ class InlineGhoulMod(loader.Module):
         "tired": "😾 <b>I'm tired to count!</b>",
     }
 
-    async def inline_close(self, call: CallbackQuery) -> None:
-        await call.close()
-
-    async def inline__handler(self, call: CallbackQuery, correct: bool) -> None:
+    async def inline__handler(self, call: InlineCall, correct: bool) -> None:
         if not correct:
             await call.answer("NO!")
             return

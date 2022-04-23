@@ -18,10 +18,10 @@ import enum
 import copy
 from .. import loader
 from telethon.tl.types import Message
-from aiogram.types import CallbackQuery
 from typing import List
 from random import choice
 from telethon.utils import get_display_name
+from ..inline.types import InlineCall
 
 phrases = [
     "Your brain is just a joke... Use it!",
@@ -228,11 +228,15 @@ class TicTacToeMod(loader.Module):
         self._games = {}
         self._me = await client.get_me()
 
-    async def inline__close(self, call: CallbackQuery) -> None:
+    async def inline__close(self, call: InlineCall) -> None:
         await call.delete()
 
     async def _process_click(
-        self, call: CallbackQuery, i: int, j: int, line: str
+        self,
+        call: InlineCall,
+        i: int,
+        j: int,
+        line: str,
     ) -> None:
         if call.from_user.id not in [
             self._me.id,
@@ -264,7 +268,7 @@ class TicTacToeMod(loader.Module):
         await call.edit(**self._render(call.form["uid"]))
 
     async def _process_click_ai(
-        self, call: CallbackQuery, i: int, j: int, line: str
+        self, call: InlineCall, i: int, j: int, line: str
     ) -> None:
         if call.form["uid"] not in self._games:
             await call.answer(self.strings("game_discarded"))
@@ -380,7 +384,7 @@ class TicTacToeMod(loader.Module):
 
         return {"text": text, "reply_markup": kb}
 
-    async def inline__start_game(self, call: CallbackQuery) -> None:
+    async def inline__start_game(self, call: InlineCall) -> None:
         if call.from_user.id == self._me.id:
             await call.answer(self.strings("not_with_yourself"))
             return
@@ -400,7 +404,7 @@ class TicTacToeMod(loader.Module):
 
         await call.edit(**self._render(uid))
 
-    async def inline__start_game_ai(self, call: CallbackQuery) -> None:
+    async def inline__start_game_ai(self, call: InlineCall) -> None:
         uid = call.form["uid"]
 
         user = await self._client.get_entity(call.from_user.id)

@@ -19,9 +19,9 @@ import requests
 import random
 import base64
 from typing import Union
-from aiogram.types import CallbackQuery
 import asyncio
 import io
+from ..inline.types import InlineCall
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +134,7 @@ class ArtAIMod(loader.Module):
 
     async def _process_engine(
         self,
-        call: CallbackQuery,
+        call: InlineCall,
         engine: str,
         chat_id: int,
         message_id: int,

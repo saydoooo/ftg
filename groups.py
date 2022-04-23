@@ -94,7 +94,8 @@ class GroupsMod(loader.Module):
         return user
 
     async def inline__close(
-        self, call: "aigoram.types.CallbackQuery"  # noqa: F821
+        self,
+        call: "aigoram.types.CallbackQuery",  # noqa: F821
     ) -> None:
         await call.delete()
 

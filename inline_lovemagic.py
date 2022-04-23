@@ -18,7 +18,7 @@ import random
 from .. import utils, loader
 from asyncio import sleep
 from telethon.tl.types import Message
-from aiogram.types import CallbackQuery
+from ..inline.types import InlineCall
 
 
 @loader.tds
@@ -30,7 +30,7 @@ class ILYMod(loader.Module):
         "message": "<b>❤️‍🔥 I want to tell you something...</b>\n<i>{}</i>",
     }
 
-    async def inline__handler(self, call: CallbackQuery, text: str) -> None:
+    async def inline__handler(self, call: InlineCall, text: str) -> None:
         arr = ["❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "💖"]
         h = "🤍"
         for i in arr:
@@ -199,7 +199,7 @@ class ILYMod(loader.Module):
 
         await call.unload()
 
-    async def inline__handler_gay(self, call: CallbackQuery, text):
+    async def inline__handler_gay(self, call: InlineCall, text):
         heart_template = """🤍🤍🧡🧡🤍🤍🤍🧡🧡🤍🤍
 🤍🧡🧡🧡🧡🤍🧡🧡🧡🧡🤍
 🧡🧡🧡🧡🧡🧡🧡🧡🧡🧡🧡

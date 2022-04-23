@@ -16,7 +16,7 @@
 
 from .. import loader, utils
 from telethon.tl.types import Message
-from aiogram.types import CallbackQuery
+from ..inline.types import InlineCall
 import logging
 import requests
 import json
@@ -61,9 +61,6 @@ class TruthOrDareMod(loader.Module):
         self._client = client
         if self.get("lang") in {"ru", "en"}:
             self._update_lang()
-
-    async def inline__close(self, call: CallbackQuery) -> None:
-        await call.delete()
 
     async def truth_or_dare(self, tod: str, category: str) -> str:
         return random.choice(
@@ -121,7 +118,7 @@ class TruthOrDareMod(loader.Module):
             ],
         ]
 
-    async def _inline_set_language(self, call: CallbackQuery, lang: str) -> None:
+    async def _inline_set_language(self, call: InlineCall, lang: str) -> None:
         self.set("lang", lang)
         await call.answer(self.strings(f"language_saved_{lang}"), show_alert=True)
         self._update_lang()
@@ -131,7 +128,7 @@ class TruthOrDareMod(loader.Module):
 
     async def _inline_process(
         self,
-        call: CallbackQuery,
+        call: InlineCall,
         action: str,
         category: str,
     ) -> None:
@@ -152,7 +149,7 @@ class TruthOrDareMod(loader.Module):
             ],
         )
 
-    async def _inline_start(self, call: CallbackQuery, category: str) -> None:
+    async def _inline_start(self, call: InlineCall, category: str) -> None:
         await call.edit(
             self.strings(f"truth_or_dare_{self.get('lang')}"),
             reply_markup=[

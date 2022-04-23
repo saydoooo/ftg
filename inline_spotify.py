@@ -15,7 +15,7 @@
 
 from .. import loader
 from telethon.tl.types import Message
-from aiogram.types import CallbackQuery
+from ..inline.types import InlineCall
 import logging
 import asyncio
 import time
@@ -71,37 +71,37 @@ class InlineSpotifyMod(loader.Module):
         for task in self._tasks:
             task.cancel()
 
-    async def inline_close(self, call: CallbackQuery) -> None:
+    async def inline_close(self, call: InlineCall) -> None:
         if call.form["uid"] in self._active_forms:
             self._active_forms.remove(call.form["uid"])
 
         await call.delete()
 
-    async def sp_previous(self, call: CallbackQuery) -> None:
+    async def sp_previous(self, call: InlineCall) -> None:
         self.sp.previous_track()
         await self.inline_iter(call, True)
 
-    async def sp_next(self, call: CallbackQuery) -> None:
+    async def sp_next(self, call: InlineCall) -> None:
         self.sp.next_track()
         await self.inline_iter(call, True)
 
-    async def sp_pause(self, call: CallbackQuery) -> None:
+    async def sp_pause(self, call: InlineCall) -> None:
         self.sp.pause_playback()
         await self.inline_iter(call, True)
 
-    async def sp_play(self, call: CallbackQuery) -> None:
+    async def sp_play(self, call: InlineCall) -> None:
         self.sp.start_playback()
         await self.inline_iter(call, True)
 
-    async def sp_shuffle(self, call: CallbackQuery, state: bool) -> None:
+    async def sp_shuffle(self, call: InlineCall, state: bool) -> None:
         self.sp.shuffle(state)
         await self.inline_iter(call, True)
 
-    async def sp_repeat(self, call: CallbackQuery, state: bool) -> None:
+    async def sp_repeat(self, call: InlineCall, state: bool) -> None:
         self.sp.repeat(state)
         await self.inline_iter(call, True)
 
-    async def sp_play_track(self, call: CallbackQuery, query: str) -> None:
+    async def sp_play_track(self, call: InlineCall, query: str) -> None:
         try:
             track = self.sp.track(query)
         except Exception:
@@ -115,7 +115,10 @@ class InlineSpotifyMod(loader.Module):
         self.sp.next_track()
 
     async def inline_iter(
-        self, call: CallbackQuery, once: bool = False, uid: str = False
+        self,
+        call: InlineCall,
+        once: bool = False,
+        uid: str = False,
     ) -> None:
         if not uid:
             uid = call.form["uid"]
@@ -176,7 +179,7 @@ class InlineSpotifyMod(loader.Module):
 
             await asyncio.sleep(10)
 
-    async def inline__open(self, call: CallbackQuery) -> None:
+    async def inline__open(self, call: InlineCall) -> None:
         self._tasks += [asyncio.ensure_future(self.inline_iter(call))]
 
     async def splayercmd(self, message: Message) -> None:

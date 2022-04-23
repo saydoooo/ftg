@@ -20,7 +20,8 @@ import time
 from telethon.utils import get_display_name
 
 from aiogram.types import Message as AiogramMessage
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from ..inline.types import InlineCall
 
 logger = logging.getLogger(__name__)
 
@@ -86,11 +87,9 @@ class FeedbackMod(loader.Module):
             self._ratelimit[message.from_user.id] = time.time() + 60
             self.inline.ss(message.from_user.id, False)
 
-    async def feedback_callback_handler(self, call: CallbackQuery) -> None:
-        """
-        Handles button clicks
-        @allow: all
-        """
+    @loader.inline_everyone
+    async def feedback_callback_handler(self, call: InlineCall) -> None:
+        """Handles button clicks"""
         if call.data == "fb_cancel":
             self.inline.ss(call.from_user.id, False)
             await self._bot.delete_message(

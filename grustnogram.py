@@ -32,7 +32,7 @@ from requests_toolbelt import MultipartEncoder
 import random
 import asyncio
 
-from aiogram.types import CallbackQuery
+from ..inline.types import InlineCall
 
 logger = logging.getLogger(__name__)
 
@@ -280,7 +280,7 @@ class GrustnoGramMod(loader.Module):
             ),
         )
 
-    async def inline_delete(self, call: CallbackQuery, id_: int) -> None:
+    async def inline_delete(self, call: InlineCall, id_: int) -> None:
         result = await self._delete(id_)
         if any(result["err_msg"]):
             await self._api_error(call, result)

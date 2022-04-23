@@ -1,3 +1,4 @@
+__version__ = (1, 0, 2)
 # █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
 # █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 #
@@ -12,14 +13,12 @@
 # meta developer: @hikariatama
 # scope: inline
 # scope: hikka_only
-# scope: hikka_min 1.0.29
+# scope: hikka_min 1.1.6
 
 from .. import loader, utils
-from aiogram.types import CallbackQuery
 import logging
-from ..inline.types import InlineQuery
+from ..inline.types import InlineQuery, InlineCall
 from telethon.utils import get_display_name
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -34,11 +33,6 @@ class SpoilersMod(loader.Module):
         self._db = db
         self._client = client
         self._me = (await client.get_me()).id
-        self._messages = {
-            message_id: message
-            for message_id, message in self.get("messages", {}).items()
-            if message["ttl"] > time.time()
-        }
 
     async def hide_inline_handler(self, query: InlineQuery) -> None:
         """Create new hidden message"""
@@ -55,19 +49,6 @@ class SpoilersMod(loader.Module):
                 for_user = "Hidden message for " + get_display_name(user)
                 for_user_id = user.id
 
-        message_id = None
-
-        if for_user_id:
-            message_id = utils.rand(16)
-
-            self._messages[message_id] = {
-                "text": " ".join(text.split(" ")[:-1]),
-                "ttl": round(time.time() + 12 * 60 * 60),
-                "for": for_user_id,
-            }
-
-            self.set("messages", self._messages)
-
         return {
             "title": for_user,
             "description": "ℹ Only (s)he will be able to open it",
@@ -77,22 +58,24 @@ class SpoilersMod(loader.Module):
                 else "🚫 <b>User not specified</b>"
             ),
             "thumb": "https://img.icons8.com/color/48/000000/anonymous-mask.png",
-            "reply_markup": {"text": "👀 Open", "data": message_id}
-            if message_id
+            "reply_markup": {
+                "text": "👀 Open",
+                "callback": self._handler,
+                "args": (" ".join(text.split(" ")[:-1]), for_user_id),
+                "always_allow": [for_user_id],
+            }
+            if for_user_id
             else {},
         }
 
-    @loader.inline_everyone
-    async def button_callback_handler(self, call: CallbackQuery) -> None:
+    async def _handler(self, call: InlineCall, text: str, for_user: int) -> None:
         """Process button presses"""
-        if (
-            call.data not in self._messages
-            or call.from_user.id != self._messages[call.data]["for"]
-            and call.from_user.id != self._me
-        ):
+        if call.from_user.id not in {
+            for_user,
+            self._me,
+        }:
+            await call.answer("This button is not for you")
             return
 
-        await call.answer(self._messages[call.data]["text"], show_alert=True)
-
-        if call.from_user.id != self._me:
-            del self._messages[call.data]
+        await call.answer(text, show_alert=True)
+        await call.edit("🕔 <b>Seen</b>")

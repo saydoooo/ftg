@@ -1,3 +1,4 @@
+__version__ = (1, 0, 1)
 # █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
 # █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 #
@@ -12,19 +13,11 @@
 # meta developer: @hikariatama
 # scope: inline
 # scope: hikka_only
+# scope: hikka_min 1.1.6
 
-from .. import loader, utils
-from aiogram.types import (
-    CallbackQuery,
-    InlineKeyboardMarkup,
-    InlineQueryResultArticle,
-    InlineKeyboardButton,
-    InputTextMessageContent,
-)
+from .. import loader
 import logging
-from ..inline.types import InlineQuery
-from telethon.tl.types import Message
-import time
+from ..inline.types import InlineQuery, InlineCall
 
 logger = logging.getLogger(__name__)
 
@@ -39,91 +32,27 @@ class LongReadMod(loader.Module):
         "longread": "🗄 <b>This is long read</b>\n<i>Click button to show text!\nThis button is active withing 6 hours</i>",
     }
 
-    async def client_ready(self, client, db) -> None:
-        self._db = db
-        self._longreads = {
-            id_: obj
-            for id_, obj in self.get("longreads", {}).items()
-            if obj["ttl"] > time.time()
-        }
-
-    async def inline__close(self, call: CallbackQuery) -> None:
-        await call.delete()
-
-    def _create_longread(self, text: str) -> InlineKeyboardMarkup:
-        message_id = utils.rand(16)
-
-        self._longreads[message_id] = {
-            "text": text,
-            "ttl": round(time.time() + 6 * 60 * 60),
-        }
-
-        self.set("longreads", self._longreads)
-
-        return message_id
-
     async def lr_inline_handler(self, query: InlineQuery) -> None:
         """Create new hidden message"""
         text = query.args
 
         if not text:
-            return
+            return await query.e400()
 
-        markup = InlineKeyboardMarkup()
-        markup.add(
-            InlineKeyboardButton(
-                "📖 Open spoiler", callback_data=self._create_longread(text)
-            )
-        )
+        return {
+            "title": "Create new longread",
+            "description": "ℹ This will create button-spoiler",
+            "thumb": "https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-read-free-time-wanicon-flat-wanicon.png",
+            "message": self.strings("longread"),
+            "reply_markup": {
+                "text": "📖 Open spoiler",
+                "callback": self._handler,
+                "args": (text,),
+                "disable_security": True,
+            },
+        }
 
-        await query.answer(
-            [
-                InlineQueryResultArticle(
-                    id=utils.rand(20),
-                    title="Create new longread",
-                    description="ℹ This will create button-spoiler",
-                    input_message_content=InputTextMessageContent(
-                        self.strings("longread"),
-                        "HTML",
-                        disable_web_page_preview=True,
-                    ),
-                    thumb_url="https://img.icons8.com/external-wanicon-flat-wanicon/64/000000/external-read-free-time-wanicon-flat-wanicon.png",
-                    thumb_width=128,
-                    thumb_height=128,
-                    reply_markup=markup,
-                )
-            ],
-            cache_time=0,
-        )
-
-    async def lrcmd(self, message: Message) -> None:
-        """<text> - Create new longread"""
-        args = utils.get_args_raw(message)
-        if not args:
-            await utils.answer(message, self.strings("no_text"))
-            return
-
-        await self.inline.form(
-            self.strings("longread"),
-            message=message,
-            reply_markup=[
-                [{"text": "📖 Open spoiler", "data": self._create_longread(args)}]
-            ],
-        )
-
-    async def button_callback_handler(self, call: CallbackQuery) -> None:
-        """Process button presses
-        @allow: all
-        """
-        if call.data not in self._longreads:
-            return
-
-        await self.inline.bot.edit_message_text(
-            inline_message_id=call.inline_message_id,
-            text=self._longreads[call.data]["text"],
-            disable_web_page_preview=True,
-        )
-
+    async def _handler(self, call: InlineCall, text: str) -> None:
+        """Process button presses"""
+        await call.edit(text)
         await call.answer()
-
-        del self._longreads[call.data]
