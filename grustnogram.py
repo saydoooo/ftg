@@ -125,7 +125,7 @@ class GrustnoGramMod(loader.Module):
         "notif_like": '🖤 <b><a href="https://grustnogram.ru/u/{0}">{0}</a> have broken heart from your <a href="https://grustnogram.ru/p/{1}">post</a></b>',
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
 
@@ -138,11 +138,11 @@ class GrustnoGramMod(loader.Module):
 
         self._task = asyncio.ensure_future(self._poller())
 
-    async def on_unload(self) -> None:
+    async def on_unload(self):
         if hasattr(self, "_task"):
             self._task.cancel()
 
-    def _register(self) -> None:
+    def _register(self):
         self.sadmecmd = self.sadmecmd_
         self.saduploadcmd = self.saduploadcmd_
 
@@ -230,7 +230,7 @@ class GrustnoGramMod(loader.Module):
             )
         ).json()
 
-    async def sadauthcmd_(self, message: Message) -> None:
+    async def sadauthcmd_(self, message: Message):
         """<email> <password> - Auth on grustnogram.ru"""
         args = utils.get_args_raw(message)
         try:
@@ -259,7 +259,7 @@ class GrustnoGramMod(loader.Module):
         )
         self._register()
 
-    async def sadmecmd_(self, message: Message) -> None:
+    async def sadmecmd_(self, message: Message):
         """Get sad banner"""
         await message.delete()
         me = (await self._get_self())["data"]
@@ -269,7 +269,7 @@ class GrustnoGramMod(loader.Module):
             caption=f"https://grustnogram.ru/u/{me['nickname']}",
         )
 
-    async def _api_error(self, message: Message, result: dict) -> None:
+    async def _api_error(self, message: Message, result: dict):
         await utils.answer(
             message,
             self.strings("api_error").format(
@@ -280,7 +280,7 @@ class GrustnoGramMod(loader.Module):
             ),
         )
 
-    async def inline_delete(self, call: InlineCall, id_: int) -> None:
+    async def inline_delete(self, call: InlineCall, id_: int):
         result = await self._delete(id_)
         if any(result["err_msg"]):
             await self._api_error(call, result)
@@ -289,7 +289,7 @@ class GrustnoGramMod(loader.Module):
         await call.edit(self.strings("deleted"))
         await call.unload()
 
-    async def _poller(self) -> None:
+    async def _poller(self):
         try:
             while True:
                 if not self.get("token"):
@@ -357,7 +357,7 @@ class GrustnoGramMod(loader.Module):
         except Exception:
             logger.exception("GrustnoGram poller got himself in trouble!")
 
-    async def saduploadcmd_(self, message: Message) -> None:
+    async def saduploadcmd_(self, message: Message):
         """Upload image to Grustnogram"""
         reply = await message.get_reply_message()
         if not reply or not reply.photo:

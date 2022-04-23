@@ -28,7 +28,7 @@ class Web2fileMod(loader.Module):
         "loading": "🦊 <b>Downloading...</b>",
     }
 
-    async def web2filecmd(self, message: Message) -> None:
+    async def web2filecmd(self, message: Message):
         """Send link content as file"""
         website = utils.get_args_raw(message)
         if not website:

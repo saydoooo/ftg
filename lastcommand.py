@@ -32,6 +32,6 @@ class LastCommandMod(loader.Module):
 
         self.allmodules.dispatch = _disp_wrap
 
-    async def lccmd(self, message: Message) -> None:
+    async def lccmd(self, message: Message):
         """Execute last command"""
         await self.allmodules.last_command(message)

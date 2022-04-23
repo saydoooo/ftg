@@ -155,11 +155,11 @@ class WolframAlphaMod(loader.Module):
         "hard": "🤯 <b>I don't know how to solve this problem</b>",
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
 
-    async def wolframcmd(self, message: Message) -> None:
+    async def wolframcmd(self, message: Message):
         """Solve mathematic problem"""
         args = utils.get_args_raw(message)
         if not args:

@@ -114,11 +114,11 @@ class ArtAIMod(loader.Module):
         "queued": "🚽 <b>Waiting in queue...</b>",
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
 
-    async def artaicmd(self, message: Message) -> None:
+    async def artaicmd(self, message: Message):
         """<photo> - Create anime art from photo"""
         reply = await message.get_reply_message()
 
@@ -138,7 +138,7 @@ class ArtAIMod(loader.Module):
         engine: str,
         chat_id: int,
         message_id: int,
-    ) -> None:
+    ):
         await call.edit(self.strings("uploading"))
         media = await self._client.download_media(
             (

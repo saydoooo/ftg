@@ -47,10 +47,10 @@ class CatgirlMod(loader.Module):
 
     strings = {"name": "Catgirl"}
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._client = client
 
-    async def catgirlcmd(self, message: Message) -> None:
+    async def catgirlcmd(self, message: Message):
         """[nsfw] - Send catgirl picture"""
         await self.inline.gallery(
             caption=lambda: f"<i>{utils.escape_html(utils.ascii_face())}</i>",

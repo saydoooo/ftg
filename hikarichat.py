@@ -292,7 +292,7 @@ class HikariChatAPI:
         client: "TelegramClient",  # noqa: F821
         db: "Database",  # noqa: F821
         module: "HikariChatMod",  # noqa: F821
-    ) -> None:
+    ):
         """Entry point"""
         self._client = client
         self._me = (await client.get_me()).id
@@ -315,7 +315,7 @@ class HikariChatAPI:
         self._task = asyncio.ensure_future(self._connect())
         await self.init_done.wait()
 
-    async def _wss(self) -> None:
+    async def _wss(self):
         async with websockets.connect(
             f"wss://hikarichat.hikariatama.ru/ws/{self._db.get('HikkaDL', 'token')}"
         ) as wss:
@@ -360,7 +360,7 @@ class HikariChatAPI:
                         ans["text"],
                     )
 
-    async def _connect(self) -> None:
+    async def _connect(self):
         while True:
             try:
                 await self._wss()
@@ -380,7 +380,7 @@ class HikariChatAPI:
 
             await asyncio.sleep(5)
 
-    def request(self, payload: dict, message: Union[Message, None] = None) -> None:
+    def request(self, payload: dict, message: Union[Message, None] = None):
         if isinstance(message, Message):
             payload = {
                 **payload,
@@ -429,7 +429,7 @@ class HikariChatAPI:
 
                 return r["verdict"]
 
-    async def _get_token(self) -> None:
+    async def _get_token(self):
         async with self._client.conversation(self._bot) as conv:
             m = await conv.send_message("/token")
             r = await conv.get_response()
@@ -664,7 +664,7 @@ class HikariChatMod(loader.Module):
             lambda: "How many users per minute need to join until ban starts",
         )
 
-    async def on_unload(self) -> None:
+    async def on_unload(self):
         self.api._task.cancel()
 
     def lookup(self, modname: str):
@@ -677,14 +677,14 @@ class HikariChatMod(loader.Module):
             False,
         )
 
-    def save_join_ratelimit(self) -> None:
+    def save_join_ratelimit(self):
         """
         Saves BanNinja ratelimit to fs
         """
         with open("join_ratelimit.json", "w") as f:
             f.write(json.dumps(self._join_ratelimit))
 
-    def save_flood_cache(self) -> None:
+    def save_flood_cache(self):
         """
         Saves AntiFlood ratelimit to fs
         """
@@ -796,10 +796,10 @@ class HikariChatMod(loader.Module):
 
         return {"text": answer_message, "reply_markup": btns}
 
-    async def _inline_config(self, call: CallbackQuery, chat: Union[str, int]) -> None:
+    async def _inline_config(self, call: CallbackQuery, chat: Union[str, int]):
         await call.edit(**(await self.get_config(chat)))
 
-    async def _inline_close(self, call: CallbackQuery) -> None:
+    async def _inline_close(self, call: CallbackQuery):
         await call.delete()
 
     async def _change_protection_state(
@@ -808,7 +808,7 @@ class HikariChatMod(loader.Module):
         chat: Union[str, int],
         protection: str,
         state: Union[str, None] = None,
-    ) -> None:
+    ):
         if protection == "welcome":
             await call.answer("Use .welcome to configure this option!", show_alert=True)
             return
@@ -908,7 +908,7 @@ class HikariChatMod(loader.Module):
             await self._inline_config(call, chat)
 
     @error_handler
-    async def protect(self, message: Message, protection: str) -> None:
+    async def protect(self, message: Message, protection: str):
         """
         Protection toggle handler
         """
@@ -1004,7 +1004,7 @@ class HikariChatMod(loader.Module):
         reason: str = None,
         message: Union[None, Message] = None,
         silent: bool = False,
-    ) -> None:
+    ):
         """Ban user in chat"""
         if str(user).isdigit():
             user = int(user)
@@ -1088,7 +1088,7 @@ class HikariChatMod(loader.Module):
         reason: str = None,
         message: Union[None, Message] = None,
         silent: bool = False,
-    ) -> None:
+    ):
         """Mute user in chat"""
         if str(user).isdigit():
             user = int(user)
@@ -1164,7 +1164,7 @@ class HikariChatMod(loader.Module):
                 message or chat.id, msg
             )
 
-    async def actions_callback_handler(self, call: CallbackQuery) -> None:
+    async def actions_callback_handler(self, call: CallbackQuery):
         """
         Handles unmute\\unban button clicks
         @allow: all
@@ -1462,7 +1462,7 @@ class HikariChatMod(loader.Module):
         violation: str,
         action: str,
         user_name: str,
-    ) -> None:
+    ):
         """Callback, called if the protection is triggered"""
         if action == "ban":
             comment = "banned him"
@@ -1504,7 +1504,7 @@ class HikariChatMod(loader.Module):
             )
 
     @error_handler
-    async def versioncm_(self, message: Message) -> None:
+    async def versioncm_(self, message: Message):
         """Get module info"""
         await utils.answer(
             message,
@@ -1518,7 +1518,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def deletedcm_(self, message: Message) -> None:
+    async def deletedcm_(self, message: Message):
         """Remove deleted accounts from chat"""
         chat = await message.get_chat()
 
@@ -1550,7 +1550,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def fcleancm_(self, message: Message) -> None:
+    async def fcleancm_(self, message: Message):
         """Remove deleted accounts from federation"""
         fed = await self.find_fed(message)
 
@@ -1637,7 +1637,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def newfedcm_(self, message: Message) -> None:
+    async def newfedcm_(self, message: Message):
         """<shortname> <name> - Create new federation"""
         args = utils.get_args_raw(message)
         if not args or args.count(" ") == 0:
@@ -1659,7 +1659,7 @@ class HikariChatMod(loader.Module):
 
         await utils.answer(message, self.strings("newfed").format(name))
 
-    async def inline__confirm_rmfed(self, call: CallbackQuery, args: str) -> None:
+    async def inline__confirm_rmfed(self, call: CallbackQuery, args: str):
         name = self.api.feds[args]["name"]
 
         self.api.request(
@@ -1668,12 +1668,12 @@ class HikariChatMod(loader.Module):
 
         await call.edit(self.strings("rmfed").format(name))
 
-    async def inline__close(self, call: CallbackQuery) -> None:
+    async def inline__close(self, call: CallbackQuery):
         await call.delete()
 
     @error_handler
     @chat_command
-    async def rmfedcm_(self, message: Message) -> None:
+    async def rmfedcm_(self, message: Message):
         """<shortname> - Remove federation"""
         args = utils.get_args_raw(message)
         if not args:
@@ -1706,7 +1706,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def fpromotecm_(self, message: Message) -> None:
+    async def fpromotecm_(self, message: Message):
         """<user> - Promote user in federation"""
         fed = await self.find_fed(message)
 
@@ -1754,7 +1754,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def fdemotecm_(self, message: Message) -> None:
+    async def fdemotecm_(self, message: Message):
         """<shortname> <reply|user> - Demote user in federation"""
         fed = await self.find_fed(message)
 
@@ -1804,7 +1804,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def faddcm_(self, message: Message) -> None:
+    async def faddcm_(self, message: Message):
         """<fed name> - Add chat to federation"""
         args = utils.get_args_raw(message)
         if not args:
@@ -1834,7 +1834,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def frmcm_(self, message: Message) -> None:
+    async def frmcm_(self, message: Message):
         """Remove chat from federation"""
         fed = await self.find_fed(message)
         if not fed:
@@ -1860,7 +1860,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def fbancm_(self, message: Message) -> None:
+    async def fbancm_(self, message: Message):
         """<reply | user> [reason] - Ban user in federation"""
         fed = await self.find_fed(message)
 
@@ -1960,7 +1960,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def punishsuffcm_(self, message: Message) -> None:
+    async def punishsuffcm_(self, message: Message):
         """Set new punishment suffix"""
         if not utils.get_args_raw(message):
             self.set("punish_suffix", "")
@@ -1972,7 +1972,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def sethclogcm_(self, message: Message) -> None:
+    async def sethclogcm_(self, message: Message):
         """Set logchat"""
         if not utils.get_args_raw(message):
             self.set("logchat", "")
@@ -1996,7 +1996,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def funbancm_(self, message: Message) -> None:
+    async def funbancm_(self, message: Message):
         """<user> [reason] - Unban user in federation"""
         fed = await self.find_fed(message)
 
@@ -2060,7 +2060,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def fmutecm_(self, message: Message) -> None:
+    async def fmutecm_(self, message: Message):
         """<reply | user> [reason] - Mute user in federation"""
         fed = await self.find_fed(message)
 
@@ -2152,7 +2152,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def funmutecm_(self, message: Message) -> None:
+    async def funmutecm_(self, message: Message):
         """<user> [reason] - Unban user in federation"""
         fed = await self.find_fed(message)
 
@@ -2216,7 +2216,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def kickcm_(self, message: Message) -> None:
+    async def kickcm_(self, message: Message):
         """<user> [reason] - Kick user"""
         chat = await message.get_chat()
 
@@ -2274,7 +2274,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def bancm_(self, message: Message) -> None:
+    async def bancm_(self, message: Message):
         """<user> [reason] - Ban user"""
         chat = await message.get_chat()
 
@@ -2297,7 +2297,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def mutecm_(self, message: Message) -> None:
+    async def mutecm_(self, message: Message):
         """<user> [time] [reason] - Mute user"""
         chat = await message.get_chat()
 
@@ -2320,7 +2320,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def unmutecm_(self, message: Message) -> None:
+    async def unmutecm_(self, message: Message):
         """<reply | user> - Unmute user"""
         chat = await message.get_chat()
 
@@ -2366,7 +2366,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def unbancm_(self, message: Message) -> None:
+    async def unbancm_(self, message: Message):
         """<user> - Unban user"""
         chat = await message.get_chat()
 
@@ -2414,12 +2414,12 @@ class HikariChatMod(loader.Module):
             return
 
     @error_handler
-    async def protectscm_(self, message: Message) -> None:
+    async def protectscm_(self, message: Message):
         """List available filters"""
         await utils.answer(message, self.strings("protections"))
 
     @error_handler
-    async def fedscm_(self, message: Message) -> None:
+    async def fedscm_(self, message: Message):
         """List federations"""
         res = self.strings("feds_header")
 
@@ -2445,7 +2445,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def fedcm_(self, message: Message) -> None:
+    async def fedcm_(self, message: Message):
         """<shortname> - Info about federation"""
         args = utils.get_args_raw(message)
         chat = utils.get_chat_id(message)
@@ -2515,7 +2515,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def pchatcm_(self, message: Message) -> None:
+    async def pchatcm_(self, message: Message):
         """List protection for current chat"""
         chat_id = utils.get_chat_id(message)
         try:
@@ -2529,7 +2529,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def warncm_(self, message: Message) -> None:
+    async def warncm_(self, message: Message):
         """<user> - Warn user"""
         chat = await message.get_chat()
 
@@ -2653,7 +2653,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def warnscm_(self, message: Message) -> None:
+    async def warnscm_(self, message: Message):
         """[user] - Show warns in chat \\ of user"""
         chat_id = utils.get_chat_id(message)
 
@@ -2771,7 +2771,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def delwarncm_(self, message: Message) -> None:
+    async def delwarncm_(self, message: Message):
         """<user> - Forgave last warn"""
         args = utils.get_args_raw(message)
         reply = await message.get_reply_message()
@@ -2812,7 +2812,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def clrwarnscm_(self, message: Message) -> None:
+    async def clrwarnscm_(self, message: Message):
         """<reply | user_id | username> - Remove all warns from user"""
         args = utils.get_args_raw(message)
         reply = await message.get_reply_message()
@@ -2850,7 +2850,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def clrallwarnscm_(self, message: Message) -> None:
+    async def clrallwarnscm_(self, message: Message):
         """Remove all warns from current federation"""
         fed = await self.find_fed(message)
 
@@ -2870,7 +2870,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def welcomecm_(self, message: Message) -> None:
+    async def welcomecm_(self, message: Message):
         """<text> - Change welcome text"""
         chat_id = utils.get_chat_id(message)
         args = utils.get_args_raw(message) or "off"
@@ -2890,7 +2890,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def fdefcm_(self, message: Message) -> None:
+    async def fdefcm_(self, message: Message):
         """<user> - Toggle global user invulnerability"""
         fed = await self.find_fed(message)
 
@@ -2932,7 +2932,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def fsavecm_(self, message: Message) -> None:
+    async def fsavecm_(self, message: Message):
         """<note name> <reply> - Save federative note"""
         fed = await self.find_fed(message)
 
@@ -2962,7 +2962,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def fstopcm_(self, message: Message) -> None:
+    async def fstopcm_(self, message: Message):
         """<note name> - Remove federative note"""
         fed = await self.find_fed(message)
 
@@ -2987,7 +2987,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def fnotescm_(self, message: Message, from_watcher: bool = False) -> None:
+    async def fnotescm_(self, message: Message, from_watcher: bool = False):
         """Show federative notes"""
         fed = await self.find_fed(message)
 
@@ -3024,7 +3024,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def fdeflistcm_(self, message: Message) -> None:
+    async def fdeflistcm_(self, message: Message):
         """Show global invulnerable users"""
         fed = await self.find_fed(message)
 
@@ -3060,7 +3060,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def dmutecm_(self, message: Message) -> None:
+    async def dmutecm_(self, message: Message):
         """Delete and mute"""
         reply = await message.get_reply_message()
         await self.mutecmd(message)
@@ -3068,7 +3068,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def dbancm_(self, message: Message) -> None:
+    async def dbancm_(self, message: Message):
         """Delete and ban"""
         reply = await message.get_reply_message()
         await self.bancmd(message)
@@ -3076,7 +3076,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def dwarncm_(self, message: Message) -> None:
+    async def dwarncm_(self, message: Message):
         """Delete and warn"""
         reply = await message.get_reply_message()
         await self.warncmd(message)
@@ -3084,7 +3084,7 @@ class HikariChatMod(loader.Module):
 
     @error_handler
     @chat_command
-    async def frenamecm_(self, message: Message) -> None:
+    async def frenamecm_(self, message: Message):
         """Rename federation"""
         args = utils.get_args_raw(message)
         fed = await self.find_fed(message)
@@ -3111,7 +3111,7 @@ class HikariChatMod(loader.Module):
         )
 
     @error_handler
-    async def myrightscm_(self, message: Message) -> None:
+    async def myrightscm_(self, message: Message):
         """List your admin rights in all chats"""
         if not PIL_AVAILABLE:
             await utils.answer(message, self.strings("pil_unavailable"))
@@ -3171,7 +3171,7 @@ class HikariChatMod(loader.Module):
             await message.delete()
 
     @error_handler
-    async def p__antiservice(self, chat_id: Union[str, int], message: Message) -> None:
+    async def p__antiservice(self, chat_id: Union[str, int], message: Message):
         if self.api.should_protect(chat_id, "antiservice") and getattr(
             message, "action_message", False
         ):
@@ -3346,7 +3346,7 @@ class HikariChatMod(loader.Module):
         user_id: Union[str, int],
         user: Union[User, Channel],
         message: Message,
-    ) -> None:
+    ):
         if not self.api.should_protect(chat_id, "report") or not getattr(
             message, "reply_to_msg_id", False
         ):
@@ -3743,7 +3743,7 @@ class HikariChatMod(loader.Module):
             return self.api.chats[str(chat_id)]["antistick"][0]
 
     @error_handler
-    async def watcher(self, message: Message) -> None:
+    async def watcher(self, message: Message):
         if not isinstance(getattr(message, "chat", 0), (Chat, Channel)):
             return
 
@@ -3938,7 +3938,7 @@ class HikariChatMod(loader.Module):
         self,
         client: "TelegramClient",  # noqa
         db: "hikka.database.Database",  # noqa
-    ) -> None:
+    ):
         """Entry point"""
         global api
 
@@ -4006,5 +4006,5 @@ class HikariChatMod(loader.Module):
     def get(self, *args) -> dict:
         return self._db.get(self.strings["name"], *args)
 
-    def set(self, *args) -> None:
+    def set(self, *args):
         return self._db.set(self.strings["name"], *args)

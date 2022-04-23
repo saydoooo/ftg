@@ -78,7 +78,7 @@ class BigTextMod(loader.Module):
 
     strings = {"name": "BigText"}
 
-    async def btcmd(self, message: Message) -> None:
+    async def btcmd(self, message: Message):
         """[chars in line] - Create big text"""
         args = utils.get_args_raw(message)
         cir = 6

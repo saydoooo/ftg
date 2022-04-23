@@ -49,7 +49,7 @@ class WaifuMod(loader.Module):
     """Unleash best waifus of all time"""
     strings = {"name": "Waifu"}
 
-    async def waifucmd(self, message: Message) -> None:
+    async def waifucmd(self, message: Message):
         """[nsfw] [category] - Send waifu"""
         category = (
             [
@@ -75,7 +75,7 @@ class WaifuMod(loader.Module):
             preload=10,
         )
 
-    async def waifuscmd(self, message: Message) -> None:
+    async def waifuscmd(self, message: Message):
         """Show available categories"""
         await utils.answer(
             message,

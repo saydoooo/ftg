@@ -40,7 +40,7 @@ class TodoMod(loader.Module):
             "🚫 Private",
         ]
 
-    async def tdcmd(self, message: Message) -> None:
+    async def tdcmd(self, message: Message):
         """<importance:int> <item> - Добавить задачу в todo"""
 
         args = utils.get_args_raw(message)
@@ -74,7 +74,7 @@ class TodoMod(loader.Module):
             ),
         )
 
-    async def tdlcmd(self, message: Message) -> None:
+    async def tdlcmd(self, message: Message):
         """Показать активные задачи"""
         res = "<b>#ToDo:</b>\n"
         items = {len(self.imp_levels) - i - 1: [] for i in range(len(self.imp_levels))}
@@ -95,7 +95,7 @@ class TodoMod(loader.Module):
 
         await utils.answer(message, res)
 
-    async def utdcmd(self, message: Message) -> None:
+    async def utdcmd(self, message: Message):
         """<id> - Удалить задачу из todo"""
         args = utils.get_args_raw(message)
         if args.startswith("#"):

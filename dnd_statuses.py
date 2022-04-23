@@ -42,7 +42,7 @@ class StatusesMod(loader.Module):
         self._ratelimit = []
         self._sent_messages = []
 
-    async def watcher(self, message: Message) -> None:
+    async def watcher(self, message: Message):
         if not isinstance(message, types.Message):
             return
 
@@ -85,7 +85,7 @@ class StatusesMod(loader.Module):
 
         self._ratelimit.append(chat)
 
-    async def statuscmd(self, message: Message) -> None:
+    async def statuscmd(self, message: Message):
         """<short_name> - Set status"""
         args = utils.get_args_raw(message)
         if args not in self._db.get("Statuses", "texts", {}):
@@ -104,7 +104,7 @@ class StatusesMod(loader.Module):
             ),
         )
 
-    async def newstatuscmd(self, message: Message) -> None:
+    async def newstatuscmd(self, message: Message):
         """<short_name> <notif|0/1> <text> - New status
         Example: .newstatus test 1 Hello!"""
         args = utils.get_args_raw(message)
@@ -130,7 +130,7 @@ class StatusesMod(loader.Module):
             ),
         )
 
-    async def delstatuscmd(self, message: Message) -> None:
+    async def delstatuscmd(self, message: Message):
         """<short_name> - Delete status"""
         args = utils.get_args_raw(message)
         if args not in self._db.get("Statuses", "texts", {}):
@@ -151,7 +151,7 @@ class StatusesMod(loader.Module):
             self.strings("status_removed", message).format(utils.escape_html(args)),
         )
 
-    async def unstatuscmd(self, message: Message) -> None:
+    async def unstatuscmd(self, message: Message):
         """Remove status"""
         if not self._db.get("Statuses", "status", False):
             await utils.answer(message, self.strings("no_status", message))
@@ -172,7 +172,7 @@ class StatusesMod(loader.Module):
 
         await utils.answer(message, self.strings("status_unset", message))
 
-    async def statusescmd(self, message: Message) -> None:
+    async def statusescmd(self, message: Message):
         """Show available statuses"""
         res = self.strings("available_statuses", message)
         for short_name, status in self._db.get("Statuses", "texts", {}).items():

@@ -38,7 +38,7 @@ class YouTubeMod(loader.Module):
         self._client = client
 
     @loader.unrestricted
-    async def ytcmd(self, message: Message) -> None:
+    async def ytcmd(self, message: Message):
         """[mp3] <link> - Download video from youtube"""
         args = utils.get_args_raw(message)
         message = await utils.answer(message, self.strings("downloading"))

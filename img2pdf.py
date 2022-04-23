@@ -33,7 +33,7 @@ class Img2PdfMod(loader.Module):
         self._client = client
 
     @loader.unrestricted
-    async def img2pdfcmd(self, message: Message) -> None:
+    async def img2pdfcmd(self, message: Message):
         """<filename | optional> - Pack images into pdf"""
         try:
             start_offset = (

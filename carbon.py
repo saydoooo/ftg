@@ -37,7 +37,7 @@ class CarbonMod(loader.Module):
         self._client = client
 
     @loader.unrestricted
-    async def carboncmd(self, message: Message) -> None:
+    async def carboncmd(self, message: Message):
         """<code> - Сделать красивую фотку кода"""
         args = utils.get_args_raw(message)
 

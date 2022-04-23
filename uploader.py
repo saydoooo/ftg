@@ -43,7 +43,7 @@ class FileUploaderMod(loader.Module):
         self._client = client
         self._db = db
 
-    async def get_media(self, message: Message) -> None:
+    async def get_media(self, message: Message):
         reply = await message.get_reply_message()
         m = None
         if reply and reply.media:
@@ -74,7 +74,7 @@ class FileUploaderMod(loader.Module):
 
         return file
 
-    async def get_image(self, message: Message) -> None:
+    async def get_image(self, message: Message):
         file = await self.get_media(message)
         if not file:
             return False
@@ -83,7 +83,7 @@ class FileUploaderMod(loader.Module):
             return False
         return file
 
-    async def x0cmd(self, message: Message) -> None:
+    async def x0cmd(self, message: Message):
         """Upload to x0.at"""
         await utils.answer(message, self.strings("uploading"))
         file = await self.get_media(message)
@@ -99,7 +99,7 @@ class FileUploaderMod(loader.Module):
         url = x0at.text
         await utils.answer(message, self.strings("uploaded").format(url))
 
-    async def imgurcmd(self, message: Message) -> None:
+    async def imgurcmd(self, message: Message):
         """Upload to imgur.com"""
         await utils.answer(message, self.strings("uploading"))
         file = await self.get_image(message)
@@ -132,7 +132,7 @@ class FileUploaderMod(loader.Module):
 
             await utils.answer(message, self.strings("uploaded").format(url))
 
-    async def oxocmd(self, message: Message) -> None:
+    async def oxocmd(self, message: Message):
         """Upload to 0x0.st"""
         await utils.answer(message, self.strings("uploading"))
         file = await self.get_media(message)

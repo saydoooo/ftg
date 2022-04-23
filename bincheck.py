@@ -27,7 +27,7 @@ class BinCheckerMod(loader.Module):
     }
 
     @loader.unrestricted
-    async def bincheckcmd(self, message: Message) -> None:
+    async def bincheckcmd(self, message: Message):
         """[bin] - Get card Bin info"""
         args = utils.get_args_raw(message)
         try:

@@ -48,7 +48,7 @@ class SilentTagsMod(loader.Module):
             silent=True,
         )
 
-    async def stagscmd(self, message: Message) -> None:
+    async def stagscmd(self, message: Message):
         """<on\\off> - Toggle notifications about tags"""
         args = utils.get_args_raw(message)
 
@@ -72,7 +72,7 @@ class SilentTagsMod(loader.Module):
             ),
         )
 
-    async def watcher(self, message: Message) -> None:
+    async def watcher(self, message: Message):
         try:
             if message.mentioned and self.stags:
                 await self._client.send_read_acknowledge(

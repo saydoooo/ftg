@@ -222,13 +222,13 @@ class TicTacToeMod(loader.Module):
         "not_with_yourself": "You can't play with yourself!",
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
         self._games = {}
         self._me = await client.get_me()
 
-    async def inline__close(self, call: InlineCall) -> None:
+    async def inline__close(self, call: InlineCall):
         await call.delete()
 
     async def _process_click(
@@ -237,7 +237,7 @@ class TicTacToeMod(loader.Module):
         i: int,
         j: int,
         line: str,
-    ) -> None:
+    ):
         if call.from_user.id not in [
             self._me.id,
             self._games[call.form["uid"]]["2_player"],
@@ -269,7 +269,7 @@ class TicTacToeMod(loader.Module):
 
     async def _process_click_ai(
         self, call: InlineCall, i: int, j: int, line: str
-    ) -> None:
+    ):
         if call.form["uid"] not in self._games:
             await call.answer(self.strings("game_discarded"))
             await call.delete()
@@ -384,7 +384,7 @@ class TicTacToeMod(loader.Module):
 
         return {"text": text, "reply_markup": kb}
 
-    async def inline__start_game(self, call: InlineCall) -> None:
+    async def inline__start_game(self, call: InlineCall):
         if call.from_user.id == self._me.id:
             await call.answer(self.strings("not_with_yourself"))
             return
@@ -404,7 +404,7 @@ class TicTacToeMod(loader.Module):
 
         await call.edit(**self._render(uid))
 
-    async def inline__start_game_ai(self, call: InlineCall) -> None:
+    async def inline__start_game_ai(self, call: InlineCall):
         uid = call.form["uid"]
 
         user = await self._client.get_entity(call.from_user.id)
@@ -430,7 +430,7 @@ class TicTacToeMod(loader.Module):
 
         await call.edit(**self._render_ai(uid))
 
-    async def tictactoecmd(self, message: Message) -> None:
+    async def tictactoecmd(self, message: Message):
         """Start new tictactoe game"""
         await self.inline.form(
             self.strings("gamestart"),
@@ -504,7 +504,7 @@ class TicTacToeMod(loader.Module):
 
         return {"text": text, "reply_markup": kb}
 
-    async def tictacaicmd(self, message: Message) -> None:
+    async def tictacaicmd(self, message: Message):
         """Play with 🐻 Bear (You have no chances to win)"""
         await self.inline.form(
             self.strings("gamestart_ai"),

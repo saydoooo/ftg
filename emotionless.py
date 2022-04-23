@@ -32,7 +32,7 @@ class EmotionlessMod(loader.Module):
 
     strings = {"name": "Emotionless", "state": "😑 <b>Emotionless mode is now {}</b>"}
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
         self._flood_protect = []
@@ -44,11 +44,11 @@ class EmotionlessMod(loader.Module):
         client.add_event_handler(*self.handler)
         self._task = asyncio.ensure_future(self._queue_handler())
 
-    async def on_unload(self) -> None:
+    async def on_unload(self):
         self._client.remove_event_handler(*self.handler)
         self._task.cancel()
 
-    async def noreactscmd(self, message: Message) -> None:
+    async def noreactscmd(self, message: Message):
         """Toggle reactions auto-reader"""
         state = not self.get("state", False)
         self.set("state", state)
@@ -56,7 +56,7 @@ class EmotionlessMod(loader.Module):
             message, self.strings("state").format("on" if state else "off")
         )
 
-    async def _queue_handler(self) -> None:
+    async def _queue_handler(self):
         while True:
 
             for chat, schedule in self._queue.copy().items():
@@ -67,7 +67,7 @@ class EmotionlessMod(loader.Module):
 
             await asyncio.sleep(5)
 
-    async def _handler(self, event: Raw) -> None:
+    async def _handler(self, event: Raw):
         try:
             if not isinstance(event, UpdateMessageReactions):
                 return

@@ -47,7 +47,7 @@ class InlineSpotifyMod(loader.Module):
 
     strings = {"name": "InlineSpotify"}
 
-    async def _reload_sp(self, once=False) -> None:
+    async def _reload_sp(self, once=False):
         while True:
             for mod in self.allmodules.modules:
                 if mod.strings("name") == "SpotifyNow":
@@ -59,7 +59,7 @@ class InlineSpotifyMod(loader.Module):
 
             await asyncio.sleep(5)
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self.sp = None
 
         self._tasks = [asyncio.ensure_future(self._reload_sp())]
@@ -67,41 +67,41 @@ class InlineSpotifyMod(loader.Module):
 
         self._active_forms = []
 
-    async def on_unload(self) -> None:
+    async def on_unload(self):
         for task in self._tasks:
             task.cancel()
 
-    async def inline_close(self, call: InlineCall) -> None:
+    async def inline_close(self, call: InlineCall):
         if call.form["uid"] in self._active_forms:
             self._active_forms.remove(call.form["uid"])
 
         await call.delete()
 
-    async def sp_previous(self, call: InlineCall) -> None:
+    async def sp_previous(self, call: InlineCall):
         self.sp.previous_track()
         await self.inline_iter(call, True)
 
-    async def sp_next(self, call: InlineCall) -> None:
+    async def sp_next(self, call: InlineCall):
         self.sp.next_track()
         await self.inline_iter(call, True)
 
-    async def sp_pause(self, call: InlineCall) -> None:
+    async def sp_pause(self, call: InlineCall):
         self.sp.pause_playback()
         await self.inline_iter(call, True)
 
-    async def sp_play(self, call: InlineCall) -> None:
+    async def sp_play(self, call: InlineCall):
         self.sp.start_playback()
         await self.inline_iter(call, True)
 
-    async def sp_shuffle(self, call: InlineCall, state: bool) -> None:
+    async def sp_shuffle(self, call: InlineCall, state: bool):
         self.sp.shuffle(state)
         await self.inline_iter(call, True)
 
-    async def sp_repeat(self, call: InlineCall, state: bool) -> None:
+    async def sp_repeat(self, call: InlineCall, state: bool):
         self.sp.repeat(state)
         await self.inline_iter(call, True)
 
-    async def sp_play_track(self, call: InlineCall, query: str) -> None:
+    async def sp_play_track(self, call: InlineCall, query: str):
         try:
             track = self.sp.track(query)
         except Exception:
@@ -119,7 +119,7 @@ class InlineSpotifyMod(loader.Module):
         call: InlineCall,
         once: bool = False,
         uid: str = False,
-    ) -> None:
+    ):
         if not uid:
             uid = call.form["uid"]
 
@@ -179,10 +179,10 @@ class InlineSpotifyMod(loader.Module):
 
             await asyncio.sleep(10)
 
-    async def inline__open(self, call: InlineCall) -> None:
+    async def inline__open(self, call: InlineCall):
         self._tasks += [asyncio.ensure_future(self.inline_iter(call))]
 
-    async def splayercmd(self, message: Message) -> None:
+    async def splayercmd(self, message: Message):
         """Send interactive Spotify player (active only for 5 minutes!)"""
         form_uid = await self.inline.form(
             "<b>🐻 Bear with us, while player is loading...</b>",

@@ -47,7 +47,7 @@ class FeedbackMod(loader.Module):
         "sent": "✅ <b>Your message has been sent to owner</b>",
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._me = (await client.get_me()).id
         self._name = utils.escape_html(get_display_name(await client.get_me()))
 
@@ -72,7 +72,7 @@ class FeedbackMod(loader.Module):
             "You can freely share it"
         )
 
-    async def aiogram_watcher(self, message: AiogramMessage) -> None:
+    async def aiogram_watcher(self, message: AiogramMessage):
         if message.text == "/start feedback":
             await message.answer(
                 self.strings("/start").format(self._name), reply_markup=self._markup
@@ -88,7 +88,7 @@ class FeedbackMod(loader.Module):
             self.inline.ss(message.from_user.id, False)
 
     @loader.inline_everyone
-    async def feedback_callback_handler(self, call: InlineCall) -> None:
+    async def feedback_callback_handler(self, call: InlineCall):
         """Handles button clicks"""
         if call.data == "fb_cancel":
             self.inline.ss(call.from_user.id, False)

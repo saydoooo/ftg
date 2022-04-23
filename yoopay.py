@@ -32,7 +32,7 @@ class YooMoneyMod(loader.Module):
         )
 
     @loader.unrestricted
-    async def yoopaycmd(self, message: Message) -> None:
+    async def yoopaycmd(self, message: Message):
         """<sum> <title> ; <comment> - Send payment link
         E.g: .yoopay 100 For coffee ; Bro, buy me a coffe, here is the link"""
         if len(self.config["account"]) != 16:

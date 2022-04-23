@@ -32,7 +32,7 @@ class LongReadMod(loader.Module):
         "longread": "🗄 <b>This is long read</b>\n<i>Click button to show text!\nThis button is active withing 6 hours</i>",
     }
 
-    async def lr_inline_handler(self, query: InlineQuery) -> None:
+    async def lr_inline_handler(self, query: InlineQuery):
         """Create new hidden message"""
         text = query.args
 
@@ -52,7 +52,7 @@ class LongReadMod(loader.Module):
             },
         }
 
-    async def _handler(self, call: InlineCall, text: str) -> None:
+    async def _handler(self, call: InlineCall, text: str):
         """Process button presses"""
         await call.edit(text)
         await call.answer()

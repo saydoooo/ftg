@@ -43,7 +43,7 @@ class MagicBroomMod(loader.Module):
         "result": "<b>🦊 Result:</b>\n",
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
 
@@ -95,7 +95,7 @@ class MagicBroomMod(loader.Module):
 
         return todel
 
-    async def broompcmd(self, message: Message) -> None:
+    async def broompcmd(self, message: Message):
         """<args> - Dry mode of broom"""
         ans = await self.broom(message)
         if ans is False:

@@ -43,7 +43,7 @@ class KeywordMod(loader.Module):
         self.keywords = db.get("Keyword", "keywords", {})
         self.bl = db.get("Keyword", "bl", [])
 
-    async def kwordcmd(self, message: Message) -> None:
+    async def kwordcmd(self, message: Message):
         """<keyword | could be in quotes | & for multiple words that should be in msg> <message | empty to remove keyword> [-r for full match] [-m for autoreading msg] [-l to log in pm] [-e for regular expressions]"""
         args = utils.get_args_raw(message)
         kw, ph, restrict, ar, l, e, c = "", "", False, False, False, False, False
@@ -104,7 +104,7 @@ class KeywordMod(loader.Module):
             self._db.set("Keyword", "keywords", self.keywords)
             return await utils.answer(message, self.strings("kw_removed").format(kw))
 
-    async def kwordscmd(self, message: Message) -> None:
+    async def kwordscmd(self, message: Message):
         """List current kwords"""
         res = ""
         for kw, ph in self.keywords.items():
@@ -129,7 +129,7 @@ class KeywordMod(loader.Module):
         await utils.answer(message, self.strings("kwords").format(res))
 
     @loader.group_admin_ban_users
-    async def kwblcmd(self, message: Message) -> None:
+    async def kwblcmd(self, message: Message):
         """Blacklist chat from answering keywords"""
         cid = utils.get_chat_id(message)
         if cid not in self.bl:
@@ -141,7 +141,7 @@ class KeywordMod(loader.Module):
             self._db.set("Keyword", "bl", self.bl)
             return await utils.answer(message, self.strings("bl_removed"))
 
-    async def kwbllistcmd(self, message: Message) -> None:
+    async def kwbllistcmd(self, message: Message):
         """List blacklisted chats"""
         chat = str(utils.get_chat_id(message))
         res = ""
@@ -162,7 +162,7 @@ class KeywordMod(loader.Module):
 
         return await utils.answer(message, self.strings("kwbl_list").format(res))
 
-    async def watcher(self, message: Message) -> None:
+    async def watcher(self, message: Message):
         try:
             # logger.debug(message)
             # if message.out: return

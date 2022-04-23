@@ -39,14 +39,14 @@ class BackuperMod(loader.Module):
         self._db = db
         self._client = client
 
-    async def backupdbcmd(self, message: Message) -> None:
+    async def backupdbcmd(self, message: Message):
         """Create database backup [will be sent in pm]"""
         txt = io.BytesIO(json.dumps(self._db).encode("utf-8"))
         txt.name = f"db-backup-{getattr(datetime, 'datetime', datetime).now().strftime('%d-%m-%Y-%H-%M')}.db"
         await self._client.send_file("me", txt, caption=self.strings("backup_caption"))
         await message.delete()
 
-    async def restoredbcmd(self, message: Message) -> None:
+    async def restoredbcmd(self, message: Message):
         """Restore database from file"""
         reply = await message.get_reply_message()
         if not reply or not reply.media:
@@ -66,7 +66,7 @@ class BackuperMod(loader.Module):
         await utils.answer(message, self.strings("db_restored", message))
         await self.allmodules.commands["restart"](await message.respond("_"))
 
-    async def backupmodscmd(self, message: Message) -> None:
+    async def backupmodscmd(self, message: Message):
         """Create backup of mods"""
         data = json.dumps(
             {
@@ -91,7 +91,7 @@ class BackuperMod(loader.Module):
         )
         await message.delete()
 
-    async def restoremodscmd(self, message: Message) -> None:
+    async def restoremodscmd(self, message: Message):
         """<reply to file> - Restore mods from backup"""
         reply = await message.get_reply_message()
         if not reply or not reply.media:
@@ -116,7 +116,7 @@ class BackuperMod(loader.Module):
         await utils.answer(message, self.strings("mods_restored", message))
         await self.allmodules.commands["restart"](await message.respond("_"))
 
-    async def backupnotescmd(self, message: Message) -> None:
+    async def backupnotescmd(self, message: Message):
         """Create the backup of notes"""
         data = json.dumps(self._db.get("hikka.modules.notes", "notes", []))
         txt = io.BytesIO(data.encode("utf-8"))
@@ -130,7 +130,7 @@ class BackuperMod(loader.Module):
         )
         await message.delete()
 
-    async def restorenotescmd(self, message: Message) -> None:
+    async def restorenotescmd(self, message: Message):
         """<reply to file> - Restore notes from backup"""
         reply = await message.get_reply_message()
         if not reply or not reply.media:

@@ -39,13 +39,13 @@ class AutoShortenerMod(loader.Module):
             lambda: "Engine to auto-shorten urls with",
         )
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self.prefix = utils.escape_html(
             (db.get(main.__name__, "command_prefix", False) or ".")[0]
         )
 
-    async def autosurlcmd(self, message: Message) -> None:
+    async def autosurlcmd(self, message: Message):
         """Toggle automatic url shortener"""
         state = not self.get("state", False)
         self.set("state", state)
@@ -53,7 +53,7 @@ class AutoShortenerMod(loader.Module):
             message, self.strings("state").format("on" if state else "off")
         )
 
-    async def surlcmd(self, message: Message) -> None:
+    async def surlcmd(self, message: Message):
         """[url] [engine]- Shorten url"""
         if (
             not getattr(message, "raw_text", False)
@@ -137,7 +137,7 @@ class AutoShortenerMod(loader.Module):
 
             return "https://" + r.json()["result"]
 
-    async def watcher(self, message: Message) -> None:
+    async def watcher(self, message: Message):
         if (
             not getattr(message, "text", False)
             or not getattr(message, "out", False)

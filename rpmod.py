@@ -39,7 +39,7 @@ class RPMod(loader.Module):
         self.rp = db.get("RPMod", "rp", {})
         self.chats = db.get("RPMod", "active", [])
 
-    async def rpcmd(self, message: Message) -> None:
+    async def rpcmd(self, message: Message):
         """<command> <message> - Add RP Command. If message unspecified, remove command"""
         args = utils.get_args_raw(message)
         try:
@@ -57,7 +57,7 @@ class RPMod(loader.Module):
         self._db.set("RPMod", "rp", self.rp)
         await utils.answer(message, self.strings("success", message))
 
-    async def rptogglecmd(self, message: Message) -> None:
+    async def rptogglecmd(self, message: Message):
         """Toggle RP Mode in current chat"""
         cid = str(utils.get_chat_id(message))
         if cid in self.chats:
@@ -69,7 +69,7 @@ class RPMod(loader.Module):
         self._db.set("RPMod", "active", self.chats)
 
     @loader.unrestricted
-    async def rplistcmd(self, message: Message) -> None:
+    async def rplistcmd(self, message: Message):
         """List RP Commands"""
         await utils.answer(
             message,
@@ -80,7 +80,7 @@ class RPMod(loader.Module):
             ),
         )
 
-    async def rpbackupcmd(self, message: Message) -> None:
+    async def rpbackupcmd(self, message: Message):
         """Backup RP Commands to file"""
         file = io.BytesIO(json.dumps(self.rp).encode("utf-8"))
         file.name = "rp-backup.json"
@@ -89,7 +89,7 @@ class RPMod(loader.Module):
         )
         await message.delete()
 
-    async def rprestorecmd(self, message: Message) -> None:
+    async def rprestorecmd(self, message: Message):
         """Restore RP Commands from file"""
         reply = await message.get_reply_message()
         if not reply or not reply.media:
@@ -101,7 +101,7 @@ class RPMod(loader.Module):
         self._db.set("RPMod", "rp", self.rp)
         await utils.answer(message, self.strings("restored"))
 
-    async def rpchatscmd(self, message: Message) -> None:
+    async def rpchatscmd(self, message: Message):
         """List chats, where RPM is active"""
         res = f"🦊 <b>RPM is active in {len(self.chats)} chats:</b>\n\n"
         for chat in self.chats:
@@ -115,7 +115,7 @@ class RPMod(loader.Module):
 
         await utils.answer(message, res)
 
-    async def watcher(self, message: Message) -> None:
+    async def watcher(self, message: Message):
         try:
             cid = str(utils.get_chat_id(message))
             if cid not in self.chats:

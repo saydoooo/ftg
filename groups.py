@@ -61,7 +61,7 @@ class GroupsMod(loader.Module):
         self._me = (await client.get_me()).id
         self._is_hikka = hasattr(self, 'inline')
 
-    async def _resolve_user(self, message: Message) -> None:
+    async def _resolve_user(self, message: Message):
         reply = await message.get_reply_message()
         args = utils.get_args_raw(message)
 
@@ -96,7 +96,7 @@ class GroupsMod(loader.Module):
     async def inline__close(
         self,
         call: "aigoram.types.CallbackQuery",  # noqa: F821
-    ) -> None:
+    ):
         await call.delete()
 
     async def _add_to_group(
@@ -105,7 +105,7 @@ class GroupsMod(loader.Module):
         group: str,
         confirmed: bool = False,
         user: int = None,
-    ) -> None:
+    ):
         if user is None:
             user = await self._resolve_user(message)
             if not user:
@@ -159,7 +159,7 @@ class GroupsMod(loader.Module):
         else:
             await message.edit(m)
 
-    async def _remove_from_group(self, message: Message, group: str) -> None:
+    async def _remove_from_group(self, message: Message, group: str):
         user = await self._resolve_user(message)
         if not user:
             return
@@ -183,7 +183,7 @@ class GroupsMod(loader.Module):
             m
         )
 
-    async def _list_group(self, message: Message, group: str) -> None:
+    async def _list_group(self, message: Message, group: str):
         _resolved_users = []
         for user in self._db.get(security.__name__, group, []):
             try:
@@ -208,38 +208,38 @@ class GroupsMod(loader.Module):
         else:
             await utils.answer(message, self.strings(f"no_{group}"))
 
-    async def sudoaddcmd(self, message: Message) -> None:
+    async def sudoaddcmd(self, message: Message):
         """<user> - Add user to `sudo`"""
         await self._add_to_group(message, "sudo")
 
-    async def owneraddcmd(self, message: Message) -> None:
+    async def owneraddcmd(self, message: Message):
         """<user> - Add user to `owner`"""
         await self._add_to_group(message, "owner")
 
-    async def supportaddcmd(self, message: Message) -> None:
+    async def supportaddcmd(self, message: Message):
         """<user> - Add user to `support`"""
         await self._add_to_group(message, "support")
 
-    async def sudormcmd(self, message: Message) -> None:
+    async def sudormcmd(self, message: Message):
         """<user> - Remove user from `sudo`"""
         await self._remove_from_group(message, "sudo")
 
-    async def ownerrmcmd(self, message: Message) -> None:
+    async def ownerrmcmd(self, message: Message):
         """<user> - Remove user from `owner`"""
         await self._remove_from_group(message, "owner")
 
-    async def supportrmcmd(self, message: Message) -> None:
+    async def supportrmcmd(self, message: Message):
         """<user> - Remove user from `support`"""
         await self._remove_from_group(message, "support")
 
-    async def sudolistcmd(self, message: Message) -> None:
+    async def sudolistcmd(self, message: Message):
         """List users in `sudo`"""
         await self._list_group(message, "sudo")
 
-    async def ownerlistcmd(self, message: Message) -> None:
+    async def ownerlistcmd(self, message: Message):
         """List users in `owner`"""
         await self._list_group(message, "owner")
 
-    async def supportlistcmd(self, message: Message) -> None:
+    async def supportlistcmd(self, message: Message):
         """List users in `support`"""
         await self._list_group(message, "support")

@@ -33,7 +33,7 @@ class InlineGhoulMod(loader.Module):
         "tired": "😾 <b>I'm tired to count!</b>",
     }
 
-    async def inline__handler(self, call: InlineCall, correct: bool) -> None:
+    async def inline__handler(self, call: InlineCall, correct: bool):
         if not correct:
             await call.answer("NO!")
             return
@@ -52,7 +52,7 @@ class InlineGhoulMod(loader.Module):
         )
         await call.unload()
 
-    async def ghoulcmd(self, message: Message) -> None:
+    async def ghoulcmd(self, message: Message):
         """Sends ghoul message"""
         await self.inline.form(
             self.strings("iamghoul"),

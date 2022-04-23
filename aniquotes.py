@@ -29,10 +29,10 @@ class AnimatedQuotesMod(loader.Module):
         "processing": "⏱ <b>Processing...</b>",
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._client = client
 
-    async def aniqcmd(self, message: Message) -> None:
+    async def aniqcmd(self, message: Message):
         """<text> - Create animated quote"""
         args = utils.get_args_raw(message)
         if not args:

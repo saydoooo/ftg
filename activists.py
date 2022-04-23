@@ -32,7 +32,7 @@ class ActivistsMod(loader.Module):
         "active": "👾 <b>The most active users in this chat:</b>\n\n{}\n<i>Request took: {}s</i>",
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
 
@@ -42,7 +42,7 @@ class ActivistsMod(loader.Module):
         except Exception:
             return False
 
-    async def activistscmd(self, message: Message) -> None:
+    async def activistscmd(self, message: Message):
         """[quantity] [-m <int>] - Find top active users in chat"""
         args = utils.get_args_raw(message)
         limit = None

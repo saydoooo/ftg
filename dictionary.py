@@ -66,7 +66,7 @@ class UrbanDictionaryMod(loader.Module):
             for definition in soup.find_all("div", class_="meaning")
         ]
 
-    async def meancmd(self, message: Message) -> None:
+    async def meancmd(self, message: Message):
         """<term> - Find definition of the word in urban dictionary"""
         args = utils.get_args_raw(message)
         if not args:

@@ -24,7 +24,7 @@ class DyslexiaMod(loader.Module):
     strings = {"name": "Dyslexia", "no_text": "🎈 <b>You need to provide text</b>"}
 
     @loader.unrestricted
-    async def dyslexcmd(self, message: Message) -> None:
+    async def dyslexcmd(self, message: Message):
         """<text | reply> - Show, how people with dyslexia would have seen this text"""
         args = utils.get_args_raw(message)
         if not args:

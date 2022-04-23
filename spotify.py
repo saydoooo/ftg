@@ -148,7 +148,7 @@ class SpotifyMod(loader.Module):
         "no_music": "🚫 <b>No music is playing!</b>",
     }
 
-    def __init__(self) -> None:
+    def __init__(self):
         self._client_id = "e0708753ab60499c89ce263de9b4f57a"
         self._client_secret = "80c927166c664ee98a43a2c0e2981b4a"
         self.scope = "user-read-playback-state playlist-read-private playlist-read-collaborative app-remote-control user-modify-playback-state user-library-modify user-library-read"
@@ -164,7 +164,7 @@ class SpotifyMod(loader.Module):
         )
         self.bio_task = None
 
-    async def autobio(self) -> None:
+    async def autobio(self):
         while True:
             try:
                 current_playback = self.sp.current_playback()
@@ -186,13 +186,13 @@ class SpotifyMod(loader.Module):
 
             await asyncio.sleep(60)
 
-    def stop(self) -> None:
+    def stop(self):
         if not self.bio_task:
             return
 
         self.bio_task.cancel()
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
         try:
@@ -204,7 +204,7 @@ class SpotifyMod(loader.Module):
         if db.get(self.name, "autobio", False):
             self.bio_task = asyncio.ensure_future(self.autobio())
 
-    async def on_unload(self) -> None:
+    async def on_unload(self):
         logger.info("Stopping autobio loop due to unload")
         self.stop()
 
@@ -264,7 +264,7 @@ class SpotifyMod(loader.Module):
     @error_handler
     @tokenized
     @autodelete
-    async def srepeatcmd(self, message: Message) -> None:
+    async def srepeatcmd(self, message: Message):
         """🔂"""
         self.sp.repeat("track")
         await utils.answer(message, self.strings("on-repeat"))
@@ -272,7 +272,7 @@ class SpotifyMod(loader.Module):
     @error_handler
     @tokenized
     @autodelete
-    async def sderepeatcmd(self, message: Message) -> None:
+    async def sderepeatcmd(self, message: Message):
         """🔁"""
         self.sp.repeat("context")
         await utils.answer(message, self.strings("off-repeat"))
@@ -280,7 +280,7 @@ class SpotifyMod(loader.Module):
     @error_handler
     @tokenized
     @autodelete
-    async def snextcmd(self, message: Message) -> None:
+    async def snextcmd(self, message: Message):
         """⏭"""
         self.sp.next_track()
         await utils.answer(message, self.strings("skipped"))
@@ -288,7 +288,7 @@ class SpotifyMod(loader.Module):
     @error_handler
     @tokenized
     @autodelete
-    async def spausecmd(self, message: Message) -> None:
+    async def spausecmd(self, message: Message):
         """⏸"""
         self.sp.pause_playback()
         await utils.answer(message, self.strings("paused"))
@@ -296,7 +296,7 @@ class SpotifyMod(loader.Module):
     @error_handler
     @tokenized
     @autodelete
-    async def splaycmd(self, message: Message, from_sq: bool = False) -> None:
+    async def splaycmd(self, message: Message, from_sq: bool = False):
         """▶️"""
         args = utils.get_args_raw(message)
         reply = await message.get_reply_message()
@@ -342,7 +342,7 @@ class SpotifyMod(loader.Module):
     @error_handler
     @tokenized
     @autodelete
-    async def sfindcmd(self, message: Message) -> None:
+    async def sfindcmd(self, message: Message):
         """Find info about track"""
         args = utils.get_args_raw(message)
         if not args:
@@ -406,14 +406,14 @@ class SpotifyMod(loader.Module):
 
     @error_handler
     @tokenized
-    async def sqcmd(self, message: Message) -> None:
+    async def sqcmd(self, message: Message):
         """🔎"""
         await self.splaycmd(message, True)
 
     @error_handler
     @tokenized
     @autodelete
-    async def sbackcmd(self, message: Message) -> None:
+    async def sbackcmd(self, message: Message):
         """⏮"""
         self.sp.previous_track()
         await utils.answer(message, self.strings("back"))
@@ -421,7 +421,7 @@ class SpotifyMod(loader.Module):
     @error_handler
     @tokenized
     @autodelete
-    async def sbegincmd(self, message: Message) -> None:
+    async def sbegincmd(self, message: Message):
         """⏪"""
         self.sp.seek_track(0)
         await utils.answer(message, self.strings("restarted"))
@@ -429,14 +429,14 @@ class SpotifyMod(loader.Module):
     @error_handler
     @tokenized
     @autodelete
-    async def slikecmd(self, message: Message) -> None:
+    async def slikecmd(self, message: Message):
         """❤️"""
         cupl = self.sp.current_playback()
         self.sp.current_user_saved_tracks_add([cupl["item"]["id"]])
         await utils.answer(message, self.strings("liked"))
 
     @error_handler
-    async def sauthcmd(self, message: Message) -> None:
+    async def sauthcmd(self, message: Message):
         """First stage of auth"""
         if self._db.get(self.name, "acs_tkn", False) and not self.sp:
             await utils.answer(message, self.strings("already_authed"))
@@ -448,7 +448,7 @@ class SpotifyMod(loader.Module):
 
     @error_handler
     @autodelete
-    async def scodecmd(self, message: Message) -> None:
+    async def scodecmd(self, message: Message):
         """Second stage of auth"""
         url = message.message.split(" ")[1]
         code = self.sp_auth.parse_auth_response_url(url)
@@ -462,7 +462,7 @@ class SpotifyMod(loader.Module):
 
     @error_handler
     @autodelete
-    async def unauthcmd(self, message: Message) -> None:
+    async def unauthcmd(self, message: Message):
         """Deauth from Spotify API"""
         self._db.set(self.name, "acs_tkn", None)
         del self.sp
@@ -471,7 +471,7 @@ class SpotifyMod(loader.Module):
     @error_handler
     @tokenized
     @autodelete
-    async def sbiocmd(self, message: Message) -> None:
+    async def sbiocmd(self, message: Message):
         """Toggle bio playback streaming"""
         current = self._db.get(self.name, "autobio", False)
         new = not current
@@ -487,7 +487,7 @@ class SpotifyMod(loader.Module):
     @error_handler
     @tokenized
     @autodelete
-    async def stokrefreshcmd(self, message: Message) -> None:
+    async def stokrefreshcmd(self, message: Message):
         """Force refresh token"""
         self._db.set(
             self.name,
@@ -503,7 +503,7 @@ class SpotifyMod(loader.Module):
         await utils.answer(message, self.strings("authed"))
 
     @error_handler
-    async def snowcmd(self, message: Message) -> None:
+    async def snowcmd(self, message: Message):
         """Show current playback badge"""
         current_playback = self.sp.current_playback()
         try:
@@ -598,7 +598,7 @@ class SpotifyMod(loader.Module):
 
         await utils.answer(message, result)
 
-    async def watcher(self, message: Message) -> None:
+    async def watcher(self, message: Message):
         """Watcher is used to update token"""
         if not self.sp:
             return

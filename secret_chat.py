@@ -37,7 +37,7 @@ class SecretChatMod(loader.Module):
         cid = cid[0]
         return cid
 
-    async def _create_chat(self, chat) -> None:
+    async def _create_chat(self, chat):
         cid = self._get_chat_id(chat)
 
         decrypted_chat = None
@@ -65,7 +65,7 @@ class SecretChatMod(loader.Module):
 
         self._chats[cid] = decrypted_chat
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
         self._manager = SecretChatManager(
@@ -76,7 +76,7 @@ class SecretChatMod(loader.Module):
         self._chats = {}
         self._secret_chats = {}
 
-    async def _replier(self, event) -> None:
+    async def _replier(self, event):
         if not self.get("state", False):
             return
 
@@ -116,7 +116,7 @@ class SecretChatMod(loader.Module):
             # send_secret_video
             # send_secret_photo
 
-    async def _new_chat(self, chat, created_by_me: bool) -> None:
+    async def _new_chat(self, chat, created_by_me: bool):
         if not self.get("state", False):
             return
 
@@ -129,14 +129,14 @@ class SecretChatMod(loader.Module):
             f'㊙️ <b>New secret chat with <a href="tg://user?id={user}">{get_display_name(u)}</a> started</b>',
         )
 
-    async def on_unload(self) -> None:
+    async def on_unload(self):
         self._client.remove_event_handler(self._manager._secret_chat_event_loop)
         del self._manager
         for handler in self._client.list_event_handlers():
             if handler[0].__doc__ == "secret_chat_processer":
                 self._client.remove_event_handler(handler)
 
-    async def desecretcmd(self, message: Message) -> None:
+    async def desecretcmd(self, message: Message):
         """Toggle secret chat handler"""
         current = self.get("state", False)
         new = not current

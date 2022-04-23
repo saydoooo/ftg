@@ -33,7 +33,7 @@ class KeywordMod(loader.Module):
         self._client = client
 
     @loader.unrestricted
-    async def purrcmd(self, message: Message) -> None:
+    async def purrcmd(self, message: Message):
         """Sends 'purr' voice message"""
         args = utils.get_args_raw(message) or "<i>🐈 Purrr-r-r-r...</i>"
         purrs = [

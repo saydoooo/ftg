@@ -56,7 +56,7 @@ class TruthOrDareMod(loader.Module):
         "args": "▫️ <code>.todlang en/ru</code>",
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
         if self.get("lang") in {"ru", "en"}:
@@ -83,7 +83,7 @@ class TruthOrDareMod(loader.Module):
             ).json()["results"]
         )
 
-    def _update_lang(self) -> None:
+    def _update_lang(self):
         self._markup = [
             [
                 {
@@ -118,7 +118,7 @@ class TruthOrDareMod(loader.Module):
             ],
         ]
 
-    async def _inline_set_language(self, call: InlineCall, lang: str) -> None:
+    async def _inline_set_language(self, call: InlineCall, lang: str):
         self.set("lang", lang)
         await call.answer(self.strings(f"language_saved_{lang}"), show_alert=True)
         self._update_lang()
@@ -131,7 +131,7 @@ class TruthOrDareMod(loader.Module):
         call: InlineCall,
         action: str,
         category: str,
-    ) -> None:
+    ):
         action_babel = self.strings(f"{action}_{self.get('lang')}")
         await call.edit(
             f"<b>{action_babel}</b>:\n\n{await self.truth_or_dare(action, category)}",
@@ -149,7 +149,7 @@ class TruthOrDareMod(loader.Module):
             ],
         )
 
-    async def _inline_start(self, call: InlineCall, category: str) -> None:
+    async def _inline_start(self, call: InlineCall, category: str):
         await call.edit(
             self.strings(f"truth_or_dare_{self.get('lang')}"),
             reply_markup=[
@@ -166,7 +166,7 @@ class TruthOrDareMod(loader.Module):
             ],
         )
 
-    async def todcmd(self, message: Message) -> None:
+    async def todcmd(self, message: Message):
         """Start new truth or dare game"""
         if not self.get("lang"):
             await self.inline.form(
@@ -194,7 +194,7 @@ class TruthOrDareMod(loader.Module):
             disable_security=True,
         )
 
-    async def todlangcmd(self, message: Message) -> None:
+    async def todlangcmd(self, message: Message):
         """[en/ru] - Change language"""
         args = utils.get_args_raw(message).lower().strip()
         if args not in {"ru", "en"}:

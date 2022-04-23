@@ -41,7 +41,7 @@ class RealTimeValutesMod(loader.Module):
         "exchanges": "😌 <b>Exchange rates by Forex</b>\n\n<b>💵 1 USD = {:.2f} RUB\n💶 1 EUR = {:.2f} RUB</b>\n\n<i>This info is relevant to <u>{:%m/%d/%Y %H:%M:%S}</u></i>",
     }
 
-    async def _connect(self) -> None:
+    async def _connect(self):
         r = await utils.run_sync(
             requests.get,
             f"https://rates-live.efxnow.com/signalr/negotiate?clientProtocol=2.1&connectionData=%5B%7B%22name%22%3A%22ratesstreamer%22%7D%5D&_={time.time() * 1000:.0f}",
@@ -75,7 +75,7 @@ class RealTimeValutesMod(loader.Module):
 
             return await self._connect()
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._rates = {}
         self._upd_time = 0
 
@@ -87,7 +87,7 @@ class RealTimeValutesMod(loader.Module):
 
         self._task = asyncio.ensure_future(self._connect())
 
-    async def valcmd(self, message: Message) -> None:
+    async def valcmd(self, message: Message):
         """Show exchange rates"""
         try:
             m = self.strings("exchanges").format(
@@ -146,5 +146,5 @@ class RealTimeValutesMod(loader.Module):
             )
             return
 
-    async def on_unload(self) -> None:
+    async def on_unload(self):
         self._task.cancel()

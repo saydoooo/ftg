@@ -42,11 +42,11 @@ class BulkCheckMod(loader.Module):
         "404": "😔 <b>Тут нет слитых номеров</b>",
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
 
-    async def bcheckcmd(self, message: Message) -> None:
+    async def bcheckcmd(self, message: Message):
         """Bulk check using Murix database"""
         if message.is_private:
             await utils.answer(message, self.strings("no_pm"))

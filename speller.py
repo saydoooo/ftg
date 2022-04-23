@@ -167,7 +167,7 @@ class SpellCheckMod(loader.Module):
         "processing": "👩‍🏫 <b>Let me take a look... Seems like this message is misspelled!</b>",
     }
 
-    async def spellcmd(self, message: Message) -> None:
+    async def spellcmd(self, message: Message):
         """Perform spell check on reply"""
         reply = await message.get_reply_message()
         if not reply or not getattr(reply, "raw_text", False):

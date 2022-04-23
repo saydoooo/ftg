@@ -119,7 +119,7 @@ class TempChatMod(loader.Module):
         self._db.set("TempChat", "loop", True)
         asyncio.ensure_future(self.chats_handler_async())
 
-    async def tmpchatcmd(self, message: Message) -> None:
+    async def tmpchatcmd(self, message: Message):
         """<time> <title> - Create new temp chat
         Time format: 30s, 30min, 1h, 1d, 1w, 1m"""
         args = utils.get_args_raw(message)
@@ -165,7 +165,7 @@ class TempChatMod(loader.Module):
         self.chats[str(cid)] = [until, tit]
         self._db.set("TempChat", "chats", self.chats)
 
-    async def tmpcurrentcmd(self, message: Message) -> None:
+    async def tmpcurrentcmd(self, message: Message):
         """<time> - Create current chat temporary
         Time format: 30s, 30min, 1h, 1d, 1w, 1m"""
         args = utils.get_args_raw(message)
@@ -196,7 +196,7 @@ class TempChatMod(loader.Module):
         self.chats[str(cid)] = [until, (await self._client.get_entity(cid)).title]
         self._db.set("TempChat", "chats", self.chats)
 
-    async def tmpchatscmd(self, message: Message) -> None:
+    async def tmpchatscmd(self, message: Message):
         """List temp chats"""
         res = "<b>= Temporary Chats =</b>\n<s>==================</s>\n"
         for chat, info in self.chats.items():
@@ -205,7 +205,7 @@ class TempChatMod(loader.Module):
 
         await utils.answer(message, res)
 
-    async def tmpcancelcmd(self, message: Message) -> None:
+    async def tmpcancelcmd(self, message: Message):
         """[chat-id] - Disable deleting chat by id, or current chat if unspecified."""
         args = utils.get_args_raw(message)
         if args not in self.chats:
@@ -223,7 +223,7 @@ class TempChatMod(loader.Module):
         del self.chats[args]
         self._db.set("TempChat", "chats", json.dumps(self.chats))
 
-    async def tmpctimecmd(self, message: Message) -> None:
+    async def tmpctimecmd(self, message: Message):
         """<chat_id> <new_time> - Change chat deletion time"""
         args = utils.get_args_raw(message)
         if args == "":

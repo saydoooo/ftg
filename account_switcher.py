@@ -32,7 +32,7 @@ class AccountSwitcherMod(loader.Module):
         "account_saved": "🦊 <b>Account saved!</b>",
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
         self._accounts = db.get("AccountSwitcher", "accounts", {})
@@ -50,7 +50,7 @@ class AccountSwitcherMod(loader.Module):
         else:
             await self._client.send_message(accs_db, info)
 
-    async def accsavecmd(self, message: Message) -> None:
+    async def accsavecmd(self, message: Message):
         """[-n] - Save account for future restoring. -n - To save username, and change it while restoring"""
         args = utils.get_args_raw(message)
         full = await self._client(GetFullUserRequest("me"))
@@ -69,7 +69,7 @@ class AccountSwitcherMod(loader.Module):
         await self._save_acc(photo, fn, ln, bio, un)
         await utils.answer(message, self.strings("account_saved"))
 
-    async def accrestcmd(self, message: Message) -> None:
+    async def accrestcmd(self, message: Message):
         """<reply to message in db> - Restore account from backup. Your username could be stolen!"""
         reply = await message.get_reply_message()
         if not reply:

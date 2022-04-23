@@ -36,10 +36,10 @@ class CatboyMod(loader.Module):
 
     strings = {"name": "Catboy"}
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._client = client
 
-    async def catboycmd(self, message: Message) -> None:
+    async def catboycmd(self, message: Message):
         """Send catboy picture"""
         await self.inline.gallery(
             caption=lambda: f"<i>{utils.escape_html(utils.ascii_face())}</i>",
@@ -48,7 +48,7 @@ class CatboyMod(loader.Module):
             preload=5,
         )
 
-    async def catboy_inline_handler(self, query: InlineQuery) -> None:
+    async def catboy_inline_handler(self, query: InlineQuery):
         """
         Send Catboys
         """

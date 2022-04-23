@@ -71,7 +71,7 @@ class HttpErrorsMod(loader.Module):
     }
 
     @loader.unrestricted
-    async def httpsccmd(self, message: Message) -> None:
+    async def httpsccmd(self, message: Message):
         """<statuscode> - Get status code info"""
         args = utils.get_args(message)
         if not args:
@@ -91,7 +91,7 @@ class HttpErrorsMod(loader.Module):
         )
 
     @loader.unrestricted
-    async def httpscscmd(self, message: Message) -> None:
+    async def httpscscmd(self, message: Message):
         """Get all http status codes"""
         await utils.answer(
             message,

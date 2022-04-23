@@ -31,11 +31,11 @@ class AniSearchMod(loader.Module):
         "media_not_found": "🚫 <b>Media not found</b>",
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
 
-    async def anisearchcmd(self, message: Message) -> None:
+    async def anisearchcmd(self, message: Message):
         """Search anime by frame"""
         reply = await message.get_reply_message()
         if not message.media and (not reply or not reply.media):

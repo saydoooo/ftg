@@ -69,7 +69,7 @@ class NekosLifeMod(loader.Module):
         }
 
     @loader.pm
-    async def nkcmd(self, message: Message) -> None:
+    async def nkcmd(self, message: Message):
         """Send anime pic"""
         args = utils.get_args_raw(message)
         args = "neko" if args not in self.categories else args
@@ -81,7 +81,7 @@ class NekosLifeMod(loader.Module):
         )
 
     @loader.pm
-    async def nkctcmd(self, message: Message) -> None:
+    async def nkctcmd(self, message: Message):
         """Show available categories"""
         cats = "\n".join(
             [" | </code><code>".join(_) for _ in utils.chunks(self.categories, 5)]
@@ -92,7 +92,7 @@ class NekosLifeMod(loader.Module):
         )
 
     @loader.unrestricted
-    async def owoifycmd(self, message: Message) -> None:
+    async def owoifycmd(self, message: Message):
         """OwOify text"""
         args = utils.get_args_raw(message)
         if not args:
@@ -120,7 +120,7 @@ class NekosLifeMod(loader.Module):
         await utils.answer(message, owo)
 
     @loader.unrestricted
-    async def whycmd(self, message: Message) -> None:
+    async def whycmd(self, message: Message):
         """Why?"""
         await utils.answer(
             message,
@@ -128,7 +128,7 @@ class NekosLifeMod(loader.Module):
         )
 
     @loader.unrestricted
-    async def factcmd(self, message: Message) -> None:
+    async def factcmd(self, message: Message):
         """Did you know?"""
         await utils.answer(
             message,
@@ -136,7 +136,7 @@ class NekosLifeMod(loader.Module):
         )
 
     @loader.unrestricted
-    async def meowcmd(self, message: Message) -> None:
+    async def meowcmd(self, message: Message):
         """Sends cat ascii art"""
         await utils.answer(
             message,

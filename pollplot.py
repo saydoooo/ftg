@@ -32,11 +32,11 @@ class PollPlotMod(loader.Module):
         "no_answers": "😔 <b>This poll has not answers yet.</b>",
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
 
-    async def plotcmd(self, message: Message) -> None:
+    async def plotcmd(self, message: Message):
         """<reply> - Create plot from poll"""
         reply = await message.get_reply_message()
         if not reply or not getattr(reply, "poll", False):

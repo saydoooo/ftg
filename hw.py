@@ -29,11 +29,11 @@ class HomeworkMod(loader.Module):
         "removed": "<b>✅ Hometask removed</b>",
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self.hw = self._db.get("HomeWork", "hw", {})
 
-    async def hwcmd(self, message: Message) -> None:
+    async def hwcmd(self, message: Message):
         """<item> - New hometask"""
 
         args = utils.get_args_raw(message)
@@ -57,14 +57,14 @@ class HomeworkMod(loader.Module):
         )
 
     @loader.unrestricted
-    async def hwlcmd(self, message: Message) -> None:
+    async def hwlcmd(self, message: Message):
         """List of hometasks"""
         res = "<b>#HW:</b>\n\n"
         for item_id, item in self.hw.items():
             res += f"🔸 <code>.uhw {item_id}</code>: <code>{item}" + "</code>\n"
         await utils.answer(message, res)
 
-    async def uhwcmd(self, message: Message) -> None:
+    async def uhwcmd(self, message: Message):
         """<id> - Remove hometask"""
         args = utils.get_args_raw(message)
         if args.startswith("#"):

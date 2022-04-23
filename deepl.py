@@ -96,7 +96,7 @@ class DeepLMod(loader.Module):
     def __init__(self):
         self.config = loader.ModuleConfig("proxy", "", lambda: "Proxy url")
 
-    async def deeplcmd(self, message: Message) -> None:
+    async def deeplcmd(self, message: Message):
         """<text or reply> - Translate text via DeepL scraping"""
         args = utils.get_args_raw(message)
 

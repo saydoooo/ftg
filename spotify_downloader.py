@@ -26,7 +26,7 @@ class SpotifyDownloaderMod(loader.Module):
         self._client = client
 
     @loader.unrestricted
-    async def sdcmd(self, message: Message) -> None:
+    async def sdcmd(self, message: Message):
         """<track> - search and download from Spotify"""
         args = utils.get_args_raw(message)
         if not args:

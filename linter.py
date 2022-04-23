@@ -55,11 +55,11 @@ class PyLinterMod(loader.Module):
 
     strings = {"name": "PyLinter", "no_code": "🚫 <b>Please, specify code to lint</b>"}
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
 
-    async def lintcmd(self, message: Message) -> None:
+    async def lintcmd(self, message: Message):
         """[code|reply] - Perform automatic lint to python code"""
         reply = await message.get_reply_message()
         args = utils.get_args_raw(message)

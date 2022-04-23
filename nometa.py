@@ -29,7 +29,7 @@ class NoMetaMod(loader.Module):
         self._client = client
 
     @loader.unrestricted
-    async def nometacmd(self, message: Message) -> None:
+    async def nometacmd(self, message: Message):
         """Если кто-то отправил мету по типу 'Привет', эта команда его вразумит"""
         await self._client.send_message(
             message.peer_id,
@@ -38,7 +38,7 @@ class NoMetaMod(loader.Module):
         )
         await message.delete()
 
-    async def watcher(self, message: Message) -> None:
+    async def watcher(self, message: Message):
         if not getattr(message, "raw_text", False):
             return
 

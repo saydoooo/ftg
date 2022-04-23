@@ -114,7 +114,7 @@ class ScrolllerMod(loader.Module):
         "default_subreddit": "🙂 <b>Set new default subreddit: </b><code>{}</code>",
     }
 
-    async def gallerycmd(self, message: Message) -> None:
+    async def gallerycmd(self, message: Message):
         """<subreddit | default> - Send inline gallery with photos from subreddit"""
         args = utils.get_args_raw(message)
         reply = await message.get_reply_message()
@@ -143,7 +143,7 @@ class ScrolllerMod(loader.Module):
             always_allow=[reply.sender_id] if reply else [],
         )
 
-    async def gallerycatcmd(self, message: Message) -> None:
+    async def gallerycatcmd(self, message: Message):
         """<subreddit> - Set new default subreddit"""
         args = utils.get_args_raw(message)
         if not args:
@@ -159,7 +159,7 @@ class ScrolllerMod(loader.Module):
             message, self.strings("default_subreddit", message).format(args)
         )
 
-    async def gallery_inline_handler(self, query: InlineQuery) -> None:
+    async def gallery_inline_handler(self, query: InlineQuery):
         """
         Search for Scrolller subreddits
         """

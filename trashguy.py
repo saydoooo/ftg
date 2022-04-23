@@ -58,7 +58,7 @@ class TrashGuyMod(loader.Module):
         "done": "🗑 \\ (•◡•) / 🗑\n\u0020\u2800\u0020\u2800<b>Я закончил!</b>\u0020\u2800\u0020\u2800",
     }
 
-    async def tguyicmd(self, message: Message) -> None:
+    async def tguyicmd(self, message: Message):
         """<text> - TrashGuy Inline"""
         text = utils.get_args_raw(message) or "hikari's brain"
         form = None
@@ -77,7 +77,7 @@ class TrashGuyMod(loader.Module):
 
         await utils.answer(form, self.strings("done"))
 
-    async def tguycmd(self, message: Message) -> None:
+    async def tguycmd(self, message: Message):
         """<text> - TrashGuy"""
         text = utils.get_args_raw(message) or "hikari's brain"
 

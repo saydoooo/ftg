@@ -148,7 +148,7 @@ class StickManagerMod(loader.Module):
 
         return "sticker.webm"
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
         self.stickersets = self.get("stickersets", {})
@@ -159,7 +159,7 @@ class StickManagerMod(loader.Module):
 
         self.emojies = list("🌌🌃🏙🌇🌆🌁🌉🎑🏞🎆🌅🌄🌠🎇🗾")
 
-    async def newpackcmd(self, message: Message) -> None:
+    async def newpackcmd(self, message: Message):
         """<short_name> <name> [-a <alias>] - Create new pack"""
         args = utils.get_args_raw(message)
         if "-a" in args:
@@ -298,7 +298,7 @@ class StickManagerMod(loader.Module):
             message, self.strings("created").format(emoji, name, shortname)
         )
 
-    async def newvidpackcmd(self, message: Message) -> None:
+    async def newvidpackcmd(self, message: Message):
         """<short_name> <name> [-a <alias>] - Create new video stickers pack"""
         args = utils.get_args_raw(message)
         if "-a" in args:
@@ -461,7 +461,7 @@ class StickManagerMod(loader.Module):
             message, self.strings("created").format(emoji, name, shortname)
         )
 
-    async def syncpackscmd(self, message: Message) -> None:
+    async def syncpackscmd(self, message: Message):
         """Sync existing stickersets with @stickers"""
         q = 0
 
@@ -528,7 +528,7 @@ class StickManagerMod(loader.Module):
 
         await utils.answer(message, self.strings("stickersets_added").format(q, d))
 
-    async def packscmd(self, message: Message) -> None:
+    async def packscmd(self, message: Message):
         """Short available stickersets"""
         if not self.stickersets:
             await utils.answer(message, self.strings("no_stickersets"))
@@ -541,7 +541,7 @@ class StickManagerMod(loader.Module):
 
         await utils.answer(message, res)
 
-    async def stickaliascmd(self, message: Message) -> None:
+    async def stickaliascmd(self, message: Message):
         """<alias> [short_name] - Add or remove alias"""
         args = utils.get_args_raw(message)
         if not args:
@@ -584,7 +584,7 @@ class StickManagerMod(loader.Module):
                 ),
             )
 
-    async def stickdefcmd(self, message: Message) -> None:
+    async def stickdefcmd(self, message: Message):
         """<short_name|alias> - Set default stickerpack"""
         args = utils.get_args_raw(message)
         pack = self.find(args)
@@ -598,7 +598,7 @@ class StickManagerMod(loader.Module):
             message, self.strings("default").format(pack["emoji"], pack["title"])
         )
 
-    async def rmpackcmd(self, message: Message) -> None:
+    async def rmpackcmd(self, message: Message):
         """<short_name|alias> - Remove stickerpack"""
         args = utils.get_args_raw(message)
         pack = self.find(args)
@@ -679,7 +679,7 @@ class StickManagerMod(loader.Module):
             message, self.strings("packremoved").format(pack["emoji"], pack["title"])
         )
 
-    async def unstickcmd(self, message: Message) -> None:
+    async def unstickcmd(self, message: Message):
         """<reply> - Remove sticker from pack"""
         reply = await message.get_reply_message()
         if not reply:
@@ -731,7 +731,7 @@ class StickManagerMod(loader.Module):
         await asyncio.sleep(7)
         await message.delete()
 
-    async def stickcmd(self, message: Message) -> None:
+    async def stickcmd(self, message: Message):
         """[emoji] [short_name|alias] - Add sticker to pack. If not specified - default"""
         if not self.stickersets:
             await utils.answer(message, self.strings("no_stickersets"))
@@ -879,7 +879,7 @@ class StickManagerMod(loader.Module):
         await asyncio.sleep(7)
         await message.delete()
 
-    async def rmrecentcmd(self, message: Message) -> None:
+    async def rmrecentcmd(self, message: Message):
         """Clear recently used stickers"""
         await self._client(ClearRecentStickersRequest(attached=False))
         await utils.answer(message, self.strings("cleaned"))

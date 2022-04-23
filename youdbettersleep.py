@@ -57,7 +57,7 @@ class YouDBetterSleepMod(loader.Module):
         self.asleep = db.get(__name__, "asleep", False)
 
     @loader.sudo
-    async def sleepcmd(self, message: Message) -> None:
+    async def sleepcmd(self, message: Message):
         """<time> - Sleep for time"""
         args = utils.get_args_raw(message)
         t = s2time(args)
@@ -73,7 +73,7 @@ class YouDBetterSleepMod(loader.Module):
             self._db.set(__name__, "until", t)
             await utils.answer(message, self.strings("asleep").format(args))
 
-    async def watcher(self, message: Message) -> None:
+    async def watcher(self, message: Message):
         try:
             if not self.asleep:
                 return

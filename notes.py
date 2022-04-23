@@ -33,12 +33,12 @@ class NotesMod(loader.Module):
         "deleted": "🙂 <b>Deleted note </b><code>{}</code>",
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
         self._notes = self.get("notes", {})
 
-    async def hsavecmd(self, message: Message) -> None:
+    async def hsavecmd(self, message: Message):
         """[folder] <name> - Save new note"""
         args = utils.get_args_raw(message)
 
@@ -99,7 +99,7 @@ class NotesMod(loader.Module):
 
         return False
 
-    async def hgetcmd(self, message: Message) -> None:
+    async def hgetcmd(self, message: Message):
         """<name> - Show specified note"""
         args = utils.get_args_raw(message)
         if not args:
@@ -120,7 +120,7 @@ class NotesMod(loader.Module):
         if message.out:
             await message.delete()
 
-    async def hdelcmd(self, message: Message) -> None:
+    async def hdelcmd(self, message: Message):
         """<name> - Delete specified note"""
         args = utils.get_args_raw(message)
         if not args:
@@ -141,7 +141,7 @@ class NotesMod(loader.Module):
 
         await utils.answer(message, self.strings("deleted").format(args))
 
-    async def hlistcmd(self, message: Message) -> None:
+    async def hlistcmd(self, message: Message):
         """[folder] - List all notes"""
         args = utils.get_args_raw(message)
 

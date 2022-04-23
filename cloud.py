@@ -49,7 +49,7 @@ class ModuleCloudMod(loader.Module):
         self._db = db
         self._client = client
 
-    async def search(self, entity, message: Message) -> None:
+    async def search(self, entity, message: Message):
         args = utils.get_args_raw(message)
         try:
             msgs = await self._client.get_messages(entity, limit=100)
@@ -78,7 +78,7 @@ class ModuleCloudMod(loader.Module):
         await utils.answer(message, self.strings("mod404", message).format(args))
 
     @loader.unrestricted
-    async def cloudcmd(self, message: Message) -> None:
+    async def cloudcmd(self, message: Message):
         """<command \\ mod_name> - Lookup mod in @hikarimods_database"""
         args = utils.get_args_raw(message)
         if not args:
@@ -89,7 +89,7 @@ class ModuleCloudMod(loader.Module):
         await self.search(entity, message)
 
     @loader.unrestricted
-    async def imodcmd(self, message: Message) -> None:
+    async def imodcmd(self, message: Message):
         """<command \\ mod_name> - Lookup mod in @hikarimods"""
         args = utils.get_args_raw(message)
         if not args:
@@ -100,7 +100,7 @@ class ModuleCloudMod(loader.Module):
         await self.search(entity, message)
 
     @loader.unrestricted
-    async def ilinkcmd(self, message: Message) -> None:
+    async def ilinkcmd(self, message: Message):
         """<modname> - Get hikari module banner"""
         args = utils.get_args_raw(message)
 
@@ -127,7 +127,7 @@ class ModuleCloudMod(loader.Module):
                 self.strings("ilink").format(hikka_only=hikka_only, **info), file=img
             )
 
-    async def verifmodcmd(self, message: Message) -> None:
+    async def verifmodcmd(self, message: Message):
         """<filename>;<title>;<description>;<tags> - Verfiy module [only for @hikarimods admins]"""
         args = utils.get_args_raw(message).split(";")
         filename, title, description, tags = args

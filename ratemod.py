@@ -36,7 +36,7 @@ class RateModuleMod(loader.Module):
         self._db = db
 
     @loader.unrestricted
-    async def ratemodcmd(self, message: Message) -> None:
+    async def ratemodcmd(self, message: Message):
         """<reply_to_file|file|link> - Rate code"""
         args = utils.get_args_raw(message)
         reply = await message.get_reply_message()

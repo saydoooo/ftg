@@ -23,7 +23,7 @@ class PoliteInsultMod(loader.Module):
 
     strings = {"name": "PoliteInsult"}
 
-    async def insultocmd(self, message: Message) -> None:
+    async def insultocmd(self, message: Message):
         """Use when angry"""
         adjectives_start = [
             "вспыльчивый(-ая)",

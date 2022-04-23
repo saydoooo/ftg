@@ -30,7 +30,7 @@ class ILYMod(loader.Module):
         "message": "<b>❤️‍🔥 I want to tell you something...</b>\n<i>{}</i>",
     }
 
-    async def inline__handler(self, call: InlineCall, text: str) -> None:
+    async def inline__handler(self, call: InlineCall, text: str):
         arr = ["❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "💖"]
         h = "🤍"
         for i in arr:
@@ -241,7 +241,7 @@ class ILYMod(loader.Module):
 
         await call.unload()
 
-    async def ilycmd(self, message: Message) -> None:
+    async def ilycmd(self, message: Message):
         """Send inline message with animating hearts"""
         args = utils.get_args_raw(message)
         await self.inline.form(
@@ -255,7 +255,7 @@ class ILYMod(loader.Module):
             disable_security=True,
         )
 
-    async def ilymatecmd(self, message: Message) -> None:
+    async def ilymatecmd(self, message: Message):
         """Send inline message with animating hearts v2"""
         args = utils.get_args_raw(message)
         await self.inline.form(

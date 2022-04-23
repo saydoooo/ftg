@@ -56,7 +56,7 @@ class WakaTimeMod(loader.Module):
             lambda: "Messages update interval. Not recommended < 300 seconds",
         )
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
         self._me = await client.get_me()
@@ -90,10 +90,10 @@ class WakaTimeMod(loader.Module):
 
         self._task = asyncio.ensure_future(self._parse())
 
-    async def on_unload(self) -> None:
+    async def on_unload(self):
         self._task.cancel()
 
-    async def _parse(self, do_not_loop: bool = False) -> None:
+    async def _parse(self, do_not_loop: bool = False):
         while True:
             if not self.config["wakatime_username"] or not self.get("state", False):
                 await asyncio.sleep(5)
@@ -152,11 +152,11 @@ class WakaTimeMod(loader.Module):
             result,
         )
 
-    async def _set_face(self, call: InlineCall, face: str) -> None:
+    async def _set_face(self, call: InlineCall, face: str):
         self.set("face", face)
         await call.edit(self.strings("face_set").format(face))
 
-    async def wakafacecmd(self, message: Message) -> None:
+    async def wakafacecmd(self, message: Message):
         """Choose a face, which will be shown in widgets"""
         await self.inline.form(
             self.strings("pick_face"),
@@ -164,7 +164,7 @@ class WakaTimeMod(loader.Module):
             message=message,
         )
 
-    async def wakatogglecmd(self, message: Message) -> None:
+    async def wakatogglecmd(self, message: Message):
         """Toggle widgets' updates"""
         if not self.config["wakatime_username"]:
             await utils.answer(message, self.strings("set_username"))
@@ -179,7 +179,7 @@ class WakaTimeMod(loader.Module):
             ),
         )
 
-    async def watcher(self, message: Message) -> None:
+    async def watcher(self, message: Message):
         if getattr(message, "raw_text", "") != "$WAKATIME_WIDGET$" or not message.out:
             return
 

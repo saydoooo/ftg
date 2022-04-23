@@ -76,7 +76,7 @@ class PMBLMod(loader.Module):
             lambda: "Whether to replace normal Kirito with maid-Kirito",
         )
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
         self._whitelist = self.get("whitelist", [])
@@ -94,7 +94,7 @@ class PMBLMod(loader.Module):
 
             self.set("ignore_qs", True)
 
-    async def pmblcmd(self, message: Message) -> None:
+    async def pmblcmd(self, message: Message):
         """Toggle PMAntiRaid"""
         current = self.get("state", False)
         new = not current
@@ -108,7 +108,7 @@ class PMBLMod(loader.Module):
             ),
         )
 
-    async def pmblsettcmd(self, message: Message) -> None:
+    async def pmblsettcmd(self, message: Message):
         """<report spam?> <delete dialog?> - Configure PMAntiRaid - all params are 1/0"""
         args = utils.get_args(message)
         if not args or len(args) != 2 or any(not _.isdigit() for _ in args):
@@ -126,7 +126,7 @@ class PMBLMod(loader.Module):
             ),
         )
 
-    async def pmbanlastcmd(self, message: Message) -> None:
+    async def pmbanlastcmd(self, message: Message):
         """<number> - Ban and delete dialogs with n most new users"""
         n = utils.get_args_raw(message)
         if not n or not n.isdigit():
@@ -170,14 +170,14 @@ class PMBLMod(loader.Module):
 
         await utils.answer(message, self.strings("removed").format(n))
 
-    def _approve(self, user: int, reason: str = "unknown") -> None:
+    def _approve(self, user: int, reason: str = "unknown"):
         self._whitelist += [user]
         self._whitelist = list(set(self._whitelist))
         self.set("whitelist", self._whitelist)
         logger.info(f"User approved in pm {user}, filter: {reason}")
         return
 
-    async def allowpmcmd(self, message: Message) -> None:
+    async def allowpmcmd(self, message: Message):
         """<reply or user> - Allow user to pm you"""
         args = utils.get_args_raw(message)
         reply = await message.get_reply_message()
@@ -205,7 +205,7 @@ class PMBLMod(loader.Module):
             message, self.strings("approved").format(user.id, get_display_name(user))
         )
 
-    async def watcher(self, message: Message) -> None:
+    async def watcher(self, message: Message):
         if getattr(message, "out", False):
             return
 

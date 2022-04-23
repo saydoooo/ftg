@@ -29,12 +29,12 @@ class SpoilersMod(loader.Module):
 
     strings = {"name": "Spoilers"}
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
         self._me = (await client.get_me()).id
 
-    async def hide_inline_handler(self, query: InlineQuery) -> None:
+    async def hide_inline_handler(self, query: InlineQuery):
         """Create new hidden message"""
         text = query.args
         for_user = "Specify username in the end"
@@ -68,7 +68,7 @@ class SpoilersMod(loader.Module):
             else {},
         }
 
-    async def _handler(self, call: InlineCall, text: str, for_user: int) -> None:
+    async def _handler(self, call: InlineCall, text: str, for_user: int):
         """Process button presses"""
         if call.from_user.id not in {
             for_user,

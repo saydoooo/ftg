@@ -24,11 +24,11 @@ class TelethonDocsMod(loader.Module):
 
     strings = {"name": "TelethonDocs"}
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
         self._client = client
 
-    async def watcher(self, message: Message) -> None:
+    async def watcher(self, message: Message):
         if not getattr(message, "raw_text", None):
             return
 

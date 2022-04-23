@@ -46,7 +46,7 @@ class serverInfoMod(loader.Module):
         "servinfo": "<b><u>👾 Server Info:</u>\n\n<u>🗄 Used resources:</u>\n    CPU: {} Cores {}%\n    RAM: {} / {}MB ({}%)\n\n<u>🧾 Dist info</u>\n    Kernel: {}\n    Arch: {}\n    OS: {}\n\n<u>📦 Python libs:</u>\n    Telethon: {}\n    Telethon-Mod: {}\n    Python-Git: {}\n    Python: {}\n    Pip: {}</b>",
     }
 
-    async def serverinfocmd(self, message: Message) -> None:
+    async def serverinfocmd(self, message: Message):
         """Show server info"""
         message = await utils.answer(message, self.strings("loading"))
         try:

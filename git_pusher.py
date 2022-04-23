@@ -453,10 +453,10 @@ class GitPusherMod(loader.Module):
         "terminal_required": "🚫 <b>Terminal module is required</b>"
     }
 
-    async def client_ready(self, client, db) -> None:
+    async def client_ready(self, client, db):
         self._db = db
 
-    async def setghdircmd(self, message: Message) -> None:
+    async def setghdircmd(self, message: Message):
         """<path> - Set directory as upstream"""
         args = utils.get_args_raw(message)
         if not args or not os.path.isdir(args.strip()):
@@ -466,7 +466,7 @@ class GitPusherMod(loader.Module):
         self.set("dir", args)
         await utils.answer(message, self.strings("dir_set").format(args))
 
-    async def pushcmd(self, message: Message) -> None:
+    async def pushcmd(self, message: Message):
         """[commit message] - Push current upstream directory"""
         if not self.get("dir"):
             await utils.answer(message, self.strings("no_dir"))

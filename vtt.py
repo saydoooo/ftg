@@ -64,7 +64,7 @@ class VoicyMod(loader.Module):
             raise
 
     @loader.unrestricted
-    async def voicycmd(self, message: Message) -> None:
+    async def voicycmd(self, message: Message):
         """Recognize voice message"""
         reply = await message.get_reply_message()
         if not reply or not reply.media or not reply.media.document.attributes[0].voice:
@@ -90,7 +90,7 @@ class VoicyMod(loader.Module):
 
         await self.recognize(event)
 
-    async def autovoicecmd(self, message: Message) -> None:
+    async def autovoicecmd(self, message: Message):
         """Toggle automatic recognition in current chat"""
         chat_id = utils.get_chat_id(message)
         if chat_id in self.chats:
