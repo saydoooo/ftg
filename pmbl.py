@@ -42,7 +42,7 @@ class PMBLMod(loader.Module):
         "args": "ℹ️ <b>Example usage: </b><code>.pmblsett 0 0</code>",
         "args_pmban": "ℹ️ <b>Example usage: </b><code>.pmbanlast 5</code>",
         "config": "😶‍🌫️ <b>Yeiks! Config saved</b>\n<i>Report spam? - {}\nDelete dialog? - {}</i>",
-        "banned": "😊 <b>Hewwo •ᴗ•</b>\nI'm Kirito, the <b>guardian</b> of this account and you are <b>not approved</b>! You can contact my owner <b>in chat</b>, if you need help.\n<b>Sorry, but I need to ban you in terms of security</b> 😥",
+        "banned": "😊 <b>Дарова •ᴗ•</b>\n я рома   <b>владелец этого аккаунта</b> я не <b>принимп</b>! Личные <b>сообщения</b>, Уйди\n<b>Отсюда</b> 😥",
         "removing": "😶‍🌫️ <b>Removing {} last dialogs...</b>",
         "removed": "😶‍🌫️ <b>Removed {} last dialogs!</b>",
         "user_not_specified": "🚫 <b>You haven't specified user</b>",
